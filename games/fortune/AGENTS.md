@@ -29,10 +29,11 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
   once, holds a brief pressure pose, opens once, then snaps and settles.
   Do not rapidly parade every available source image. The random message
   appears once on a thin, long DOM fortune ribbon anchored between the halves.
-  The route title is intentionally omitted from the viewport so the cookie and
-  category selector own the mobile hierarchy. Do not add a
-  pre-break levitation show, flying paper, a second result dialog, generic
-  confetti, yellow flash, or sparkle filler.
+  A compact route-title lockup sits above the selector in idle/result: one
+  cookie token, the localized Jua title, and two small candy bulbs. It exits
+  during the one-second opening so the cookie still owns the action beat. Do
+  not add a pre-break levitation show, flying paper, a second result dialog,
+  generic confetti, yellow flash, or sparkle filler.
 - The result uses a modern fortune slip surface built from Petr Kratochvil's
   CC0 white-paper photograph: one warm-white WebP with real, restrained fibers
   clipped to a nearly straight machine-cut strip. Accessible KO/EN text and

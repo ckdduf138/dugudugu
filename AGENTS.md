@@ -99,8 +99,10 @@ Techniques to reach for (use a subset per game, keep it snappy):
 
 ## 7. Status (update as you go)
 Current foundation: static KO/EN shell, seeded pure logic, one-Canvas game shell, rAF cue timeline, adaptive quality/WebGL fallback, accessible result dialog, sound/haptics helpers, and a Blender→GLB build path.
-Live experiences: a direct first-viewport lobby with one unified cabinet-face
-brand mark across the top bar, favicon, install icons, and social image. Its
+Live experiences: a direct first-viewport lobby with one unified face-free
+star-prize toy-cabinet mark across the top bar, favicon, install icons, and
+social image. Its coral body, pale-sky screen, single lemon star, and asymmetric
+joystick/button stay readable without the uncanny mirrored-eye cue. Its
 clean code-native 2D game art stays 2×2 on mobile/tablet and four-up on desktop,
 with one finite staggered power-on, restrained sheen, accent lamps/underlights,
 and a subtle static arcade-floor grid instead of new lobby copy or looping
@@ -177,10 +179,11 @@ real restrained fibers and accessible DOM fortune text at one second. The idle
 cookie now uses the same compact Lucide `Hand` icon + `Tap to open` pill as the
 draw capsule. The entire cookie remains the tap target, with no large
 pointer/finger or contact-ripple overlay. Antique parchment,
-floral corners, and deep scroll curls are intentionally removed. The title stays
-fixed while the category selector exits when opening begins; the result ribbon
-retains the chosen category icon. Fortune intentionally uses haptics without a
-mismatched generic biscuit SFX.
+floral corners, and deep scroll curls are intentionally removed. A compact
+cookie-token title lockup sits above the category selector in idle and result,
+then exits with the selector during opening so the action remains dominant; the
+result ribbon retains the chosen category icon. Fortune intentionally uses
+haptics without a mismatched generic biscuit SFX.
 Reduced-motion and WebGL fallbacks,
 Backward-compatible URL decoders and accessible announcements remain, while
 generic result-share controls and canvas-confetti have been removed from all

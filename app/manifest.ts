@@ -12,7 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/ko",
     display: "standalone",
     background_color: "#fff8f2",
-    theme_color: CANDY_HEX.pink,
+    theme_color: CANDY_HEX.coral,
     icons: [
       {
         src: "/brand-icon.svg",

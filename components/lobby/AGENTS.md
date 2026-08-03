@@ -21,9 +21,10 @@ The first viewport is a game picker, not a marketing landing page. A user should
 - English card names wrap to at most two lines at 390px instead of truncating;
   portrait-tablet grids are vertically balanced within the first viewport.
 - No raw emoji as artwork, no `backdrop-filter`, and no decorative interaction that looks tappable.
-- Brand identity uses one code-native cabinet-face mark: an ink rounded cabinet,
-  coral/lemon lights, and an ivory curved prize slot. Reuse it in the top bar,
-  favicon, install icons, and social lockup; do not fall back to a generic `D`.
+- Brand identity uses one code-native star-prize toy cabinet: a coral body,
+  pale-sky screen, one lemon star, and asymmetric joystick/button controls.
+  It has no face or mirrored eye-like details. Reuse it in the top bar, favicon,
+  install icons, and social lockup; do not fall back to a generic `D`.
 - Lobby delight stays finite: cards may power on once with a short stagger and
   a single restrained sheen, then remain still. Hover/focus can lift the cabinet
   and brighten its underlight. No looping sparkle, bob, pulse, or animated

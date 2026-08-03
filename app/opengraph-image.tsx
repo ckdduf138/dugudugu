@@ -51,30 +51,85 @@ export default function OpenGraphImage() {
               width: 118,
               height: 118,
               marginBottom: 22,
-              border: "9px solid white",
               borderRadius: 38,
-              background: "#34273a",
-              boxShadow: "0 10px 0 rgba(52,39,58,0.1)",
+              background: "#fff9fd",
+              boxShadow: "0 10px 0 rgba(52,39,58,0.08)",
             }}
           >
             <span
               style={{
                 position: "absolute",
-                left: 24,
-                top: 28,
-                width: 25,
-                height: 25,
-                borderRadius: 99,
+                left: 17,
+                top: 12,
+                width: 84,
+                height: 96,
+                borderRadius: 25,
                 background: CANDY_HEX.coral,
               }}
             />
             <span
               style={{
                 position: "absolute",
-                right: 24,
-                top: 28,
-                width: 25,
-                height: 25,
+                left: 27,
+                top: 22,
+                width: 64,
+                height: 47,
+                borderRadius: 15,
+                background: "#d9f1ff",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: 46,
+                top: 31,
+                width: 26,
+                height: 26,
+                background: CANDY_HEX.lemon,
+                clipPath:
+                  "polygon(50% 0%, 61% 34%, 98% 35%, 68% 57%, 79% 94%, 50% 72%, 21% 94%, 32% 57%, 2% 35%, 39% 34%)",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: 23,
+                top: 71,
+                width: 72,
+                height: 27,
+                background: "white",
+                clipPath: "polygon(0 0, 100% 0, 91% 100%, 9% 100%)",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: 44,
+                top: 81,
+                width: 6,
+                height: 13,
+                borderRadius: 99,
+                background: "#34273a",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: 40,
+                top: 76,
+                width: 14,
+                height: 14,
+                borderRadius: 99,
+                background: CANDY_HEX.mint,
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: 66,
+                top: 80,
+                width: 15,
+                height: 15,
                 borderRadius: 99,
                 background: CANDY_HEX.lemon,
               }}
@@ -82,12 +137,12 @@ export default function OpenGraphImage() {
             <span
               style={{
                 position: "absolute",
-                left: 28,
-                bottom: 22,
-                width: 62,
-                height: 24,
-                borderBottom: "9px solid white",
+                left: 39,
+                top: 100,
+                width: 40,
+                height: 6,
                 borderRadius: 99,
+                background: "rgba(52,39,58,0.42)",
               }}
             />
           </div>

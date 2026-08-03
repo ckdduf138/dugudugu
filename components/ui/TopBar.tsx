@@ -47,10 +47,6 @@ export function TopBar({
           >
             <BrandMark className="h-9 w-9 shrink-0 drop-shadow-[0_5px_7px_color-mix(in_srgb,var(--ink)_13%,transparent)] transition-transform duration-300 ease-[var(--ease-pop)] group-hover/brand:-rotate-3 group-hover/brand:scale-105" />
             <span className="max-w-[7rem] truncate leading-none">{siteName}</span>
-            <span aria-hidden className="flex items-end gap-0.5 self-end pb-2">
-              <span className="h-1 w-1 rounded-full bg-candy-coral" />
-              <span className="h-1.5 w-1.5 rounded-full bg-candy-lemon" />
-            </span>
           </Link>
         )}
       </div>
