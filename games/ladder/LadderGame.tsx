@@ -12,16 +12,15 @@ import {
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
-  ArrowLeftRight,
   Check,
+  ChevronDown,
   Minus,
-  PencilLine,
   Play,
   Plus,
   RotateCcw,
-  Sparkles,
 } from "lucide-react";
 import { LiveAnnouncer, SkipCutsceneButton } from "@/components/game-shell";
+import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
 import { playSfx, preloadSfx } from "@/lib/audio";
 import { vibrate } from "@/lib/haptics";
 import { pressable, spring } from "@/lib/motion";
@@ -99,6 +98,10 @@ type AnimalSlotProps = {
   compact: boolean;
   phase: LadderPhase;
   selected: boolean;
+  revealed: boolean;
+  animating: boolean;
+  inviting: boolean;
+  disabled: boolean;
   ariaLabel: string;
   onSelect: () => void;
 };
@@ -109,6 +112,10 @@ function AnimalSlot({
   compact,
   phase,
   selected,
+  revealed,
+  animating,
+  inviting,
+  disabled,
   ariaLabel,
   onSelect,
 }: AnimalSlotProps) {
@@ -120,7 +127,7 @@ function AnimalSlot({
           selected
             ? "border-[var(--animal-color)] ring-4 ring-[var(--animal-color)]/20"
             : "border-ink/8"
-        }`}
+        } ${animating ? "opacity-35" : revealed && phase === "running" ? "opacity-70" : "opacity-100"}`}
         style={{
           background:
             "color-mix(in srgb, var(--animal-color) 16%, var(--surface))",
@@ -136,7 +143,7 @@ function AnimalSlot({
         >
           {index + 1}
         </span>
-        {selected ? (
+        {revealed ? (
           <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-[var(--animal-color)] text-ink shadow-sm">
             <Check size={11} strokeWidth={3.5} />
           </span>
@@ -145,6 +152,28 @@ function AnimalSlot({
       <span className="mt-1.5 line-clamp-1 w-full text-center text-[11px] font-black leading-tight text-ink-soft sm:text-xs">
         {name}
       </span>
+      <motion.span
+        aria-hidden
+        className="mt-0.5 grid h-3 place-items-center text-[var(--animal-color)]"
+        initial={false}
+        animate={
+          inviting
+            ? { opacity: [0.35, 1, 0.35], y: [0, 3, 0] }
+            : { opacity: 0, y: 0 }
+        }
+        transition={
+          inviting
+            ? {
+                duration: 0.9,
+                delay: index * 0.07,
+                repeat: 2,
+                ease: "easeInOut",
+              }
+            : { duration: 0.12 }
+        }
+      >
+        <ChevronDown size={13} strokeWidth={3} />
+      </motion.span>
     </>
   );
   const style = { "--animal-color": token } as CSSProperties;
@@ -154,9 +183,10 @@ function AnimalSlot({
       <motion.button
         type="button"
         onClick={onSelect}
+        disabled={disabled}
         aria-pressed={selected}
         aria-label={ariaLabel}
-        className="flex min-h-14 min-w-0 flex-col items-center rounded-xl px-0.5 py-1 outline-none focus-visible:ring-4 focus-visible:ring-[var(--animal-color)]/30"
+        className="flex min-h-14 min-w-0 flex-col items-center rounded-xl px-0.5 py-1 outline-none focus-visible:ring-4 focus-visible:ring-[var(--animal-color)]/30 disabled:cursor-default"
         style={style}
         {...pressable}
       >
@@ -198,6 +228,7 @@ export function LadderGame() {
   const [animatingPlayer, setAnimatingPlayer] = useState<number | null>(null);
   const [animationKey, setAnimationKey] = useState(0);
   const [revealedPlayers, setRevealedPlayers] = useState<number[]>([]);
+  const [showAllResults, setShowAllResults] = useState(false);
   const boardTitleId = useId();
   const resultRef = useRef<HTMLDivElement>(null);
   const valid = isValidLadderSetup(players, outcomes);
@@ -238,7 +269,8 @@ export function LadderGame() {
       vibrate("tick");
       step += 1;
     }, 470);
-    const portal = round?.rungs.find((rung) => rung.kind === "portal");
+    const assignment = round?.assignments[animatingPlayer];
+    const portal = assignment?.path.find((point) => point.via === "portal");
     const portalTimer =
       portal == null
         ? null
@@ -280,13 +312,26 @@ export function LadderGame() {
   }, [outcomes, players, round, t]);
 
   const completeRound = useCallback(() => {
-    if (animatingPlayer == null) return;
-    setRevealedPlayers((current) =>
-      current.includes(animatingPlayer) ? current : [...current, animatingPlayer],
-    );
+    if (animatingPlayer == null || !round) return;
+    const completedPlayer = animatingPlayer;
+    const nextRevealed = revealedPlayers.includes(completedPlayer)
+      ? revealedPlayers
+      : [...revealedPlayers, completedPlayer];
+    setHighlightedPlayer(completedPlayer);
+    setRevealedPlayers(nextRevealed);
     setAnimatingPlayer(null);
+    if (nextRevealed.length === round.assignments.length) finishRound();
+  }, [animatingPlayer, finishRound, revealedPlayers, round]);
+
+  const revealAll = useCallback(() => {
+    if (!round || phase === "idle") return;
+    setAnimationKey((current) => current + 1);
+    setHighlightedPlayer(null);
+    setAnimatingPlayer(null);
+    setRevealedPlayers(round.assignments.map((_, index) => index));
+    setShowAllResults(true);
     finishRound();
-  }, [animatingPlayer, finishRound]);
+  }, [finishRound, phase, round]);
 
   const start = useCallback(() => {
     const generated = beginRound();
@@ -298,6 +343,7 @@ export function LadderGame() {
     setHighlightedPlayer(null);
     setAnimatingPlayer(null);
     setRevealedPlayers([]);
+    setShowAllResults(false);
     playSfx("ladder-start", { volume: 0.54 });
     vibrate("pop");
   }, [beginRound, shouldReduceMotion]);
@@ -306,20 +352,23 @@ export function LadderGame() {
     setHighlightedPlayer(null);
     setAnimatingPlayer(null);
     setRevealedPlayers([]);
+    setShowAllResults(false);
     resetRound();
   }, [resetRound]);
 
   const selectRoute = useCallback((index: number) => {
     if (phase === "idle" || animatingPlayer != null) return;
-    setHighlightedPlayer(index);
+    if (phase === "running" && revealedPlayers.includes(index)) return;
+    setHighlightedPlayer(null);
     setAnimatingPlayer(index);
+    setShowAllResults(false);
     setAnimationKey((current) => current + 1);
     playSfx("ladder-select", {
       volume: 0.36,
       rate: 0.98 + index * 0.025,
     });
     vibrate("tap");
-  }, [animatingPlayer, phase]);
+  }, [animatingPlayer, phase, revealedPlayers]);
 
   const selectedAssignment =
     round && highlightedPlayer != null
@@ -328,23 +377,32 @@ export function LadderGame() {
   const columnsStyle = {
     gridTemplateColumns: `repeat(${players.length}, minmax(0, 1fr))`,
   };
+  const allResultsText = round
+    ? round.assignments
+        .map((assignment) => `${assignment.player} → ${assignment.outcome}`)
+        .join(", ")
+    : "";
   const announcement =
-    phase === "done" && selectedAssignment
-      ? t("result.announcement", {
-          player: selectedAssignment.player,
-          outcome: selectedAssignment.outcome,
-        })
-      : phase === "running"
-        ? animatingPlayer == null
-          ? t("stage.tapAnimal")
-          : t("stage.running")
-        : null;
+    phase === "done" && round
+      ? t("result.allAnnouncement", { results: allResultsText })
+      : animatingPlayer != null && round
+        ? t("stage.runningPlayer", {
+            player: round.assignments[animatingPlayer].player,
+          })
+        : selectedAssignment
+          ? t("result.announcement", {
+              player: selectedAssignment.player,
+              outcome: selectedAssignment.outcome,
+            })
+          : phase === "running"
+            ? t("stage.tapAnimal")
+            : null;
 
   return (
     <main className="relative min-h-[100svh] overflow-x-hidden bg-[linear-gradient(180deg,var(--bg),color-mix(in_srgb,var(--candy-lemon)_9%,var(--bg))_58%,color-mix(in_srgb,var(--candy-mint)_7%,var(--bg)))] pb-5 pt-[4.75rem] [--primary:var(--candy-sky)] sm:px-6 sm:pb-8 sm:pt-20">
       <LiveAnnouncer
         message={announcement}
-        announcementKey={`${phase}:${round?.seed ?? "setup"}:${highlightedPlayer ?? "none"}`}
+        announcementKey={`${phase}:${round?.seed ?? "setup"}:${highlightedPlayer ?? "none"}:${animatingPlayer ?? "none"}:${revealedPlayers.length}`}
       />
 
       <motion.section
@@ -355,14 +413,7 @@ export function LadderGame() {
         aria-labelledby={boardTitleId}
       >
         <header className="flex items-center justify-between gap-2 px-1 pb-3 sm:gap-3 sm:pb-4">
-          <div className="min-w-0">
-            <h1
-              id={boardTitleId}
-              className="font-display text-3xl leading-none text-ink sm:text-4xl"
-            >
-              {t("title")}
-            </h1>
-          </div>
+          <GameRouteTitle id={boardTitleId}>{t("title")}</GameRouteTitle>
 
           <div className="flex items-center gap-2">
             {phase === "idle" ? (
@@ -397,6 +448,13 @@ export function LadderGame() {
                 <Plus size={18} strokeWidth={2.8} />
               </button>
             </div>
+            ) : phase === "running" ? (
+              <SkipCutsceneButton
+                visible
+                label={t("stage.skip")}
+                onSkip={revealAll}
+                className="shrink-0 shadow-sm"
+              />
             ) : (
               <span className="inline-flex min-h-11 min-w-[4.25rem] items-center justify-center rounded-full border border-ink/8 bg-ink/[0.035] px-3 font-display text-base text-ink sm:text-lg">
                 {t("setup.playerCount", { count: players.length })}
@@ -420,6 +478,17 @@ export function LadderGame() {
               })}
               onSelect={() => selectRoute(index)}
               selected={highlightedPlayer === index}
+              revealed={revealedPlayers.includes(index)}
+              animating={animatingPlayer === index}
+              inviting={
+                phase === "running" &&
+                animatingPlayer == null &&
+                !revealedPlayers.includes(index)
+              }
+              disabled={
+                animatingPlayer != null ||
+                (phase === "running" && revealedPlayers.includes(index))
+              }
             />
           ))}
         </div>
@@ -434,57 +503,23 @@ export function LadderGame() {
             animatingPlayer={animatingPlayer}
             animationKey={animationKey}
             revealedPlayers={revealedPlayers}
+            revealAll={showAllResults}
             onComplete={completeRound}
             label={t("stage.aria")}
             reducedMotion={shouldReduceMotion}
           />
           {phase === "idle" ? (
-            <>
-              <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 text-[10px] font-black text-ink-soft sm:text-xs">
-                <ArrowLeftRight aria-hidden size={14} strokeWidth={2.6} />
-                <span>{t("stage.portalRule")}</span>
-              </div>
-              <div className="pointer-events-none absolute inset-0 grid place-items-center">
-                {valid ? (
-                  <motion.button
-                    type="button"
-                    onClick={start}
-                    className="pointer-events-auto inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-ink/8 bg-ink px-5 text-sm font-black text-surface shadow-[0_10px_28px_rgba(52,39,58,0.13)] outline-none transition sm:text-base"
-                    {...pressable}
-                  >
-                    <Play
-                      aria-hidden
-                      size={17}
-                      fill="currentColor"
-                    />
-                    {t("setup.start")}
-                  </motion.button>
-                ) : (
-                  <div className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-ink/8 bg-surface/94 px-4 text-xs font-black text-ink-soft shadow-[0_10px_28px_rgba(52,39,58,0.1)] sm:text-sm">
-                    <PencilLine aria-hidden size={15} />
-                    {t("setup.startDisabled")}
-                  </div>
-                )}
-              </div>
-            </>
-          ) : animatingPlayer != null ? (
-            <div className="pointer-events-none absolute inset-x-3 top-3 flex items-center justify-between gap-2">
-              <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-surface/94 px-3 py-2 text-xs font-black text-candy-grape shadow-sm">
-                <Sparkles aria-hidden size={15} className="shrink-0" />
-                <span className="truncate">{t("stage.running")}</span>
-              </span>
-              <SkipCutsceneButton
-                visible
-                label={t("stage.skip")}
-                onSkip={completeRound}
-                className="pointer-events-auto shrink-0 shadow-sm"
-              />
-            </div>
-          ) : phase === "running" ? (
-            <div className="pointer-events-none absolute inset-x-4 top-4 flex justify-center">
-              <span className="inline-flex min-h-11 items-center rounded-full border border-ink/8 bg-surface/94 px-4 text-center text-xs font-black text-ink shadow-sm">
-                {t("stage.tapAnimal")}
-              </span>
+            <div className="pointer-events-none absolute inset-0 grid place-items-center">
+              <motion.button
+                type="button"
+                onClick={start}
+                disabled={!valid}
+                className="pointer-events-auto inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-ink/8 bg-ink px-5 text-sm font-black text-surface shadow-[0_10px_28px_rgba(52,39,58,0.13)] outline-none transition disabled:cursor-not-allowed disabled:opacity-35 sm:text-base"
+                {...pressable}
+              >
+                <Play aria-hidden size={17} fill="currentColor" />
+                {t("setup.start")}
+              </motion.button>
             </div>
           ) : null}
         </div>
@@ -509,46 +544,32 @@ export function LadderGame() {
           ))}
         </div>
 
-        {phase === "done" ? (
+        {phase === "done" && animatingPlayer == null ? (
           <footer className="mt-3 border-t border-ink/[0.07] pt-3 sm:mt-4 sm:pt-4">
             <div
               ref={resultRef}
               tabIndex={-1}
               className="outline-none"
             >
-              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                <div className="min-w-0 rounded-xl bg-surface px-3 py-2.5 shadow-sm">
-                  {selectedAssignment ? (
-                    <p className="flex min-w-0 items-center gap-2">
-                      <span
-                        aria-hidden
-                        className="h-3 w-3 shrink-0 rounded-full"
-                        style={{
-                          background: `var(${TOKEN_CSS_VARS[selectedAssignment.playerIndex]})`,
-                        }}
-                      />
-                      <strong className="truncate text-sm text-ink sm:text-base">
-                        {selectedAssignment.player}
-                      </strong>
-                      <span className="shrink-0 text-ink-soft">→</span>
-                      <span className="truncate font-display text-lg text-ink">
-                        {selectedAssignment.outcome}
-                      </span>
-                    </p>
-                  ) : null}
-                </div>
-                <div>
-                  <motion.button
-                    type="button"
-                    onClick={editSetup}
-                    className="toy-btn inline-flex min-h-11 w-full items-center justify-center gap-1.5 px-4 text-sm"
-                    {...pressable}
-                  >
-                    <RotateCcw size={16} />
-                    {t("result.replay")}
-                  </motion.button>
-                </div>
-              </div>
+              <ul className="sr-only">
+                {round?.assignments.map((assignment) => (
+                  <li key={assignment.playerIndex}>
+                    {t("result.announcement", {
+                      player: assignment.player,
+                      outcome: assignment.outcome,
+                    })}
+                  </li>
+                ))}
+              </ul>
+              <motion.button
+                type="button"
+                onClick={editSetup}
+                className="toy-btn mx-auto inline-flex min-h-11 items-center justify-center gap-1.5 px-5 text-sm"
+                {...pressable}
+              >
+                <RotateCcw size={16} />
+                {t("result.replay")}
+              </motion.button>
             </div>
           </footer>
         ) : null}

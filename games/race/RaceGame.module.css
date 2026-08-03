@@ -45,15 +45,6 @@
   text-transform: uppercase;
 }
 
-.title {
-  margin: 0;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 6vw, 3.5rem);
-  font-weight: 400;
-  line-height: 0.96;
-}
-
 .tagline {
   max-width: 31rem;
   margin: 0.65rem 0 0;
@@ -93,16 +84,21 @@
 }
 
 .grid {
+  --race-stage-height: clamp(28rem, 55svh, 36rem);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 0;
 }
 
+.gridSetup {
+  position: relative;
+}
+
 .stage {
   position: relative;
   min-width: 0;
-  height: clamp(28rem, 55svh, 36rem);
+  height: var(--race-stage-height);
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
   border-radius: calc(var(--radius-lg) * 1.5);
@@ -426,41 +422,6 @@
   background: color-mix(in srgb, var(--candy-sky) 14%, var(--surface));
 }
 
-.tensionCue {
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + 9.25rem);
-  left: 50%;
-  z-index: 7;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  border: 1px solid color-mix(in srgb, var(--candy-lemon) 42%, var(--surface));
-  border-radius: 999px;
-  padding: 0.38rem 0.72rem;
-  color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 90%, var(--candy-lemon));
-  box-shadow: 0 0.3rem 0 color-mix(in srgb, var(--ink) 7%, transparent);
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  pointer-events: none;
-  translate: -50% 0;
-}
-
-.tensionCueImpact {
-  color: var(--ink);
-  background: linear-gradient(135deg, var(--candy-lemon), color-mix(in srgb, var(--candy-coral) 52%, var(--candy-lemon)));
-  box-shadow:
-    0 0.4rem 1rem color-mix(in srgb, var(--ink) 18%, transparent),
-    0 0 1.4rem color-mix(in srgb, var(--candy-lemon) 58%, transparent);
-}
-
-.tensionCueFinal {
-  color: var(--ink);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--candy-coral) 78%, var(--surface)), color-mix(in srgb, var(--candy-pink) 76%, var(--surface)));
-  animation: tensionCuePulse 420ms ease-in-out infinite alternate;
-}
-
 .leaderPillFinal {
   background: color-mix(in srgb, var(--surface) 86%, var(--candy-coral));
   box-shadow:
@@ -549,7 +510,6 @@
   transition: width 80ms ease-out;
 }
 
-.stageAction,
 .skipButton {
   position: absolute;
   z-index: 8;
@@ -561,24 +521,19 @@
   cursor: pointer;
 }
 
-.stageAction {
-  bottom: 1rem;
+.stageStart {
+  position: absolute;
+  top: calc(var(--race-stage-height) - 4.65rem);
   left: 50%;
+  z-index: 8;
   display: inline-flex;
-  min-width: min(15rem, calc(100% - 2rem));
+  min-width: min(12rem, calc(100% - 2rem));
+  min-height: 3.25rem;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.85rem 1.2rem;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--candy-coral) 70%, white), var(--candy-coral));
-  box-shadow: 0 0.45rem 0 color-mix(in srgb, var(--ink) 20%, transparent), 0 1rem 2rem color-mix(in srgb, var(--candy-coral) 30%, transparent);
-  transform: translateX(-50%);
-}
-
-.stageAction:disabled {
-  cursor: not-allowed;
-  filter: grayscale(0.45);
-  opacity: 0.58;
+  font-size: 1rem;
+  translate: -50% 0;
 }
 
 .skipButton {
@@ -668,21 +623,6 @@
     0 0.4rem 0 color-mix(in srgb, var(--ink) 14%, transparent),
     0 0.9rem 2rem color-mix(in srgb, var(--candy-sky) 34%, transparent),
     0 0 2.5rem color-mix(in srgb, var(--candy-mint) 30%, transparent);
-}
-
-.countdownKicker {
-  position: absolute;
-  top: calc(50% + 2.9rem);
-  z-index: 1;
-  border-radius: 999px;
-  padding: 0.35rem 0.72rem;
-  color: var(--surface);
-  background: color-mix(in srgb, var(--ink) 74%, transparent);
-  box-shadow: 0 0.35rem 1rem color-mix(in srgb, var(--ink) 22%, transparent);
-  font-size: 0.7rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .impactFlash {
@@ -816,12 +756,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.actions {
-  display: block;
-  gap: 0.55rem;
-  margin-top: 0.75rem;
 }
 
 .startButton {
@@ -1031,7 +965,7 @@
 .resultRow {
   --racer-color: var(--candy-pink);
   display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  grid-template-columns: 2rem minmax(0, 1fr);
   align-items: center;
   gap: 0.55rem;
   border: 1px solid color-mix(in srgb, var(--racer-color) 28%, transparent);
@@ -1070,12 +1004,6 @@
   border-radius: 0.5rem;
   object-fit: contain;
   background: color-mix(in srgb, var(--racer-color) 18%, var(--surface));
-}
-
-.laneLabel {
-  color: var(--ink-soft);
-  font-size: 0.7rem;
-  font-weight: 800;
 }
 
 .resultActions {
@@ -1159,11 +1087,6 @@
   to { opacity: 0.9; }
 }
 
-@keyframes tensionCuePulse {
-  from { transform: scale(0.98); }
-  to { transform: scale(1.04); }
-}
-
 @keyframes pulse {
   from { transform: scale(0.88); }
   to { transform: scale(1.12); }
@@ -1175,11 +1098,8 @@
   }
 
   .grid {
+    --race-stage-height: clamp(28rem, 62svh, 36rem);
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .stage {
-    height: clamp(28rem, 62svh, 36rem);
   }
 
   .panel {
@@ -1193,9 +1113,11 @@
     padding-inline: 0.65rem;
   }
 
+  .grid {
+    --race-stage-height: max(27rem, min(34rem, 64svh));
+  }
+
   .stage {
-    height: min(34rem, 64svh);
-    min-height: 27rem;
     border-radius: var(--radius-lg);
   }
 
@@ -1252,7 +1174,7 @@
   .cinematicFrame::before,
   .cinematicFrame::after,
   .finalTensionWash,
-  .tensionCueFinal {
+  .photoFinish {
     animation: none;
   }
 

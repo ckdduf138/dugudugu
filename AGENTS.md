@@ -19,6 +19,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
 3. **Start = a short authored game "컷신" plays** (polished mobile mini-game timing; 3D by default, crisp 2D for the portal ladder) → result reveal → play again.
 4. **Interaction = click/tap only.** No drag-to-pull, no physical dragging, no 3D orbit. A click triggers the motion.
 
+### Self-evident UI rule
+- Visible copy names a destination, action, input, or result. It does not
+  narrate motion or repeat state that the scene already makes obvious.
+- Prefer position, motion, completion marks, and disabled states that teach the
+  next action without an instruction pill. Keep action verbs such as Start,
+  Show all results, and Play again; replacing them with ambiguous icons makes
+  users think more, not less.
+- Screen-reader announcements and semantic labels remain complete even when
+  their visual explanation is removed.
+
 ## 2. Tech stack (DECIDED — do not swap without updating this file)
 - **Next.js 16** App Router, `output: 'export'` (100% static). React 19, TypeScript.
 - **Tailwind v4** (tokens in `app/globals.css` `@theme`). Design tokens below — never hardcode palette/radius.
@@ -99,6 +109,10 @@ Techniques to reach for (use a subset per game, keep it snappy):
 
 ## 7. Status (update as you go)
 Current foundation: static KO/EN shell, seeded pure logic, one-Canvas game shell, rAF cue timeline, adaptive quality/WebGL fallback, accessible result dialog, sound/haptics helpers, and a Blender→GLB build path.
+The v1.1 UI uses one shared left-aligned Jua route title with two restrained
+candy bulbs across all four games. Visible narration is removed when motion,
+position, rank, or completion state already communicates the same fact; action
+labels, result copy, semantic labels, and screen-reader announcements remain.
 Live experiences: a direct first-viewport lobby with one unified face-free
 star-prize toy-cabinet mark across the top bar, favicon, install icons, and
 social image. Its coral body, pale-sky screen, single lemon star, and asymmetric
@@ -137,8 +151,10 @@ markings, head tilts, large double eye highlights, and cheeks above. Four-player
 portraits use a larger toy-sticker presentation while five- and six-player
 boards compact without overlap; outcome-only editing stays below with 44px `−`/`+`
 controls, seeded uniform assignments, exactly one colored paired edge portal,
-an in-board start action, animated animal-face route tokens, dedicated tactile
-ladder SFX, and in-board route inspection/results. The seeded animal race uses
+an in-board start action, animated animal-face route tokens whose colored path
+grows only behind the moving face, an always-available all-results action that
+reveals every frozen assignment at once, dedicated tactile ladder SFX, and
+in-board route inspection/results. The seeded animal race uses
 seven ITHappy
 Animals Free rigs and original Run clips in one shared-texture final-product
 GLB. Reproducible 320px warm-key/cool-fill 3/4 portraits are rendered from the
@@ -157,7 +173,8 @@ the 32m straight into visible progress sections. A compact
 rendered-model HUD identifies the live first and second place on bright cream
 toy chips instead of an opaque dark sports panel. A high-key candy grandstand
 with clean sky/grape tiers, coral supports, canopy, LED ribbons, scoreboard,
-start lights, a restrained layered meadow horizon, contextual overtake cues, and a
+start lights, a restrained layered meadow horizon, screen-reader-only lead
+announcements, and a
 tighter multi-shot camera make the seeded lead changes readable. Dedicated
 start-light, gate, dirt-hoof, overtake, photo, and finish SFX replace the old
 generic UI cues. The race supports 2–7
@@ -180,8 +197,8 @@ cookie now uses the same compact Lucide `Hand` icon + `Tap to open` pill as the
 draw capsule. The entire cookie remains the tap target, with no large
 pointer/finger or contact-ripple overlay. Antique parchment,
 floral corners, and deep scroll curls are intentionally removed. A compact
-cookie-token title lockup sits above the category selector in idle and result,
-then exits with the selector during opening so the action remains dominant; the
+shared route title sits above the category selector in idle and result, then
+exits with the selector during opening so the action remains dominant; the
 result ribbon retains the chosen category icon. Fortune intentionally uses
 haptics without a mismatched generic biscuit SFX.
 Reduced-motion and WebGL fallbacks,
@@ -190,8 +207,9 @@ generic result-share controls and canvas-confetti have been removed from all
 four live games;
 the duplicate result dialog and skip control are removed. Fortune keeps its
 setup-only category selector, cookie, and single inline result in one mobile-first
-viewport with no editor or setup deck. Draw and race keep a stage-first flow
-with a compact inline control deck below it; the ladder keeps editing, play,
+viewport with no editor or setup deck. Draw and race keep a stage-first flow;
+draw has a compact inline control deck below, while race docks its sole Start
+action inside the arena and leaves only the count/portrait deck below. The ladder keeps editing, play,
 and results inside one SVG board. Setup UX keeps one primary action per screen:
 draw winner count is progressive disclosure, ladder player count uses direct
 `−`/`+` controls, and race defaults to a legible three-animal cast with no

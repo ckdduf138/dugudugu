@@ -12,6 +12,7 @@ type RaceRosterEditorProps = {
   max: number;
   animalNames: readonly string[];
   countLabel: string;
+  countValue: (count: number) => string;
   countAriaLabel: (count: number) => string;
   rosterLabel: string;
   disabled?: boolean;
@@ -25,6 +26,7 @@ export function RaceRosterEditor({
   max,
   animalNames,
   countLabel,
+  countValue,
   countAriaLabel,
   rosterLabel,
   disabled = false,
@@ -52,14 +54,11 @@ export function RaceRosterEditor({
         </button>
         <div className="text-center">
           <strong
-            className="block font-display text-4xl leading-none text-candy-coral"
+            className="block font-display text-3xl leading-none text-candy-coral sm:text-4xl"
             aria-live="polite"
           >
-            {values.length}
+            {countValue(values.length)}
           </strong>
-          <span className="mt-1 block text-xs font-black text-ink-soft">
-            {countLabel}
-          </span>
         </div>
         <button
           type="button"

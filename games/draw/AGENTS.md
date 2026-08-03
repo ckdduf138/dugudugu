@@ -52,6 +52,10 @@ Read this file only for changes under `games/draw/` or the gacha Blender asset.
 
 ## Sound and replay contract
 
+- Setup keeps the candidate field label, candidate chips, winner-count control,
+  and Start action. Do not add visible readiness sentences or explain that the
+  entered candidates mirror the capsules; the chamber and disabled Start state
+  already communicate both.
 - Draw uses its own dry plastic/mechanical files:
   `gacha-load`, `gacha-turn`, `gacha-rattle`, `gacha-index`, `gacha-drop`,
   `gacha-land`, `gacha-open`, and `gacha-reveal`. Each cue maps to one visible

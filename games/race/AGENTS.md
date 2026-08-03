@@ -19,7 +19,9 @@ Read this file only for changes under `games/race/` or its animal Blender assets
 - Shared URLs preserve the explicit count and blank tag slots with
   `?n=&names=&seed=`. Older links without `n` remain valid.
 - Setup is part of the arena flow: stage first, then the centered count
-  stepper, compact portrait-only row, and Start action. Animal names remain
+  stepper and compact portrait-only row. The single Start action is visually
+  docked inside the lower empty portion of the arena, while its DOM order stays
+  after the roster controls for keyboard users. Animal names remain
   accessible but are visually omitted because the rendered portraits provide
   faster recognition. Keep this order on mobile,
   tablet, and desktop; do not restore a separate card or side panel.
@@ -92,8 +94,9 @@ Read this file only for changes under `games/race/` or its animal Blender assets
   cinematic breathing room.
 - Keep labels in DOM, but do not cover the race with live standings cards. The
   status layer is one compact first/second model pill, a leader-progress rail,
-  and a short contextual cue (lead change, close race, or final sprint). These
-  surfaces use the same bright cream/candy toy language as setup and result;
+  and no visible sentence narrating the action. Lead-change announcements stay
+  screen-reader-only; the faces, rail, camera, and sound communicate the race
+  visually. The remaining surfaces use the same bright cream/candy toy language as setup and result;
   do not turn the live HUD into an opaque plum sports-broadcast panel. During
   the cutscene the only actionable DOM control is Skip.
 - Race audio is file-backed and beat-specific: start-light clicks, gate

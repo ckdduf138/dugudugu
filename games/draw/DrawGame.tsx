@@ -15,9 +15,9 @@ import {
   Play,
   Plus,
   RotateCcw,
-  UsersRound,
 } from "lucide-react";
 import { ChipsInput } from "@/components/ui/ChipsInput";
+import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
 import { GameShell } from "@/components/game-shell";
 import { SceneCanvas } from "@/components/scene";
 import {
@@ -235,9 +235,7 @@ export function DrawGame() {
           className="absolute inset-x-4 flex items-center justify-between gap-3 sm:inset-x-6"
           style={{ top: "calc(env(safe-area-inset-top) + 4.5rem)" }}
         >
-          <h1 className="font-display text-3xl leading-none text-ink sm:text-4xl">
-            {t("title")}
-          </h1>
+          <GameRouteTitle>{t("title")}</GameRouteTitle>
           {phase === "idle" ? (
             <motion.span
               key={list.length}
@@ -360,9 +358,6 @@ export function DrawGame() {
           <label className="block text-sm font-black text-ink">
             {t("intro.namesLabel")}
           </label>
-          <p className="mt-0.5 text-xs font-semibold text-ink-soft">
-            {t("intro.capsuleSync")}
-          </p>
         </div>
       </div>
       <ChipsInput
@@ -375,16 +370,6 @@ export function DrawGame() {
         removeLabel={tc("remove")}
         compact
       />
-
-      <div className="mt-3 flex items-center justify-between gap-3 text-xs font-black">
-        <span className="inline-flex items-center gap-1.5 text-ink-soft">
-          <UsersRound size={15} />
-          {t("intro.entries", { count: list.length })}
-        </span>
-        <span className={valid ? "text-positive" : "text-negative"}>
-          {valid ? t("intro.ready") : t("intro.needMore")}
-        </span>
-      </div>
 
       <details className="group mt-4 rounded-2xl border border-ink/8 bg-surface/50 px-3">
         <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 text-sm font-black text-ink marker:content-none">

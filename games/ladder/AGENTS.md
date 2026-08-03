@@ -33,19 +33,24 @@ Read this file only for changes under `games/ladder/`.
   render one large generic portal in the vertical center. Render each gate as a
   restrained grape-colored edge socket, not a candy ring or sci-fi portal.
   After Start freezes the round, the top animal portraits become buttons. Each
-  tap animates only that animal along the rails and through the paired gates;
-  routes are revealed one at a time. Reduced motion and skip must reveal the
-  same frozen result.
+  tap animates only that animal along the rails and through the paired gates.
+  The colored route must grow behind the moving face; never paint the complete
+  path before it arrives. Completed animals stay checked, and `done` means all
+  animals are revealed. The always-available `Show all results` action during
+  running reveals every frozen assignment at once without drawing every path.
+  Reduced motion and that action must preserve the same frozen result.
 - Two-player boards use only 5–6 beats because every normal bridge spans the
   same full width; larger fields keep the denser 10–16-row rhythm.
 - Ladder audio uses its dedicated file-backed set: a soft wooden start cue,
   bead-like route steps, one airy portal pass, a small selection tap, and a
   toy-marimba finish. Do not fall back to generic capsule `pop`/`tick` cues.
 - Setup's single start action floats in the ladder board and disappears during
-  play. Do not reserve a separate setup footer just for readiness, samples, or
-  the start button.
+  play. The same disabled Start button stays in place while outcomes are
+  incomplete; empty fields communicate why. Do not add visible narration pills
+  for readiness, portal behavior, route selection, or movement. Accessible
+  live announcements remain screen-reader-only.
 - Result mode keeps revealed routes available, lets any top animal replay its
-  route, and has one Play again action that returns to setup with values
+  route with the same trailing-line motion, and has one Play again action that returns to setup with values
   preserved. Do not add a separate edit icon or generic
   result-share control or canvas confetti.
 - Verify 2, 4, and 6 players at 390px plus tablet/desktop, determinism and

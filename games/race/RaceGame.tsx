@@ -16,12 +16,13 @@ import {
   PawPrint,
   Play,
   RotateCcw,
-  Zap,
 } from "lucide-react";
 import {
+  LiveAnnouncer,
   ResultDialog,
   SkipCutsceneButton,
 } from "@/components/game-shell";
+import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
 import { playSfx, preloadSfx } from "@/lib/audio";
 import { vibrate } from "@/lib/haptics";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
@@ -94,14 +95,13 @@ export function RaceGame() {
   const [raceClock, setRaceClock] = useState(0);
   const [revealReady, setRevealReady] = useState(false);
   const [photoFinishActive, setPhotoFinishActive] = useState(false);
-  const [leadChangeActive, setLeadChangeActive] = useState(false);
+  const [leadLeaderName, setLeadLeaderName] = useState<string | null>(null);
   const [leadChangeBeat, setLeadChangeBeat] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const playAgainRef = useRef<HTMLButtonElement>(null);
   const hoofBeatRef = useRef(-1);
   const photoCuePlayedRef = useRef(false);
   const previousLeaderRef = useRef<string | null>(null);
-  const leadChangeTimerRef = useRef<number | null>(null);
 
   const animalNames = (t.raw("intro.animalNames") as string[]).slice(0, MAX_RACERS);
   const resolvedNames = names.map(
@@ -119,19 +119,6 @@ export function RaceGame() {
   const winner = result ? getRaceWinner(result) : null;
   const winnerAnimal = winner ? RACE_ANIMALS[winner.lane] : null;
   const finalCharge = phase === "racing" && raceClock >= 0.72;
-  const leaderGap =
-    standings[0] && standings[1]
-      ? Math.max(0, standings[0].progress - standings[1].progress)
-      : 1;
-  const tensionCue = leadChangeActive
-    ? t("state.leadChange")
-    : finalCharge
-      ? t("state.finalSprint")
-      : leaderGap <= 0.012 && raceClock > 0.12
-        ? t("state.neckAndNeck")
-        : raceClock < 0.18
-          ? t("state.launch")
-          : t("state.chasing");
   const cutsceneActive = phase === "countdown" || phase === "racing";
   // Keep the authored finish frame full-bleed behind the result dialog. The
   // stage only returns to its setup card after Play Again, so the impact beat
@@ -215,16 +202,9 @@ export function RaceGame() {
           previousLeaderRef.current &&
           previousLeaderRef.current !== leader.id
         ) {
-          setLeadChangeActive(true);
+          setLeadLeaderName(leader.name);
           setLeadChangeBeat((beat) => beat + 1);
           playSfx("race-overtake", { rate: 1.04, volume: 0.28 });
-          if (leadChangeTimerRef.current != null) {
-            window.clearTimeout(leadChangeTimerRef.current);
-          }
-          leadChangeTimerRef.current = window.setTimeout(() => {
-            setLeadChangeActive(false);
-            leadChangeTimerRef.current = null;
-          }, 820);
         }
         previousLeaderRef.current = leader.id;
         const travelled = progressAt(leader, normalizedTime) * RACE_TRAVEL_DISTANCE;
@@ -268,15 +248,6 @@ export function RaceGame() {
     };
   }, [finishRace, phase, raceStartedAt, result]);
 
-  useEffect(
-    () => () => {
-      if (leadChangeTimerRef.current != null) {
-        window.clearTimeout(leadChangeTimerRef.current);
-      }
-    },
-    [],
-  );
-
   useEffect(() => {
     if (!photoFinishActive) return;
     const timer = window.setTimeout(() => setPhotoFinishActive(false), 220);
@@ -306,7 +277,8 @@ export function RaceGame() {
     hoofBeatRef.current = -1;
     photoCuePlayedRef.current = false;
     previousLeaderRef.current = null;
-    setLeadChangeActive(false);
+    setLeadLeaderName(null);
+    setLeadChangeBeat(0);
     setPhotoFinishActive(false);
     setCountdown(3);
     const generated = beginRace(resolvedNames);
@@ -326,7 +298,8 @@ export function RaceGame() {
     hoofBeatRef.current = -1;
     photoCuePlayedRef.current = false;
     previousLeaderRef.current = null;
-    setLeadChangeActive(false);
+    setLeadLeaderName(null);
+    setLeadChangeBeat(0);
     setPhotoFinishActive(false);
     setCountdown(3);
     resetRound();
@@ -378,9 +351,6 @@ export function RaceGame() {
             />
             {standing.name}
           </span>
-          <span className={styles.laneLabel}>
-            {t("intro.lane", { number: standing.lane + 1 })}
-          </span>
         </motion.li>
       );
     });
@@ -392,11 +362,12 @@ export function RaceGame() {
     >
       <div className={styles.shell}>
         <header className={styles.header}>
-          <h1 className={styles.title}>{t("title")}</h1>
+          <GameRouteTitle>{t("title")}</GameRouteTitle>
         </header>
 
         <div className={`${styles.grid} ${phase === "setup" ? styles.gridSetup : ""}`}>
           <div
+            id="race-stage"
             ref={stageRef}
             className={styles.stage}
             role="region"
@@ -496,21 +467,6 @@ export function RaceGame() {
               </motion.div>
             )}
 
-            {phase === "racing" && (
-              <motion.div
-                key={`${tensionCue}-${leadChangeBeat}`}
-                className={`${styles.tensionCue} ${leadChangeActive ? styles.tensionCueImpact : ""} ${finalCharge ? styles.tensionCueFinal : ""}`}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: -5, scale: 0.94 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 24 }}
-                role="status"
-                aria-live="polite"
-              >
-                <Zap size={13} fill="currentColor" aria-hidden="true" />
-                {tensionCue}
-              </motion.div>
-            )}
-
             {phase === "countdown" && (
               <div className={`${styles.countdown} ${countdown === "go" ? styles.countdownGo : ""}`}>
                 <div key={`rings-${countdown}`} className={styles.countdownRings} aria-hidden="true">
@@ -527,7 +483,6 @@ export function RaceGame() {
                 >
                   {countdown === "go" ? t("state.go") : countdown}
                 </motion.div>
-                <span className={styles.countdownKicker}>{phaseLabel}</span>
               </div>
             )}
 
@@ -550,6 +505,16 @@ export function RaceGame() {
             <p className="sr-only" role="status" aria-live="polite">
               {phaseLabel}
             </p>
+            <LiveAnnouncer
+              message={
+                leadLeaderName
+                  ? t("state.leadChangeAnnouncement", {
+                      name: leadLeaderName,
+                    })
+                  : null
+              }
+              announcementKey={leadChangeBeat}
+            />
           </div>
 
           <motion.aside
@@ -572,23 +537,33 @@ export function RaceGame() {
               max={MAX_RACERS}
               animalNames={animalNames}
               countLabel={t("intro.countLabel")}
+              countValue={(count) => t("intro.countValue", { count })}
               countAriaLabel={(count) => t("intro.countAria", { count })}
               rosterLabel={t("intro.rosterLabel")}
               disabled={phase !== "setup"}
             />
-
-            <div className={styles.actions}>
-              <button
-                type="button"
-                className={`toy-btn ${styles.startButton}`}
-                onClick={start}
-                disabled={!valid || phase !== "setup"}
-              >
-                <Play size={18} fill="currentColor" />
-                {t("intro.start")}
-              </button>
-            </div>
           </motion.aside>
+
+          {phase === "setup" ? (
+            <motion.button
+              type="button"
+              className={`toy-btn ${styles.stageStart}`}
+              onClick={start}
+              disabled={!valid}
+              aria-label={t("intro.start")}
+              aria-controls="race-stage"
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0 }
+                  : { type: "spring", stiffness: 320, damping: 24 }
+              }
+            >
+              <Play aria-hidden size={18} fill="currentColor" />
+              {t("intro.startShort")}
+            </motion.button>
+          ) : null}
         </div>
       </div>
 
@@ -597,7 +572,6 @@ export function RaceGame() {
         dismissible={false}
         presentation="stage"
         title={winner?.name ?? ""}
-        description={winner ? t("result.wins", { name: winner.name }) : undefined}
         announcement={winner ? t("result.wins", { name: winner.name }) : ""}
         announcementKey={result?.seed}
         initialFocusRef={playAgainRef}

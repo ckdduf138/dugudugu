@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { GameShell } from "@/components/game-shell";
+import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
 import { SceneCanvas } from "@/components/scene";
 import {
   useCueTimeline,
@@ -372,24 +373,10 @@ export function FortuneGame() {
             initial={reduceMotion ? false : { opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-            className="pointer-events-none absolute inset-x-4 z-10 flex justify-center"
-            style={{ top: "calc(env(safe-area-inset-top) + 4.25rem)" }}
+            className="pointer-events-none absolute inset-x-4 z-10 flex justify-start sm:inset-x-6"
+            style={{ top: "calc(env(safe-area-inset-top) + 4.5rem)" }}
           >
-            <div className="inline-flex min-w-0 items-center gap-2.5">
-              <span
-                aria-hidden
-                className="grid h-9 w-9 shrink-0 -rotate-3 place-items-center rounded-[0.9rem] border border-candy-lemon/45 bg-surface/92 text-candy-coral shadow-[0_5px_0_color-mix(in_srgb,var(--candy-lemon)_20%,transparent)]"
-              >
-                <Cookie size={20} strokeWidth={2.35} />
-              </span>
-              <h1 className="truncate font-display text-[1.75rem] leading-none text-ink">
-                {t("title")}
-              </h1>
-              <span aria-hidden className="flex shrink-0 items-end gap-1 pt-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-candy-coral" />
-                <span className="h-2 w-2 rounded-full bg-candy-lemon" />
-              </span>
-            </div>
+            <GameRouteTitle>{t("title")}</GameRouteTitle>
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -402,7 +389,7 @@ export function FortuneGame() {
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
             className="pointer-events-auto absolute left-1/2 grid w-[min(92vw,29rem)] -translate-x-1/2 grid-cols-4 gap-1.5"
-            style={{ top: "calc(env(safe-area-inset-top) + 7rem)" }}
+            style={{ top: "calc(env(safe-area-inset-top) + 7.5rem)" }}
           >
             {CATEGORY_VISUALS.map(
               ({ id, icon: CategoryIcon, activeClassName }) => {

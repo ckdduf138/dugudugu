@@ -34,6 +34,7 @@ type Props = {
   animatingPlayer: number | null;
   animationKey: number;
   revealedPlayers: readonly number[];
+  revealAll: boolean;
   onComplete: () => void;
   label: string;
   reducedMotion?: boolean;
@@ -48,11 +49,21 @@ type RouteSegment = {
   portal?: boolean;
 };
 
+type TimedRouteSegment = RouteSegment & {
+  start: number;
+  end: number;
+};
+
 type TokenFrames = {
   x: number[];
   y: number[];
   opacity: number[];
   times: number[];
+};
+
+type RouteMotion = {
+  frames: TokenFrames;
+  segments: TimedRouteSegment[];
 };
 
 const columnX = (column: number, playerCount: number) =>
@@ -64,11 +75,48 @@ const columnX = (column: number, playerCount: number) =>
 const progressY = (progress: number) =>
   TRACK_TOP + progress * (TRACK_BOTTOM - TRACK_TOP);
 
-function routeSegments(
-  path: readonly LadderPathPoint[],
+function routeMotion(
+  assignment: LadderAssignment,
   playerCount: number,
-): RouteSegment[] {
-  const segments: RouteSegment[] = [];
+): RouteMotion {
+  const path: readonly LadderPathPoint[] = assignment.path;
+  const frames: Array<{
+    x: number;
+    y: number;
+    opacity: number;
+    distance: number;
+  }> = [
+    {
+      x: columnX(path[0].column, playerCount),
+      y: progressY(path[0].progress),
+      opacity: 1,
+      distance: 0,
+    },
+  ];
+  const segments: Array<
+    RouteSegment & { startDistance: number; endDistance: number }
+  > = [];
+  let totalDistance = 0;
+
+  const pushFrame = (
+    x: number,
+    y: number,
+    opacity: number,
+    distance: number,
+  ) => {
+    frames.push({ x, y, opacity, distance });
+    totalDistance += distance;
+  };
+
+  const pushSegment = (
+    segment: RouteSegment,
+    distance: number,
+  ) => {
+    const startDistance = totalDistance;
+    const endDistance = startDistance + distance;
+    segments.push({ ...segment, startDistance, endDistance });
+  };
+
   for (let index = 1; index < path.length; index++) {
     const previous = path[index - 1];
     const current = path[index];
@@ -78,118 +126,61 @@ function routeSegments(
     const x2 = columnX(current.column, playerCount);
 
     if (current.via !== "portal") {
-      segments.push({ key: `${index}-line`, x1, y1, x2, y2 });
+      const distance = Math.abs(y2 - y1) + Math.abs(x2 - x1) * 0.58;
+      pushSegment({ key: `${index}-line`, x1, y1, x2, y2 }, distance);
+      pushFrame(x2, y2, 1, distance);
       continue;
     }
 
     const exitX = previous.column === 0 ? PORTAL_LEFT : PORTAL_RIGHT;
     const enterX = current.column === 0 ? PORTAL_LEFT : PORTAL_RIGHT;
-    segments.push({
-      key: `${index}-portal-exit`,
-      x1,
-      y1,
-      x2: exitX,
-      y2,
-      portal: true,
-    });
-    segments.push({
-      key: `${index}-portal-enter`,
-      x1: enterX,
-      y1: y2,
-      x2,
-      y2,
-      portal: true,
-    });
+    const exitDistance = Math.abs(exitX - x1) * 0.55;
+    pushSegment(
+      {
+        key: `${index}-portal-exit`,
+        x1,
+        y1,
+        x2: exitX,
+        y2,
+        portal: true,
+      },
+      exitDistance,
+    );
+    pushFrame(exitX, y1, 1, exitDistance);
+    pushFrame(exitX, y1, 0, 18);
+    pushFrame(enterX, y2, 0, 12);
+    pushFrame(enterX, y2, 1, 18);
+    const enterDistance = Math.abs(x2 - enterX) * 0.55;
+    pushSegment(
+      {
+        key: `${index}-portal-enter`,
+        x1: enterX,
+        y1: y2,
+        x2,
+        y2,
+        portal: true,
+      },
+      enterDistance,
+    );
+    pushFrame(x2, y2, 1, enterDistance);
   }
-  return segments;
-}
-
-function tokenFrames(
-  assignment: LadderAssignment,
-  playerCount: number,
-): TokenFrames {
-  const frames: Array<{
-    x: number;
-    y: number;
-    opacity: number;
-    distance: number;
-  }> = [
-    {
-      x: columnX(assignment.path[0].column, playerCount),
-      y: progressY(assignment.path[0].progress),
-      opacity: 1,
-      distance: 0,
-    },
-  ];
-
-  for (let index = 1; index < assignment.path.length; index++) {
-    const previous = assignment.path[index - 1];
-    const current = assignment.path[index];
-    const previousX = columnX(previous.column, playerCount);
-    const previousY = progressY(previous.progress);
-    const currentX = columnX(current.column, playerCount);
-    const currentY = progressY(current.progress);
-
-    if (current.via !== "portal") {
-      frames.push({
-        x: currentX,
-        y: currentY,
-        opacity: 1,
-        distance:
-          Math.abs(currentY - previousY) +
-          Math.abs(currentX - previousX) * 0.58,
-      });
-      continue;
-    }
-
-    const exitX = previous.column === 0 ? PORTAL_LEFT : PORTAL_RIGHT;
-    const enterX = current.column === 0 ? PORTAL_LEFT : PORTAL_RIGHT;
-    frames.push({
-      x: exitX,
-      y: previousY,
-      opacity: 1,
-      distance: Math.abs(exitX - previousX) * 0.55,
-    });
-    frames.push({
-      x: exitX,
-      y: previousY,
-      opacity: 0,
-      distance: 18,
-    });
-    frames.push({
-      x: enterX,
-      y: currentY,
-      opacity: 0,
-      distance: 12,
-    });
-    frames.push({
-      x: enterX,
-      y: currentY,
-      opacity: 1,
-      distance: 18,
-    });
-    frames.push({
-      x: currentX,
-      y: currentY,
-      opacity: 1,
-      distance: Math.abs(currentX - enterX) * 0.55,
-    });
-  }
-
-  const totalDistance = frames.reduce(
-    (total, frame) => total + frame.distance,
-    0,
-  );
   let elapsedDistance = 0;
   return {
-    x: frames.map((frame) => frame.x),
-    y: frames.map((frame) => frame.y),
-    opacity: frames.map((frame) => frame.opacity),
-    times: frames.map((frame, index) => {
-      if (index === 0) return 0;
-      elapsedDistance += frame.distance;
-      return totalDistance === 0 ? 1 : elapsedDistance / totalDistance;
-    }),
+    frames: {
+      x: frames.map((frame) => frame.x),
+      y: frames.map((frame) => frame.y),
+      opacity: frames.map((frame) => frame.opacity),
+      times: frames.map((frame, index) => {
+        if (index === 0) return 0;
+        elapsedDistance += frame.distance;
+        return totalDistance === 0 ? 1 : elapsedDistance / totalDistance;
+      }),
+    },
+    segments: segments.map(({ startDistance, endDistance, ...segment }) => ({
+      ...segment,
+      start: totalDistance === 0 ? 0 : startDistance / totalDistance,
+      end: totalDistance === 0 ? 1 : endDistance / totalDistance,
+    })),
   };
 }
 
@@ -277,6 +268,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
   animatingPlayer,
   animationKey,
   revealedPlayers,
+  revealAll,
   onComplete,
   label,
   reducedMotion = false,
@@ -288,16 +280,16 @@ export const LadderBoard2D = memo(function LadderBoard2D({
   const selectedSegments = useMemo(
     () =>
       selectedAssignment
-        ? routeSegments(selectedAssignment.path, playerCount)
+        ? routeMotion(selectedAssignment, playerCount).segments
         : [],
     [playerCount, selectedAssignment],
   );
   const animatedAssignment =
     animatingPlayer == null ? null : round.assignments[animatingPlayer];
-  const animatedFrames = useMemo(
+  const animatedMotion = useMemo(
     () =>
       animatedAssignment
-        ? tokenFrames(animatedAssignment, playerCount)
+        ? routeMotion(animatedAssignment, playerCount)
         : null,
     [animatedAssignment, playerCount],
   );
@@ -512,23 +504,58 @@ export const LadderBoard2D = memo(function LadderBoard2D({
           </g>
         ) : null}
 
-        {animatedAssignment && animatedFrames ? (
+        {animatedAssignment && animatedMotion ? (
+          <g
+            key={`${round.seed}-trail-${animatedAssignment.playerIndex}-${animationKey}`}
+          >
+            {animatedMotion.segments.map((segment) => (
+              <motion.line
+                key={segment.key}
+                x1={segment.x1}
+                y1={segment.y1}
+                x2={segment.x2}
+                y2={segment.y2}
+                stroke={`var(${TOKEN_CSS_VARS[animatedAssignment.playerIndex]})`}
+                strokeWidth="13"
+                strokeLinecap="round"
+                initial={
+                  reducedMotion ? false : { pathLength: 0, opacity: 0.18 }
+                }
+                animate={{ pathLength: 1, opacity: 0.94 }}
+                transition={
+                  reducedMotion
+                    ? { duration: 0 }
+                    : {
+                        delay: segment.start * RUN_DURATION_SECONDS,
+                        duration: Math.max(
+                          0.01,
+                          (segment.end - segment.start) * RUN_DURATION_SECONDS,
+                        ),
+                        ease: "linear",
+                      }
+                }
+              />
+            ))}
+          </g>
+        ) : null}
+
+        {animatedAssignment && animatedMotion ? (
                 <motion.g
                   key={`${round.seed}-token-${animatedAssignment.playerIndex}-${animationKey}`}
                   initial={{
-                    x: animatedFrames.x[0],
-                    y: animatedFrames.y[0],
+                    x: animatedMotion.frames.x[0],
+                    y: animatedMotion.frames.y[0],
                     opacity: 1,
                   }}
                   animate={{
-                    x: animatedFrames.x,
-                    y: animatedFrames.y,
-                    opacity: animatedFrames.opacity,
+                    x: animatedMotion.frames.x,
+                    y: animatedMotion.frames.y,
+                    opacity: animatedMotion.frames.opacity,
                   }}
                   style={{ filter: "url(#ladder-token-shadow)" }}
                   transition={{
                     duration: reducedMotion ? 0.01 : RUN_DURATION_SECONDS,
-                    times: animatedFrames.times,
+                    times: animatedMotion.frames.times,
                     ease: "linear",
                   }}
                   onAnimationComplete={completeOnce}
@@ -569,7 +596,12 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                   scale: highlightedPlayer === index ? 1.18 : 0.9,
                 }}
                 style={{ filter: "url(#ladder-token-shadow)" }}
-                transition={{ type: "spring", stiffness: 340, damping: 22 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 340,
+                  damping: 22,
+                  delay: revealAll ? index * 0.05 : 0,
+                }}
               >
                 <AnimalTokenArtwork index={assignment.playerIndex} />
               </motion.g>

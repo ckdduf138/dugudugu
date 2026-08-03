@@ -29,8 +29,9 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
   once, holds a brief pressure pose, opens once, then snaps and settles.
   Do not rapidly parade every available source image. The random message
   appears once on a thin, long DOM fortune ribbon anchored between the halves.
-  A compact route-title lockup sits above the selector in idle/result: one
-  cookie token, the localized Jua title, and two small candy bulbs. It exits
+  The shared left-aligned `GameRouteTitle` sits above the selector in
+  idle/result. It uses the same Jua scale and two candy bulbs as every other
+  game; do not restore a fortune-only cookie tile or centered lockup. It exits
   during the one-second opening so the cookie still owns the action beat. Do
   not add a pre-break levitation show, flying paper, a second result dialog,
   generic confetti, yellow flash, or sparkle filler.
