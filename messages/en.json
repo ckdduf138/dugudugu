@@ -1,0 +1,401 @@
+{
+  "site": {
+    "name": "Dugudugu",
+    "tagline": "Quick decisions, longer suspense",
+    "description": "A playful random-decision arcade that turns draws, ladder games, and races into polished 3D and crisp 2D moments worth watching together."
+  },
+  "nav": {
+    "home": "Home",
+    "games": "Games",
+    "language": "Language"
+  },
+  "common": {
+    "play": "Play",
+    "playAgain": "Play again",
+    "reset": "Reset",
+    "back": "Back",
+    "backToLobby": "Back to lobby",
+    "start": "Start",
+    "sound": "Sound",
+    "soundOn": "Sound on",
+    "soundOff": "Sound off",
+    "loading": "Loading…",
+    "add": "Add",
+    "remove": "Remove",
+    "winner": "Winner",
+    "result": "Result",
+    "comingSoon": "Coming soon"
+  },
+  "lobby": {
+    "eyebrow": "RANDOM ARCADE · OPEN",
+    "heroTitle": "The five seconds before\nthe answer are the best.",
+    "heroBody": "Pick a draw, ladder, or race and add the names. A fair result plays out as a tiny game worth watching together.",
+    "heading": "How should we decide today?",
+    "subheading": "No dashboard full of tools—just a few little games made to watch and cheer together.",
+    "enter": "Enter game",
+    "primaryCta": "Draw now",
+    "secondaryCta": "Choose a game",
+    "stageHint": "Today's toy arcade",
+    "stageFallback": "Preparing the game",
+    "gamesEyebrow": "CHOOSE YOUR CABINET",
+    "gameLabel": "GAME {number}",
+    "liveLabel": "NOW PLAYING",
+    "flow": {
+      "pick": "Pick a game",
+      "names": "Add names",
+      "reveal": "Watch the 3D result"
+    }
+  },
+  "games": {
+    "draw": {
+      "title": "Capsule Draw",
+      "short": "Spin a capsule and reveal the pick",
+      "tagline": "A random draw with a rolling capsule reveal",
+      "description": "Add names or items, press the button, and the machine mixes capsules before revealing the result. Seeded randomness keeps every pick fair for bets, chores, or splitting teams.",
+      "state": {
+        "ready": "ready",
+        "mixing": "mixing",
+        "dropping": "capsule drop",
+        "done": "result",
+        "count": "{count} ready"
+      },
+      "stage": {
+        "aria": "3D capsule draw stage",
+        "fallback": "Capsule draw machine",
+        "live": "LIVE DRAW",
+        "mixing": "Mixing the entry capsules",
+        "capsuleComing": "The winning capsule is coming!",
+        "openPrompt": "Tap the winning capsule to open it",
+        "openCapsule": "Tap to open",
+        "opening": "Opening the winning capsule",
+        "skip": "Skip",
+        "expandSetup": "Open draw setup",
+        "collapseSetup": "Collapse draw setup"
+      },
+      "result": {
+        "title": "Draw result",
+        "ticket": "WINNER",
+        "subtitle": "{count} winners",
+        "announcement": "The winner result is {winners}",
+        "replay": "Play again",
+        "edit": "Edit entries"
+      },
+      "intro": {
+        "kicker": "quick draw",
+        "panelTitle": "Who goes in?",
+        "namesLabel": "Entries",
+        "capsuleSync": "The chamber fills as you add entries",
+        "namesPlaceholder": "Mina\nJay\nSophie\nLunch: kimbap",
+        "chipPlaceholder": "Type a name or option",
+        "tapMachine": "Tap the machine to draw!",
+        "winnersLabel": "How many to draw",
+        "pull": "Draw capsule",
+        "openCapsule": "Tap the dispensed capsule to open it",
+        "needMore": "Add at least 2 entries",
+        "ready": "Ready",
+        "entries": "{count} entries"
+      },
+      "faq": [
+        {
+          "q": "How do I use Capsule Draw?",
+          "a": "Enter one option per line and press Draw capsule. When the machine dispenses the winner, tap that capsule to open it and see the result."
+        },
+        {
+          "q": "Is the result truly random?",
+          "a": "Yes. A seeded random draw freezes the outcome when you press the button; the capsule animation only reveals that already-fixed result."
+        },
+        {
+          "q": "Can I draw several winners at once?",
+          "a": "Set the number of winners and it returns that many results with no duplicates."
+        }
+      ]
+    },
+    "ladder": {
+      "title": "Ladder Game",
+      "short": "Watch the animal friends race down",
+      "tagline": "A cute 2D ladder traced by the animals themselves",
+      "description": "Choose a fixed cast of cute animals, edit only the outcomes below, and watch their faces follow a crisp 2D ladder through one paired edge portal. A seeded uniform permutation freezes the fair result first.",
+      "stage": {
+        "aria": "2D ladder board with animal faces and one paired edge portal",
+        "playerFallback": "Player {number}",
+        "outcomeFallback": "Result {number}",
+        "running": "An animal friend is heading down",
+        "tapAnimal": "Tap an animal above to send them down one at a time",
+        "skip": "Show results now",
+        "routeHint": "Tap a name to trace that route again.",
+        "portalRule": "EDGE LANES CONNECT",
+        "animalNames": ["Cat", "Dog", "Rabbit", "Tiger", "Penguin", "Bear"]
+      },
+      "setup": {
+        "kicker": "LADDER SETUP",
+        "title": "Match players with outcomes",
+        "count": "Player count",
+        "countAria": "Choose {count} ladder players",
+        "decrease": "Remove a player",
+        "increase": "Add a player",
+        "playerCount": "{count} players",
+        "playerLabel": "Player",
+        "outcomeLabel": "Outcome",
+        "playerAria": "Player {number} name",
+        "outcomeAria": "Outcome {number}",
+        "playerPlaceholder": "Player {number}",
+        "outcomePlaceholder": "Outcome {number}",
+        "range": "Choose {min}–{max} players",
+        "ready": "Ready to start",
+        "fillAll": "Fill every field",
+        "start": "Start ladder",
+        "startDisabled": "Enter the outcomes first",
+        "editHint": "Choose the field and edit only the outcomes below",
+        "portalHint": "The two edge lanes connect through portals"
+      },
+      "result": {
+        "kicker": "LADDER COMPLETE",
+        "title": "Ladder results",
+        "subtitle": "Tap a name to trace its route again.",
+        "selectHint": "Tap a name to inspect its route",
+        "routeAria": "Show {player}'s route",
+        "announcement": "{player}'s result is {outcome}",
+        "replay": "Play again",
+        "edit": "Edit"
+      },
+      "faq": [
+        {
+          "q": "How does the ladder game work?",
+          "a": "Choose the fixed animal field, edit the outcomes below, and press Start ladder. Colored tokens follow the rungs and paired edge portals to reveal each result."
+        },
+        {
+          "q": "Do edge portals make it fairer?",
+          "a": "The fair result is chosen first from a seeded uniform permutation, independently of the portals. Portals give the two edge lanes a second visible direction while preserving that frozen result."
+        },
+        {
+          "q": "Can I inspect each animal's route?",
+          "a": "Yes. After the result, tap an animal face at the top to highlight only that animal's path again."
+        }
+      ]
+    },
+    "race": {
+      "title": "Animal Race",
+      "short": "Seven animals, one thrilling finish",
+      "tagline": "Choose the field size and go — a 3D race packed with lead changes",
+      "description": "Choose two to seven distinct animals and watch them charge down a long track. The winner and motion curves are seeded first, giving every animal an equal chance.",
+      "state": {
+        "ready": "Ready to race",
+        "countdown": "Starting countdown",
+        "racing": "Race in progress",
+        "finished": "Race finished",
+        "live": "LIVE RACE",
+        "track": "Dugudugu Park",
+        "go": "GO!",
+        "skip": "Show result",
+        "leader": "1st · {name}",
+        "challenger": "2nd · {name}",
+        "launch": "Fighting for position",
+        "chasing": "Closing on the leader",
+        "neckAndNeck": "Neck and neck!",
+        "leadChange": "New leader!",
+        "finalSprint": "Final sprint!"
+      },
+      "intro": {
+        "kicker": "DUGUDUGU DERBY",
+        "setupKicker": "race setup",
+        "panelTitle": "How big is the field?",
+        "countLabel": "Animals racing",
+        "countAria": "Choose {count} animals",
+        "rosterLabel": "Today's starting field",
+        "ready": "Animals selected",
+        "needRange": "Choose 2–7 animals",
+        "fillAll": "All {count} animals are ready",
+        "start": "Start animal race",
+        "lane": "Lane {number}",
+        "animalNames": ["Tiger", "Horse", "Deer", "Dog", "Cat", "Penguin", "Chicken"]
+      },
+      "result": {
+        "kicker": "Today's champion",
+        "wins": "{name} crossed the finish line first!",
+        "orderLabel": "Final race standings",
+        "podiumLabel": "Top three standings",
+        "fullOrder": "View full standings",
+        "remainingOrderLabel": "Fourth place and below"
+      },
+      "faq": [
+        {
+          "q": "How do I play the Animal Race?",
+          "a": "Choose two to seven animals and press Start. Tiger, horse, deer, dog, cat, penguin, and chicken race down a long track; there are no names to enter."
+        },
+        {
+          "q": "Is the race fair?",
+          "a": "Yes. The champion, full finishing order, and motion curves are generated from seeded randomness, with an equal chance for every animal."
+        },
+        {
+          "q": "Does the race play differently each time?",
+          "a": "Yes. Each start generates the champion, full order, and overtake timing together, producing a fresh comeback story."
+        }
+      ]
+    },
+    "fortune": {
+      "title": "Fortune Cookie",
+      "short": "Pick a mood, then tap once",
+      "tagline": "Choose luck, courage, connection, or comfort—then tap once",
+      "description": "Choose the kind of message you need—luck, courage, connection, or comfort—then tap the fortune cookie. It presses and cracks in stages before revealing one seeded message on a thin paper slip.",
+      "state": {
+        "opening": "The cookie is cracking open",
+        "crack": "Snap! The cookie cracked",
+        "reveal": "Your cookie message is ready"
+      },
+      "stage": {
+        "aria": "3D fortune-cookie opening stage",
+        "fallback": "A fortune cookie making one short crisp crack"
+      },
+      "intro": {
+        "kicker": "PICK A MOOD · CRACK A COOKIE",
+        "open": "Open fortune cookie"
+      },
+      "guide": {
+        "start": "Tap to open",
+        "firstAction": "Open the {category} fortune cookie"
+      },
+      "categories": {
+        "aria": "Choose the kind of message you need today",
+        "luck": {
+          "label": "Luck",
+          "messages": [
+            "A small coincidence is about to lean in your favor.",
+            "The news you have been waiting for is closer than it seems.",
+            "A different route may bring a welcome surprise.",
+            "One lighthearted choice can start a lovely new rhythm.",
+            "Today's luck begins with the first hello.",
+            "Something you almost forgot may become unexpectedly useful.",
+            "Timing is on your side; take the first small step.",
+            "A modest hope may return as a much bigger smile.",
+            "Notice the first opportunity that catches your eye today.",
+            "Something good is quietly making its way toward you.",
+            "A choice made on a whim may be exactly right today.",
+            "Something familiar will shine in a completely new way.",
+            "A tiny task you postponed may bring unexpected luck.",
+            "Today's good momentum will grow clearer in the afternoon.",
+            "A casual suggestion may turn into a delightful plan.",
+            "The answer you need is already closer than it seems.",
+            "A pocket-sized bit of luck is traveling with you today.",
+            "Look once more where you already searched for a welcome chance.",
+            "Let your favorite color guide one choice today.",
+            "An unexpected compliment will brighten the direction of your day.",
+            "The moment that feels late may actually be perfect timing.",
+            "A little curiosity will lead to a delightful discovery.",
+            "The first smile you receive today is a lucky signal.",
+            "A pleasant twist is hiding inside an ordinary choice.",
+            "What you need will arrive more naturally than expected."
+          ]
+        },
+        "courage": {
+          "label": "Courage",
+          "messages": [
+            "You do not have to wait until everything feels perfect.",
+            "One small start today will become tomorrow's confidence.",
+            "Trust your curiosity one more time than your hesitation.",
+            "There is strength in the first clear answer you imagined.",
+            "Look for the next possible step, not the whole difficult climb.",
+            "It is okay to be wrong; movement reveals the next scene.",
+            "Say the thing you have been holding back, even briefly.",
+            "If it feels a little scary, it may matter a lot.",
+            "One honest attempt is stronger than an old worry.",
+            "You are ready enough. All that remains is pressing start.",
+            "Even a quiet voice can carry a clear and honest heart.",
+            "You are already one step stronger than you were yesterday.",
+            "An unknown road gets easier after the first corner.",
+            "Courage is not fearlessness; it is a heart that still moves.",
+            "Begin the heavy task with its smallest possible piece.",
+            "Give your own choice one honest vote of confidence.",
+            "One sentence spoken now can end a long hesitation.",
+            "Being new and imperfect is a wonderful look on you.",
+            "A small attempt now is closer than the next perfect chance.",
+            "Lift your head and you may notice someone ready to help.",
+            "Choose a joyful challenge over safe perfection today.",
+            "Use the energy spent imagining failure to picture success too.",
+            "You are allowed to be the first person to applaud yourself.",
+            "A slow choice that keeps moving will eventually win.",
+            "Your first step may become someone else's courage too."
+          ]
+        },
+        "relationship": {
+          "label": "Connection",
+          "messages": [
+            "A passing comment from someone close may hold the clue.",
+            "The person who checks in first may create today's best connection.",
+            "A small kindness will be remembered longer than you expect.",
+            "Listening well may bring you closer than finding the perfect reply.",
+            "A welcome message could brighten an ordinary day.",
+            "Send a short note to the person who just came to mind.",
+            "One honest laugh can melt an awkward moment.",
+            "The person who lets you relax may point you in a good direction.",
+            "An old connection may show you a new side today.",
+            "Open your heart a little and a warm answer may return.",
+            "Someone you can laugh with will feel closer today.",
+            "Naming what you appreciated will deepen a relationship.",
+            "One short question can untangle a misunderstanding.",
+            "There is someone who understands your comfortable silence.",
+            "Today's meeting will last longer if you do not rush it.",
+            "A small kindness offered first will return as a warm reply.",
+            "A familiar friend may introduce an exciting new connection.",
+            "One shared taste will open an unexpectedly good conversation.",
+            "A different opinion may reveal something charming in both of you.",
+            "Simply saying someone's name can feel beautifully warm today.",
+            "A quiet relationship may find its good rhythm again.",
+            "Your sincere encouragement may change someone's whole day.",
+            "A short meal together can bring you closer than a long talk.",
+            "Tell the person who made you smile what they gave you.",
+            "A good connection sends comfortable signals without force."
+          ]
+        },
+        "comfort": {
+          "label": "Comfort",
+          "messages": [
+            "You are allowed to be gentler with yourself today.",
+            "A slower pace is enough when the direction feels right.",
+            "Rest is part of moving forward.",
+            "Set down anything that does not need to be solved today.",
+            "Today's mistake may become tomorrow's charming story.",
+            "A quiet breath can make more room than you expect.",
+            "You deserve a small compliment for making it through today.",
+            "When your mind feels crowded, do the easiest thing first.",
+            "You do not need to find every answer today.",
+            "Your pace is not late; it is the pace that fits you.",
+            "Today's tiredness is proof of effort, not laziness.",
+            "Pausing now does not erase any step you have already taken.",
+            "Even warm water can soften the edges of a hard day.",
+            "When thoughts feel crowded, let your body rest first.",
+            "Notice the heart that endured, not only what went imperfectly.",
+            "A peaceful evening is a good enough plan for today.",
+            "Weather passes through the heart too; do not blame today's clouds.",
+            "You have protected far more than you have missed.",
+            "Time spent doing nothing can still be busy healing you.",
+            "Fold the worry away briefly and play a song you love.",
+            "You need kindness before advice today.",
+            "Slow breathing will help your thoughts find their places again.",
+            "It is okay to leave today's unfinished work to tomorrow's you.",
+            "Tell yourself you did well for carrying the small discomforts.",
+            "Resting never makes you less worthy or less complete."
+          ]
+        }
+      },
+      "result": {
+        "announcement": "Your {category} fortune-cookie message is: {message}",
+        "inlineLabel": "A LITTLE {category} FROM YOUR COOKIE",
+        "replay": "One more"
+      },
+      "faq": [
+        {
+          "q": "Which categories can I choose?",
+          "a": "Pick luck, courage, connection, or comfort—whichever feels right now. Each category has its own built-in message bank, so there is nothing to type."
+        },
+        {
+          "q": "When is the result chosen?",
+          "a": "When you tap the cookie, one message from the selected category is frozen with seeded randomness. The progressive cookie animation only reveals that immutable result."
+        },
+        {
+          "q": "Will One more give me a new message?",
+          "a": "Yes. One more restores the intact cookie and lets you draw a fresh message from the same category."
+        }
+      ]
+    }
+  }
+}

@@ -23,6 +23,12 @@
 # misc
 .DS_Store
 *.pem
+*.blend1
+__pycache__/
+*.py[cod]
+
+# local agent / MCP configuration
+.codex/
 
 # debug
 npm-debug.log*

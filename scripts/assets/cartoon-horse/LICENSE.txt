@@ -1,0 +1,11 @@
+Model Information:
+* title: Cartoon Horse with animations
+* source: https://sketchfab.com/3d-models/cartoon-horse-with-animations-1210663c398745cb9898e7d66fa51500
+* author: Jungle Jim (https://sketchfab.com/jungle_jim)
+
+Model License:
+* license type: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+* requirements: Author must be credited. Commercial use is allowed.
+
+This work is based on "Cartoon Horse with animations" by Jungle Jim,
+licensed under CC BY 4.0.

@@ -1,0 +1,6 @@
+Creative Commons CC0 1.0 Universal
+
+The preserved Blender sources in this directory were released by Quaternius
+under CC0. The full legal text is available at:
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
+

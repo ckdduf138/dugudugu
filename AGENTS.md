@@ -3,3 +3,200 @@
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+---
+
+# 두구두구 (Dugudugu) — Agent Guide
+
+> Single source of truth for **both Claude Code and Codex**. Read this before any change. `CLAUDE.md` imports this file, so Claude and Codex share these rules. Keep this file updated when a decision changes.
+
+## 1. Product
+결과만 얻는 도구가 아니라 결과가 나오기 전 3–6초 자체가 재미있는 **귀여운 랜덤 결정 아케이드** (뽑기 · 사다리타기 · 경주 · 포츈쿠키 · 룰렛 …). 누군가 제비뽑기나 사다리타기 같은 랜덤 게임이 필요할 때 가장 먼저 찾는 사이트가 목표다. KO + EN, fully static, mobile-first. 우선순위는 **게임별로 가장 읽기 좋은 시각 표현과 모션의 완성도 → 사용성/공정성 → 속도 → SEO/수익화**다.
+
+### Core UX flow (keep it this simple)
+1. **Main**: click a game card → go to its page. Nothing else needed on main.
+2. **Game page**: minimal setup (e.g. names / player count) laid out for easy mobile input.
+3. **Start = a short authored game "컷신" plays** (polished mobile mini-game timing; 3D by default, crisp 2D for the portal ladder) → result reveal → play again.
+4. **Interaction = click/tap only.** No drag-to-pull, no physical dragging, no 3D orbit. A click triggers the motion.
+
+## 2. Tech stack (DECIDED — do not swap without updating this file)
+- **Next.js 16** App Router, `output: 'export'` (100% static). React 19, TypeScript.
+- **Tailwind v4** (tokens in `app/globals.css` `@theme`). Design tokens below — never hardcode palette/radius.
+- **next-intl** i18n (`/ko`, `/en`). **Zustand** state. **Vitest** for pure logic.
+- **3D runtime = R3F/three + authored GLB.** Blender 5.x is the source-of-truth DCC; glTF/GLB is the web delivery format. Framer Motion is for DOM UI orchestration, Howler for SFX/BGM, canvas-confetti only for lightweight result accents.
+
+### Engine decision: R3F is the product surface
+- **Default = authored 3D in live character games.** The lobby and ladder are deliberate exceptions: the lobby is a fast static 2×2/4-up game picker, while the ladder is a crisp code-native SVG board because route verification matters more than depth. Neither uses a Canvas. 2D DOM stays responsible for readable Korean/English text, inputs, accessibility, and fallback content.
+- **R3F (@react-three/fiber)** is the only sanctioned runtime. It gives React-native state integration, static-export compatibility, asset caching, animation mixers, instancing, and adaptive performance.
+- **three.js raw** = ❌ imperative boilerplate in a React app, no upside over R3F.
+- **Babylon.js** = ❌ full game engine; heavy bundle, non-React-idiomatic, overkill for cute mini-games, hurts mobile/SEO. Do not add.
+- **One live Canvas per page.** Setup, cinematic, and result share the same stage. Do not stack a second result Canvas or run decorative canvases behind the game.
+- **Authored assets beat primitive assemblies.** Production hero models require a deliberate silhouette, bevel/normal treatment, rig/animation where relevant, and a documented source/license. Code primitives are fine for track rails, particles, and blockout—not final mascots or hero machines.
+- **Asset budgets:** a game route should target 1–4 MB of GLB/textures, hard cap 6 MB; DPR 1–1.5 on mobile; a few hundred draw calls at the absolute maximum and far fewer in normal scenes. Reuse/instance repeated assets.
+- **Animation contract:** game logic computes a seeded result first. Animation visualizes that immutable result; physics must never decide fairness. Character games use authored clips and `AnimationMixer`, not sine-wave limbs.
+- **Blender/MCP:** Blender CLI scripts are the reproducible build path. Blender MCP may accelerate inspected scene work, but it is a third-party tool with arbitrary Python execution; keep it localhost-only, telemetry off, pin reviewed versions, and never send licensed assets to generative services unless their license explicitly allows it.
+- **Meshy/MCP:** Meshy may generate a new draft mesh only from an owned/original prompt or reference. Its rigging endpoint is humanoid-oriented, so quadrupeds still require the reviewed Blender rig/animation pipeline. Never ship the raw generated output: retopology/remesh, silhouette correction, material cleanup, clip validation, provenance, and delivery-budget checks happen in Blender first.
+- **⚠ NEVER use `transmission` materials on alpha canvases.** Transmission refracts only the 3D scene, not the DOM page behind it, and can render as a dark blob. The authored gacha GLB uses alpha fake glass; clone that material at runtime, set `transparent`, low opacity, and `depthWrite:false`.
+- **⚠ NEVER put `backdrop-blur` over a live WebGL canvas.** It can force recomposition every frame and flicker. Freeze the Canvas (`active={false}`/`frameloop="never"`) before an opaque result overlay, or use a normal translucent/gradient fill without backdrop filtering.
+- Overlay/celebration layering is fixed: result modal `z-30`, canvas-confetti `zIndex: 60` (set in `lib/confetti.ts`). Keep new layers consistent with this scale.
+
+## 2b. Quality bar — Animal Crossing charm, mobile-game finish
+The target is not photorealism. It is a coherent, toy-like world with clear silhouettes, friendly proportions, controlled PBR/toon materials, polished camera cuts, expressive anticipation/impact/recovery, and excellent sound timing.
+- **3D motion**: authored idle/action/celebrate clips, clean contact and weight shift, short camera choreography, no linear tweens or perpetual meaningless floating.
+- **DOM motion**: use shared springs/variants in `lib/motion.ts`; keep UI motion subordinate to the 3D beat.
+- **Cohesive art direction**: one mascot language, soft bevels, warm key light + cool fill, candy accents over a calmer cream/ink base. No raw emoji as game art.
+- **Sound design**: every meaningful action has an SFX (`playSfx`, files in `public/sounds/`). Silent-if-missing is OK during dev but the shipped bar includes sound.
+- **Loading & intro**: branded loading state, no blank flashes or layout shift.
+- **Detail & delight**: micro-interactions, personality, tasteful easter eggs.
+- **Performance is part of the craft**: adaptive DPR/quality, pause when hidden/covered, one Canvas per page, 60fps target on a mid mobile at 390px, code-split and preload only the selected game.
+
+## 3. Cutscene / motion design language (the "컷신" recipe)
+Every game runs the same beat structure so it feels like a game, not a form:
+`idle(setup) → charge(anticipation) → action(mix/roll) → impact(hit/drop) → reveal(result) → celebrate`
+
+Techniques to reach for (use a subset per game, keep it snappy):
+- **Anticipation**: wind-up / squash before the action.
+- **Impact**: screen shake, white flash, ~60–90ms freeze-frame, quick zoom-punch (scale 1→1.06→1).
+- **Speed lines / streaks**, particle burst (Lottie or confetti), **color flash**, brief **slow-mo**.
+- **Kinetic typography**: big cute result text springing in (Jua font).
+- **Sound + haptics synced to beats** (Howler `playSfx`, `vibrate`).
+- **Budget**: draw/ladder ~2.5–4s; the authored derby is ~10s so overtakes can read. Always **skippable**, pause-safe, and driven by rAF/elapsed time. Honor `prefers-reduced-motion` with an instant or very short fallback.
+
+## 4. Architecture & conventions
+- **Context routing:** after this root guide, read only the nearest nested `AGENTS.md` for the module being changed. Do not load another game's model contract, source script, or UI notes unless the task crosses that boundary. Nested guides contain only local deltas and must not duplicate this file.
+- **Static export gotchas**: no middleware. Root `/` redirects via `<meta refresh>` in `app/page.tsx`. `<html lang>` set in root layout + synced by `components/providers/LocaleHtmlLang.tsx`. No server-only runtime APIs.
+- **i18n**: `[locale]` segment; every page calls `setRequestLocale(locale)`; `generateStaticParams` returns locales. All copy in `messages/{ko,en}.json`; game copy under `games.<id>.*` (title/short/tagline/description/intro/faq). Keep KO & EN in sync.
+- **Game registry (add a game = a few known edits):**
+  - `games/registry.ts` — server-safe metadata (no three/heavy imports); drives cards, routes, sitemap.
+  - `games/scenes.tsx` — `'use client'`, `dynamic(() => import(...), { ssr:false })` per game + one `GAMES` record.
+  - `games/<id>/` — `logic.ts` (pure, no React), `logic.test.ts`, `store.ts`, `scene/`, `<Game>.tsx` (client shell + cutscene), `share.ts`.
+  - Then add `messages.games.<id>` (KO+EN) and flip `status` to `live`.
+- **Fairness + reproducible results (no server)**: use `lib/random.ts` seeded PRNG (mulberry32). Results must be reproducible from a seed. Existing URL-param decoders (`?names=&n=&seed=`) stay backward compatible, but result surfaces do not show a generic share button until the product has a meaningful social card/message experience. Cover logic with Vitest (determinism + distribution).
+- **State lifecycle:** game Zustand stores are memory-only. Do not persist setup,
+  choices, or results to local/session storage. Every game route clears its full
+  store on unmount, so leaving the URL and returning starts from that game's
+  defaults; legacy share params hydrate only the current mount.
+- **Client/server**: pages are Server Components (SEO). Interactive/animated UI is `'use client'`. Game scenes load `ssr:false`. Router/i18n hooks only in the normal React tree (not inside any canvas).
+- **Design tokens** (in `globals.css`): candy palette `--candy-*`, `--ink`, `--surface`; display font **Jua** via `.font-display` / `--font-display`; body **Pretendard**; `.toy-btn`, `rounded-toy`, `--shadow-toy`, `--ease-pop`. Reuse these; keep the cute candy look consistent.
+- **Lottie**: assets in `public/lottie/<name>.json`; render with `components/ui/LottieBox.tsx` (no-ops if the file is missing). Regenerate placeholders with `node scripts/gen-lottie.mjs`. Swap in prettier files from LottieFiles anytime (see `public/lottie/README.md`).
+- **SEO**: per-page `generateMetadata` + JSON-LD (`lib/seo.ts`) + human-readable copy pre-rendered in static HTML (crawlable). Sitemap/robots/OG/manifest still TODO.
+- **Monetization (later)**: Google AdSense. Never place ads over the interactive/cutscene area; reserve slot height to avoid CLS. Needs a privacy page.
+
+## 5. Do / Don't
+- ✅ Mobile-first, click-only, authored 3D/2D motion, skippable cutscenes, reduced-motion and WebGL fallbacks where applicable.
+- ✅ Keep game logic pure + tested; keep results seed-reproducible and legacy URL contracts backward compatible.
+- ✅ Keep asset provenance in `public/models/THIRD_PARTY_ASSETS.md`; keep source/build scripts deterministic.
+- ❌ No Babylon.js / raw three.js. No AI-generated final asset without Blender cleanup and license review. No drag-to-pull interactions.
+- ❌ Don't break static export (no middleware / server runtime). Don't hardcode colors/fonts. Don't let ads cause layout shift.
+
+## 6. Commands
+- `pnpm dev` (dev server) · `pnpm build` (static export → `out/`) · `pnpm test` (Vitest) · `pnpm lint`
+- `node scripts/gen-lottie.mjs` — regenerate placeholder Lottie assets.
+- `node scripts/gen-draw-sfx.mjs` — regenerate the draw-specific capsule SFX.
+- `node scripts/gen-ladder-sfx.mjs` — regenerate the ladder-specific tactile SFX.
+- `node scripts/gen-race-sfx.mjs` — regenerate the race-specific track SFX.
+- Visual check (headless): `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --enable-unsafe-swiftshader --window-size=390,844 --virtual-time-budget=8000 --screenshot=out.png URL` (the swiftshader flag is required only if a page uses WebGL).
+
+## 7. Status (update as you go)
+Current foundation: static KO/EN shell, seeded pure logic, one-Canvas game shell, rAF cue timeline, adaptive quality/WebGL fallback, accessible result dialog, sound/haptics helpers, and a Blender→GLB build path.
+Live experiences: a direct first-viewport lobby with one unified cabinet-face
+brand mark across the top bar, favicon, install icons, and social image. Its
+clean code-native 2D game art stays 2×2 on mobile/tablet and four-up on desktop,
+with one finite staggered power-on, restrained sheen, accent lamps/underlights,
+and a subtle static arcade-floor grid instead of new lobby copy or looping
+decoration. It keeps complete two-line English
+titles, a vertically balanced portrait-tablet grid, a coral two-mass draw icon,
+and distinct tiger/penguin/chicken race silhouettes; and a deliberately simplified
+orange capsule machine built from two dominant masses: a tall pale-aqua
+chamber and one clean rectangular cabinet with a shallow base lip. One simple
+crown, oversized two-piece inventory, large ivory crank, and deep retrieval
+chute are the only secondary features; nested body trim, feet, and coin-slot
+clutter are intentionally removed. A bright matte coral body, single flat aqua
+shelf, straight illustrated glass highlight, and shadow-acne-free broad faces
+keep the empty machine clean before any candidate is entered. Its visible chamber inventory
+mirrors the first 12 draw candidates in three touching bottom-up rows over a
+visible converging shelf and central gate. Capsules use a matte lower cup, softly
+color-tinted clear upper, a narrow lower-shell-colored molded ring,
+small ivory tab, and one grounded internal silhouette with no metallic/gem
+ornament. Internal prizes are readable miniature bunny/bear figures rather
+than floating generic emblems; the dispensed hero adds a cream belly and
+rounded limbs that read after opening. The 3.26-second machine cutscene uses one coherent chamber mix
+followed by a distinct gate-index and chute drop instead of repeated rattles.
+It then waits indefinitely on the closed dispensed capsule; only the user's
+capsule tap plays the separate 0.72-second open/reveal. Eight synchronized dry
+plastic/mechanical SFX map one-to-one to visible events. The complete machine
+stays framed and freezes behind one compact opaque result popup after opening;
+replay and entry editing remain quiet secondary controls.
+Long candidate lists stay inside a compact two-row tray instead of pushing the
+game below the viewport. The ladder is a single compact
+2D SVG board with four blank outcome placeholders by default, compact
+species-specific code-native animal portraits with distinct ears, muzzles,
+markings, head tilts, large double eye highlights, and cheeks above. Four-player
+portraits use a larger toy-sticker presentation while five- and six-player
+boards compact without overlap; outcome-only editing stays below with 44px `−`/`+`
+controls, seeded uniform assignments, exactly one colored paired edge portal,
+an in-board start action, animated animal-face route tokens, dedicated tactile
+ladder SFX, and in-board route inspection/results. The seeded animal race uses
+seven ITHappy
+Animals Free rigs and original Run clips in one shared-texture final-product
+GLB. Reproducible 320px warm-key/cool-fill 3/4 portraits are rendered from the
+integrated delivery GLB for the roster and leader HUD. Run-cycle-wide grounding keeps every paw above the track; species-tuned
+sprint strides plus normalized mixed-species scale, wider striped lane beds,
+restrained speed-weighted lean, flight, contact compression, distance-locked
+dust, and short local streaks make the original clips read as a race at mobile
+size without replacing their species-specific gait. Large setup fields use
+a wider alternating presentation fan that converges at countdown; two-animal
+setup uses a stronger fore/aft separation so the horse and tiger remain
+distinct. During the race,
+live 6–7 animal cameras keep the complete pack in their framing average. A
+short broadcast-side group shot makes order legible between the faster 3/4
+tracking beats. Three colored timing bands and far-side chevron boards break
+the 32m straight into visible progress sections. A compact
+rendered-model HUD identifies the live first and second place on bright cream
+toy chips instead of an opaque dark sports panel. A high-key candy grandstand
+with clean sky/grape tiers, coral supports, canopy, LED ribbons, scoreboard,
+start lights, a restrained layered meadow horizon, contextual overtake cues, and a
+tighter multi-shot camera make the seeded lead changes readable. Dedicated
+start-light, gate, dirt-hoof, overtake, photo, and finish SFX replace the old
+generic UI cues. The race supports 2–7
+fixed animal identities, a 32m track, a seven-beat
+13.5-second overtake story, and a
+winner-facing photo finish. Its result now keeps the finish stage visible under
+a compact broadcast-style champion card with a three-animal podium and
+collapsed remaining standings instead of replacing the race with an opaque
+generic modal. The live fortune cookie is a setup-free viewport
+experience with four built-in KO/EN banks—luck, courage, relationship, and
+comfort—and chooses a new immutable seeded result on every open. Its Blender
+GLB is a sub-1 MB asset that ships one intact image-authored cookie and two
+independently animated final fracture halves. The fixed-view wafer keeps its deep
+center saddle, curled hollow tips, and matching fracture halves. The runtime
+plays one continuous Blender-authored pressure, brittle snap, short recoil, and
+settle clip with only one visibility switch at the fracture, then reveals one
+clean result strip made from Petr Kratochvil's CC0 white-paper photograph with
+real restrained fibers and accessible DOM fortune text at one second. The idle
+cookie now uses the same compact Lucide `Hand` icon + `Tap to open` pill as the
+draw capsule. The entire cookie remains the tap target, with no large
+pointer/finger or contact-ripple overlay. Antique parchment,
+floral corners, and deep scroll curls are intentionally removed. The title stays
+fixed while the category selector exits when opening begins; the result ribbon
+retains the chosen category icon. Fortune intentionally uses haptics without a
+mismatched generic biscuit SFX.
+Reduced-motion and WebGL fallbacks,
+Backward-compatible URL decoders and accessible announcements remain, while
+generic result-share controls and canvas-confetti have been removed from all
+four live games;
+the duplicate result dialog and skip control are removed. Fortune keeps its
+setup-only category selector, cookie, and single inline result in one mobile-first
+viewport with no editor or setup deck. Draw and race keep a stage-first flow
+with a compact inline control deck below it; the ladder keeps editing, play,
+and results inside one SVG board. Setup UX keeps one primary action per screen:
+draw winner count is progressive disclosure, ladder player count uses direct
+`−`/`+` controls, and race defaults to a legible three-animal cast with no
+naming step. Reproducible Blender scripts create the race and fortune delivery
+GLBs without redistributing the licensed race source
+`.blend`; the fortune source and CC-BY attribution are preserved locally.
+Meshy MCP remains optional;
+the product no longer depends on a paid generation/download path. Static
+sitemap, robots, manifest, and OG image assets ship with the export. Next gates
+are final real-device a11y/performance QA and production-domain metadata
+verification.

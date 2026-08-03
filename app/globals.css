@@ -1,26 +1,309 @@
 @import "tailwindcss";
 
+/* Pretendard and Jua are loaded in app/layout.tsx. */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  --bg: #fff9fd;
+  --bg-2: #eef8ff;
+  --surface: #ffffff;
+  --ink: #34273a;
+  --ink-soft: #76667c;
+
+  --candy-pink: #ff7eb6;
+  --candy-coral: #ff8a6b;
+  --candy-mint: #57e0b6;
+  --candy-sky: #69c6ff;
+  --candy-lemon: #ffd45e;
+  --candy-grape: #b98cff;
+  --positive: #24876a;
+  --negative: #b43f2d;
+
+  --primary: var(--candy-pink);
+  --primary-ink: var(--ink);
+  --radius: 1.25rem;
+  --radius-lg: 1.75rem;
+  --shadow-toy:
+    0 8px 0 rgba(52, 39, 58, 0.07),
+    0 24px 50px rgba(255, 126, 182, 0.18);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-candy-pink: var(--candy-pink);
+  --color-candy-coral: var(--candy-coral);
+  --color-candy-mint: var(--candy-mint);
+  --color-candy-sky: var(--candy-sky);
+  --color-candy-lemon: var(--candy-lemon);
+  --color-candy-grape: var(--candy-grape);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-primary: var(--primary);
+
+  --radius-toy: var(--radius);
+  --radius-toy-lg: var(--radius-lg);
+
+  --font-sans:
+    "Pretendard Variable", var(--font-geist-sans), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-display:
+    var(--font-jua), "Pretendard Variable", var(--font-geist-sans), sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  min-height: 100%;
+  background: var(--bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--ink);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.82),
+      rgba(255, 245, 250, 0.9)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(52, 39, 58, 0.028) 0 1px,
+      transparent 1px 56px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(52, 39, 58, 0.024) 0 1px,
+      transparent 1px 56px
+    ),
+    var(--bg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  color: var(--ink);
+  background: rgba(255, 212, 94, 0.72);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+}
+
+@keyframes lobby-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.85rem) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes lobby-card-power-on {
+  0% {
+    opacity: 0.18;
+    transform: translateX(-50%) scaleX(0.3);
+  }
+  58% {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1.1);
+  }
+  100% {
+    opacity: 0.92;
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+@keyframes lobby-card-sheen {
+  0%,
+  34% {
+    opacity: 0;
+    transform: translateX(-180%) skewX(-14deg);
+  }
+  48% {
+    opacity: 0.42;
+  }
+  72%,
+  100% {
+    opacity: 0;
+    transform: translateX(460%) skewX(-14deg);
+  }
+}
+
+.lobby-card-link {
+  opacity: 0;
+  animation: lobby-card-enter 560ms var(--ease-pop) forwards;
+  animation-delay: calc(70ms + var(--lobby-card-order) * 70ms);
+}
+
+.lobby-card-stage::after {
+  position: absolute;
+  inset-block: -20%;
+  left: 0;
+  width: 18%;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--surface) 82%, transparent),
+    transparent
+  );
+  opacity: 0;
+  animation: lobby-card-sheen 1.15s ease-out both;
+  animation-delay: calc(410ms + var(--lobby-card-order) * 105ms);
+}
+
+.lobby-card-lamp {
+  transform-origin: center;
+  animation: lobby-card-power-on 520ms var(--ease-pop) both;
+  animation-delay: calc(180ms + var(--lobby-card-order) * 80ms);
+}
+
+.lobby-floor {
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--candy-sky) 5%, transparent)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 4.75rem,
+      color-mix(in srgb, var(--ink) 3.5%, transparent) 4.75rem 4.8rem
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3.25rem,
+      color-mix(in srgb, var(--ink) 3%, transparent) 3.25rem 3.3rem
+    );
+  mask-image: linear-gradient(180deg, transparent, #000 45%);
+}
+
+@media (hover: hover) {
+  .lobby-card-link:hover .lobby-card {
+    border-color: color-mix(in srgb, var(--game-accent) 30%, transparent);
+    box-shadow:
+      0 14px 36px color-mix(in srgb, var(--game-accent) 17%, transparent),
+      0 3px 0 color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+}
+
+.fortune-paper::before,
+.fortune-paper::after {
+  position: absolute;
+  inset: 0.2rem 0.35rem;
+  z-index: 1;
+  content: "";
+  pointer-events: none;
+  clip-path: polygon(1% 7%, 99% 3%, 99% 93%, 1% 96%);
+}
+
+.fortune-paper::before {
+  background:
+    linear-gradient(101deg, transparent 18%, color-mix(in srgb, var(--ink) 7%, transparent) 18.4%, transparent 19%),
+    linear-gradient(78deg, transparent 47%, color-mix(in srgb, var(--surface) 65%, transparent) 47.6%, transparent 48.3%),
+    linear-gradient(96deg, transparent 74%, color-mix(in srgb, var(--ink) 5%, transparent) 74.4%, transparent 75%);
+  mix-blend-mode: multiply;
+  opacity: 0.62;
+}
+
+.fortune-paper::after {
+  background: linear-gradient(176deg, transparent 44%, color-mix(in srgb, var(--ink) 5%, transparent) 45%, transparent 47%);
+  opacity: 0.48;
+}
+
+.r3f-stage {
+  position: fixed;
+  inset: 0;
+  touch-action: manipulation;
+}
+
+.toy-btn {
+  border: 1px solid rgba(52, 39, 58, 0.08);
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  color: var(--primary-ink);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--primary) 72%, var(--surface)),
+    var(--primary)
+  );
+  box-shadow:
+    0 7px 0 rgba(52, 39, 58, 0.14),
+    0 14px 24px color-mix(in srgb, var(--primary) 24%, transparent);
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 140ms var(--ease-pop),
+    box-shadow 140ms var(--ease-pop),
+    filter 140ms ease;
+}
+
+@media (hover: hover) {
+  .toy-btn:hover:not(:disabled) {
+    filter: saturate(1.08) brightness(1.02);
+    transform: translateY(-2px);
+  }
+}
+
+.toy-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow:
+    0 3px 0 rgba(52, 39, 58, 0.14),
+    0 8px 16px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.toy-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.15);
+}
+
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby-card-link {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .lobby-card-stage::after,
+  .lobby-card-lamp {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
