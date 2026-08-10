@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Pretendard and Jua are loaded in app/layout.tsx. */
+/* Pretendard and Jua are loaded by both root layouts via app/root-config.ts. */
 
 :root {
   color-scheme: light;
@@ -150,6 +150,57 @@ a {
     opacity: 0;
     transform: translateX(460%) skewX(-14deg);
   }
+}
+
+@keyframes dugu-loader-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.65rem) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dugu-loader-overlay-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dugu-loader-dot {
+  0%,
+  65%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  32% {
+    opacity: 1;
+    transform: translateY(-0.25rem);
+  }
+}
+
+.dugu-loader-content {
+  animation: dugu-loader-reveal 320ms var(--ease-pop) both;
+}
+
+.dugu-loader-delay {
+  opacity: 0;
+  animation: dugu-loader-overlay-in 140ms ease-out 120ms forwards;
+}
+
+.dugu-loader-dot {
+  animation: dugu-loader-dot 920ms ease-in-out infinite;
+}
+
+.dugu-loader-dot:nth-child(2) {
+  animation-delay: 110ms;
+}
+
+.dugu-loader-dot:nth-child(3) {
+  animation-delay: 220ms;
 }
 
 .lobby-card-link {

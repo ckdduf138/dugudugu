@@ -902,11 +902,7 @@
 }
 
 .resultOrderDense {
-  max-height: min(28svh, 15rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
   padding-right: 0.2rem;
-  scrollbar-width: thin;
 }
 
 .resultMore {
@@ -943,12 +939,6 @@
 
 .resultMore[open] .resultOrder {
   margin-top: 0.35rem;
-}
-
-.resultOrderDense:focus-visible {
-  border-radius: var(--radius);
-  outline: 0.2rem solid color-mix(in srgb, var(--candy-sky) 42%, transparent);
-  outline-offset: 0.18rem;
 }
 
 .resultOrderDense .resultRow {
@@ -1117,6 +1107,12 @@
     --race-stage-height: max(27rem, min(34rem, 64svh));
   }
 
+  .gridSetup {
+    /* Keep the complete 4+3 roster visible near the first viewport while the
+       running cutscene still expands to the full immersive stage. */
+    --race-stage-height: max(25rem, min(31rem, 58svh));
+  }
+
   .stage {
     border-radius: var(--radius-lg);
   }
@@ -1155,10 +1151,6 @@
 
   .entryMeta {
     flex-wrap: wrap;
-  }
-
-  .resultOrderDense {
-    max-height: 25svh;
   }
 
   .resultActions {

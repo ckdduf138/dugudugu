@@ -6,7 +6,7 @@ type GameRouteTitleProps = {
   className?: string;
 };
 
-/** One quiet marquee title language shared by every game route. */
+/** Visual in-game title; the server-rendered route article owns the page h1. */
 export function GameRouteTitle({
   children,
   id,
@@ -14,12 +14,12 @@ export function GameRouteTitle({
 }: GameRouteTitleProps) {
   return (
     <div className={`inline-flex min-w-0 items-end gap-2 ${className}`}>
-      <h1
+      <div
         id={id}
         className="whitespace-nowrap font-display text-3xl leading-none text-ink sm:text-4xl"
       >
         {children}
-      </h1>
+      </div>
       <span
         aria-hidden
         className="mb-1 inline-flex shrink-0 items-end gap-1"

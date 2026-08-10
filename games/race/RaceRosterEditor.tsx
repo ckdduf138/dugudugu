@@ -73,7 +73,10 @@ export function RaceRosterEditor({
 
       <div className="mt-4">
         <p className="sr-only">{rosterLabel}</p>
-        <ol className="flex justify-center gap-2" aria-label={rosterLabel}>
+        <ol
+          className="mx-auto flex max-w-64 flex-wrap justify-center gap-2 sm:max-w-none sm:flex-nowrap"
+          aria-label={rosterLabel}
+        >
           {animalNames.slice(0, values.length).map((name, index) => {
             const palette = RACE_ANIMAL_PALETTES[index];
             return (

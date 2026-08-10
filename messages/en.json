@@ -1,8 +1,8 @@
 {
   "site": {
     "name": "Dugudugu",
-    "tagline": "Quick decisions, longer suspense",
-    "description": "A playful random-decision arcade that turns draws, ladder games, and races into polished 3D and crisp 2D moments worth watching together."
+    "tagline": "Make every choice a little adventure",
+    "description": "Dugudugu is a free random picker arcade for capsule draws, ladder games, and fortune cookies, with fair seeded results and playful polished reveals."
   },
   "nav": {
     "home": "Home",
@@ -19,7 +19,7 @@
     "sound": "Sound",
     "soundOn": "Sound on",
     "soundOff": "Sound off",
-    "loading": "Loading…",
+    "loading": "Dugu is setting up the game…",
     "add": "Add",
     "remove": "Remove",
     "winner": "Winner",
@@ -33,6 +33,12 @@
     "heading": "How should we decide today?",
     "subheading": "No dashboard full of tools—just a few little games made to watch and cheer together.",
     "enter": "Enter game",
+    "mascot": {
+      "open": "Say hello to Dugu",
+      "close": "Close Dugu's introduction",
+      "greeting": "Hi, I'm Dugu!",
+      "introduction": "Pick a draw, ladder game, or fortune cookie. I'll make the suspense before the answer part of the fun!"
+    },
     "primaryCta": "Draw now",
     "secondaryCta": "Choose a game",
     "stageHint": "Today's toy arcade",
@@ -50,8 +56,12 @@
     "draw": {
       "title": "Capsule Draw",
       "short": "Spin a capsule and reveal the pick",
-      "tagline": "A random draw with a rolling capsule reveal",
-      "description": "Add names or items, press the button, and the machine mixes capsules before revealing the result. Seeded randomness keeps every pick fair for bets, chores, or splitting teams.",
+      "tagline": "Tap the crank and roll out one random capsule",
+      "description": "Add names or items, tap the crank, and the machine rolls out one capsule with one result. Seeded randomness keeps every pick fair for bets, chores, or choosing what to eat.",
+      "seo": {
+        "title": "Free Random Capsule Draw",
+        "heading": "A free random capsule draw"
+      },
       "state": {
         "ready": "ready",
         "mixing": "mixing",
@@ -65,9 +75,6 @@
         "live": "LIVE DRAW",
         "mixing": "Mixing the entry capsules",
         "capsuleComing": "The winning capsule is coming!",
-        "openPrompt": "Tap the winning capsule to open it",
-        "openCapsule": "Tap to open",
-        "opening": "Opening the winning capsule",
         "skip": "Skip",
         "expandSetup": "Open draw setup",
         "collapseSetup": "Collapse draw setup"
@@ -77,8 +84,7 @@
         "ticket": "WINNER",
         "subtitle": "{count} winners",
         "announcement": "The winner result is {winners}",
-        "replay": "Play again",
-        "edit": "Edit entries"
+        "replay": "Play again"
       },
       "intro": {
         "kicker": "quick draw",
@@ -89,8 +95,7 @@
         "chipPlaceholder": "Type a name or option",
         "tapMachine": "Tap the machine to draw!",
         "winnersLabel": "How many to draw",
-        "pull": "Draw capsule",
-        "openCapsule": "Tap the dispensed capsule to open it",
+        "pull": "Turn to draw",
         "needMore": "Add at least 2 entries",
         "ready": "Ready",
         "entries": "{count} entries"
@@ -98,15 +103,15 @@
       "faq": [
         {
           "q": "How do I use Capsule Draw?",
-          "a": "Enter one option per line and press Draw capsule. When the machine dispenses the winner, tap that capsule to open it and see the result."
+          "a": "Enter one option per line and tap the machine crank. After the machine dispenses one capsule, it automatically shows one result."
         },
         {
           "q": "Is the result truly random?",
-          "a": "Yes. A seeded random draw freezes the outcome when you press the button; the capsule animation only reveals that already-fixed result."
+          "a": "Yes. A seeded random draw freezes the outcome when you tap the crank; the capsule animation only reveals that already-fixed result."
         },
         {
-          "q": "Can I draw several winners at once?",
-          "a": "Set the number of winners and it returns that many results with no duplicates."
+          "q": "How many picks come out at once?",
+          "a": "Each round dispenses one capsule with one result. Play again keeps the same entries, and you can tap the crank when you are ready for another draw."
         }
       ]
     },
@@ -115,6 +120,10 @@
       "short": "Watch the animal friends race down",
       "tagline": "A cute 2D ladder traced by the animals themselves",
       "description": "Choose a fixed cast of cute animals, edit only the outcomes below, and watch their faces follow a crisp 2D ladder through one paired edge portal. A seeded uniform permutation freezes the fair result first.",
+      "seo": {
+        "title": "Free Online Ladder Game",
+        "heading": "A ladder game with animal friends"
+      },
       "stage": {
         "aria": "2D ladder board with animal faces and one paired edge portal",
         "playerFallback": "Player {number}",
@@ -157,6 +166,9 @@
       "routeAria": "Show {player}'s route",
       "announcement": "{player}'s result is {outcome}",
       "allAnnouncement": "All results: {results}",
+      "mappingLabel": "Ladder results by animal",
+      "showAll": "All results",
+      "close": "Close all results",
       "replay": "Play again",
         "edit": "Edit"
       },
@@ -180,6 +192,10 @@
       "short": "Seven animals, one thrilling finish",
       "tagline": "Choose the field size and go — a 3D race packed with lead changes",
       "description": "Choose two to seven distinct animals and watch them charge down a long track. The winner and motion curves are seeded first, giving every animal an equal chance.",
+      "seo": {
+        "title": "Animal Race · Coming Soon",
+        "heading": "Animal Race is coming soon"
+      },
       "state": {
         "ready": "Ready to race",
         "countdown": "Starting countdown",
@@ -242,6 +258,10 @@
       "short": "Pick a mood, then tap once",
       "tagline": "Choose luck, courage, connection, or comfort—then tap once",
       "description": "Choose the kind of message you need—luck, courage, connection, or comfort—then tap the fortune cookie. It presses and cracks in stages before revealing one seeded message on a thin paper slip.",
+      "seo": {
+        "title": "Random Fortune Cookie",
+        "heading": "Tap open a random fortune cookie"
+      },
       "state": {
         "opening": "The cookie is cracking open",
         "crack": "Snap! The cookie cracked",

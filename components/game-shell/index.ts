@@ -6,6 +6,8 @@ export type {
 } from "./GameShell";
 export { LiveAnnouncer } from "./LiveAnnouncer";
 export type { LiveAnnouncerProps } from "./LiveAnnouncer";
+export { DuguResultHandoff } from "./DuguResultHandoff";
+export type { DuguResultHandoffProps } from "./DuguResultHandoff";
 export { ResultDialog } from "./ResultDialog";
 export type { ResultDialogProps } from "./ResultDialog";
 export { SkipCutsceneButton } from "./SkipCutsceneButton";

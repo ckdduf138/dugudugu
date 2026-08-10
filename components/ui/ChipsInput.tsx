@@ -8,9 +8,15 @@ import { spring } from "@/lib/motion";
 
 const CHIP_COLORS = CANDY_CSS_ORDER;
 
+export type ChipsInputChange =
+  | { type: "add"; values: string[] }
+  | { type: "remove"; index: number };
+
 type Props = {
   values: string[];
-  onChange: (values: string[]) => void;
+  onChange: (values: string[], change: ChipsInputChange) => void;
+  /** Optional stable colors aligned with `values`; falls back to token order. */
+  chipColors?: readonly string[];
   placeholder: string;
   /** Accessible label for the text field. */
   label?: string;
@@ -36,6 +42,7 @@ type Props = {
 export function ChipsInput({
   values,
   onChange,
+  chipColors,
   placeholder,
   label,
   onSubmit,
@@ -68,7 +75,7 @@ export function ChipsInput({
     if (parts.length) {
       const next = [...valuesRef.current, ...parts];
       valuesRef.current = next;
-      onChange(next);
+      onChange(next, { type: "add", values: parts });
     }
   };
 
@@ -80,7 +87,7 @@ export function ChipsInput({
   const removeAt = (idx: number) => {
     const next = valuesRef.current.filter((_, i) => i !== idx);
     valuesRef.current = next;
-    onChange(next);
+    onChange(next, { type: "remove", index: idx });
     inputRef.current?.focus();
   };
 
@@ -100,29 +107,29 @@ export function ChipsInput({
           }`}
         >
           {values.map((v, i) => (
-          <motion.span
-            key={`${v}-${i}`}
-            initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={spring.snappy}
-            className="inline-flex max-w-full items-center gap-1 rounded-full py-1 pl-2.5 pr-1 text-xs font-black text-ink"
-            style={{
-              background: `color-mix(in srgb, ${CHIP_COLORS[i % CHIP_COLORS.length]} 18%, transparent)`,
-            }}
-          >
-            <span className="truncate">{v}</span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeAt(i);
+            <motion.span
+              key={`${v}-${i}`}
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={spring.snappy}
+              className="inline-flex max-w-full items-center gap-1 rounded-full py-1 pl-2.5 pr-1 text-xs font-black text-ink"
+              style={{
+                background: `color-mix(in srgb, ${chipColors?.[i] ?? CHIP_COLORS[i % CHIP_COLORS.length]} 18%, transparent)`,
               }}
-              aria-label={`${removeLabel}: ${v}`}
-              className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-ink/10 hover:text-ink active:scale-90"
             >
-              <X aria-hidden size={13} strokeWidth={3} />
-            </button>
-          </motion.span>
+              <span className="truncate">{v}</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeAt(i);
+                }}
+                aria-label={`${removeLabel}: ${v}`}
+                className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-ink/10 hover:text-ink active:scale-90"
+              >
+                <X aria-hidden size={13} strokeWidth={3} />
+              </button>
+            </motion.span>
           ))}
         </div>
       ) : null}
@@ -147,7 +154,7 @@ export function ChipsInput({
             } else if (e.key === "Backspace" && draftRef.current === "" && values.length) {
               const next = valuesRef.current.slice(0, -1);
               valuesRef.current = next;
-              onChange(next);
+              onChange(next, { type: "remove", index: values.length - 1 });
             }
           }}
           onBlur={commitDraft}

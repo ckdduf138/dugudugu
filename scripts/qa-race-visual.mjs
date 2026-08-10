@@ -3,6 +3,10 @@ import puppeteer from "puppeteer-core";
 const chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const url = process.argv[2] ?? "http://localhost:3001/ko/games/race/";
 const requestedViewport = process.argv[3];
+const requestedCount = Number(process.argv[4] ?? 3);
+if (!Number.isInteger(requestedCount) || requestedCount < 2 || requestedCount > 7) {
+  throw new Error(`Race count must be an integer from 2 to 7: ${requestedCount}`);
+}
 const allViewports = [
   { key: "mobile", width: 390, height: 844 },
   { key: "tablet", width: 768, height: 1024 },
@@ -30,7 +34,11 @@ async function prepare(viewport) {
     isMobile: viewport.key === "mobile",
     hasTouch: viewport.key !== "desktop",
   });
-  await page.goto(url, { waitUntil: "networkidle0", timeout: 30_000 });
+  const raceUrl = new URL(url);
+  raceUrl.searchParams.set("n", String(requestedCount));
+  raceUrl.searchParams.set("names", Array.from({ length: requestedCount }, () => "").join("\n"));
+  raceUrl.searchParams.set("seed", "20260804");
+  await page.goto(raceUrl.toString(), { waitUntil: "networkidle0", timeout: 30_000 });
   await page.evaluate(() => document.fonts.ready);
   await delay(1_500);
   return { page, viewport };
@@ -38,22 +46,23 @@ async function prepare(viewport) {
 
 for (const viewport of viewports) {
   const { page } = await prepare(viewport);
-  await page.screenshot({ path: `/tmp/dugudugu-race-${viewport.key}-setup.png` });
+  const screenshotRoot = `/tmp/dugudugu-race-${viewport.key}-${requestedCount}p`;
+  await page.screenshot({ path: `${screenshotRoot}-setup.png` });
   const started = await page.evaluate(() => {
-    const button = [...document.querySelectorAll("button")].find((candidate) =>
-      candidate.textContent?.includes("경주 시작"),
+    const button = document.querySelector(
+      'button[aria-label][aria-controls="race-stage"]',
     );
     button?.click();
     return Boolean(button);
   });
   if (!started) throw new Error(`${viewport.key}: race start button was not found`);
-  await delay(6_000);
-  await page.screenshot({ path: `/tmp/dugudugu-race-${viewport.key}-mid.png` });
-  await delay(10_500);
-  await page.screenshot({ path: `/tmp/dugudugu-race-${viewport.key}-result.png` });
+  await delay(5_800);
+  await page.screenshot({ path: `${screenshotRoot}-mid.png` });
+  await delay(6_500);
+  await page.screenshot({ path: `${screenshotRoot}-result.png` });
   await page.close();
 }
 
 await browser.close();
-console.log("Wrote responsive race QA screenshots to /tmp/dugudugu-race-*.png");
+console.log(`Wrote ${requestedCount}-racer QA screenshots to /tmp/dugudugu-race-*.png`);
 process.exit(0);

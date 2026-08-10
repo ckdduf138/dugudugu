@@ -36,7 +36,10 @@ describe("ChipsInput", () => {
 
     fireEvent.change(input, { target: { value: "  B  " } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(onChange).toHaveBeenLastCalledWith(["A", "B"]);
+    expect(onChange).toHaveBeenLastCalledWith(
+      ["A", "B"],
+      { type: "add", values: ["B"] },
+    );
   });
 
   it("ignores the composition Enter emitted by a Korean IME", () => {
@@ -73,7 +76,33 @@ describe("ChipsInput", () => {
     fireEvent.blur(input);
     fireEvent.click(view.getByRole("button", { name: "Remove: A" }));
 
-    expect(onChange).toHaveBeenNthCalledWith(1, ["A", "B", "C"]);
-    expect(onChange).toHaveBeenNthCalledWith(2, ["B", "C"]);
+    expect(onChange).toHaveBeenNthCalledWith(
+      1,
+      ["A", "B", "C"],
+      { type: "add", values: ["C"] },
+    );
+    expect(onChange).toHaveBeenNthCalledWith(
+      2,
+      ["B", "C"],
+      { type: "remove", index: 0 },
+    );
+  });
+
+  it("uses stable caller-provided chip colors", () => {
+    const view = render(
+      <ChipsInput
+        values={["A", "B"]}
+        onChange={() => undefined}
+        chipColors={["var(--candy-mint)", "var(--candy-lemon)"]}
+        placeholder="Add a name"
+      />,
+    );
+
+    expect(view.getByText("A").parentElement?.getAttribute("style")).toContain(
+      "var(--candy-mint)",
+    );
+    expect(view.getByText("B").parentElement?.getAttribute("style")).toContain(
+      "var(--candy-lemon)",
+    );
   });
 });

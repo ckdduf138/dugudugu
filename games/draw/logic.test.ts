@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { drawWinners, cleanCandidates } from "./logic";
+import type { DrawEntry } from "./colors";
 
 const CANDS = ["가", "나", "다", "라", "마"];
 
@@ -13,6 +14,30 @@ describe("draw logic", () => {
     const r2 = drawWinners({ candidates: CANDS, winners: 2, seed: 555 });
     expect(r1.winners).toEqual(r2.winners);
     expect(r1.order).toEqual(r2.order);
+  });
+
+  it("keeps the historical seeded string order while freezing winner colors", () => {
+    const entries: DrawEntry[] = CANDS.map((label, index) => ({
+      id: `candidate-${index}`,
+      label,
+      color: (["pink", "sky", "mint", "lemon", "pink"] as const)[index],
+    }));
+    const legacy = drawWinners({ candidates: CANDS, winners: 2, seed: 555 });
+    const colored = drawWinners({
+      candidates: CANDS,
+      entries,
+      winners: 2,
+      seed: 555,
+    });
+
+    expect(colored.order).toEqual(legacy.order);
+    expect(colored.winners).toEqual(legacy.winners);
+    expect(colored.winnerEntries.map((entry) => entry.label)).toEqual(
+      colored.winners,
+    );
+    expect(colored.winnerEntries[0].color).toBe(
+      entries.find((entry) => entry.label === colored.winners[0])?.color,
+    );
   });
 
   it("picks the requested number of winners with no duplicates", () => {

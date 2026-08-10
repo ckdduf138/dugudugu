@@ -33,7 +33,7 @@ export const games: GameMeta[] = [
     category: "race",
     accent: CANDY_HEX.coral,
     icon: "十二",
-    status: "live",
+    status: "soon",
     minPlayers: 2,
     maxPlayers: 12,
     needsPhysics: false,

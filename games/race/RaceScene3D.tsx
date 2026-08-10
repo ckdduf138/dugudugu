@@ -34,14 +34,23 @@ import {
 import { DEFAULT_RACE_ANIMAL_COUNT, RACE_ANIMALS, type RaceAnimal } from "./animals";
 import type { RacePhase } from "./store";
 
-const START_X = -15.5;
-const GATE_X = -14.67;
-const FINISH_X = 16.5;
+const RACE_SPRINT_DISTANCE = 23;
+const START_X = -RACE_SPRINT_DISTANCE / 2;
+const FINISH_X = START_X + RACE_SPRINT_DISTANCE;
+const START_LINE_X = START_X + 0.72;
+const TRACK_START_X = START_X - 2.8;
+const TRACK_FINISH_X = FINISH_X + 3.6;
+const TRACK_LENGTH = TRACK_FINISH_X - TRACK_START_X;
+const TRACK_CENTER_X = (TRACK_START_X + TRACK_FINISH_X) / 2;
+const FESTIVAL_LENGTH = TRACK_LENGTH - 1.8;
+const SECTION_PROGRESS = [0.28, 0.55, 0.79] as const;
 const HORSE_SCALE = 1;
 const BASE_LANE_WIDTH = 2.15;
 const DENSE_LANE_WIDTH = 1.68;
+const NARROW_FIELD_APRON = 5.6;
+const WIDE_FIELD_APRON = 3.8;
 const MAX_VISIBLE_RACERS = RACE_ANIMALS.length;
-export const RACE_TRAVEL_DISTANCE = FINISH_X - START_X;
+export const RACE_TRAVEL_DISTANCE = RACE_SPRINT_DISTANCE;
 // Authored GLBs may expose a source-space `strideLength` extra. Until every
 // asset does, this calibrated world-space fallback keeps distance and clip
 // phase coupled instead of inventing a random playback rate per animal.
@@ -74,6 +83,8 @@ const TRACK = {
   stand: mixHex(CANDY_HEX.sky, NEUTRAL_HEX.surface, 0.72),
   standShade: mixHex(CANDY_HEX.grape, NEUTRAL_HEX.surface, 0.58),
   canopy: mixHex(CANDY_HEX.sky, NEUTRAL_HEX.surface, 0.54),
+  canopyWarm: mixHex(CANDY_HEX.lemon, NEUTRAL_HEX.surface, 0.5),
+  canopyPink: mixHex(CANDY_HEX.pink, NEUTRAL_HEX.surface, 0.56),
   support: mixHex(CANDY_HEX.coral, NEUTRAL_HEX.ink, 0.2),
   gold: CANDY_HEX.lemon,
   score: mixHex(CANDY_HEX.grape, NEUTRAL_HEX.ink, 0.34),
@@ -167,14 +178,118 @@ function assertRunClipContract(clip: THREE.AnimationClip | undefined) {
   }
 }
 
-function cloneAnimalForLane(source: THREE.Object3D) {
+const HEAD_BONE_BY_ANIMAL: Partial<Record<RaceAnimal["id"], string>> = {
+  tiger: "spine.012",
+  horse: "scull",
+  deer: "scull",
+  dog: "scull",
+  cat: "scull",
+  penguin: "scull",
+  chicken: "scull",
+};
+
+const HEAD_SCALE_BY_ANIMAL: Partial<Record<RaceAnimal["id"], number>> = {
+  tiger: 1.1,
+  horse: 1.08,
+  deer: 1.1,
+  dog: 1.1,
+  cat: 1.12,
+  penguin: 1.1,
+  chicken: 1.1,
+};
+
+const FOOT_SCALE_BY_ANIMAL: Record<RaceAnimal["id"], number> = {
+  tiger: 1.06,
+  horse: 1.05,
+  deer: 1.06,
+  dog: 1.08,
+  cat: 1.08,
+  penguin: 1.07,
+  chicken: 1.07,
+};
+
+const FOOT_BONE_NAMES = [
+  "foot.R",
+  "foot.L",
+  "front_foot.R",
+  "front_foot.L",
+] as const;
+
+function stylizeBoneAcrossRestAndClip(
+  root: THREE.Object3D,
+  clip: THREE.AnimationClip | undefined,
+  boneName: string,
+  factor: number,
+) {
+  const bone = root.getObjectByName(boneName);
+  if (!bone || Math.abs(factor - 1) < 1e-4) return;
+  bone.scale.multiplyScalar(factor);
+  clip?.tracks.forEach((track) => {
+    if (!track.name.endsWith(`${boneName}.scale`)) return;
+    for (let index = 0; index < track.values.length; index++) {
+      track.values[index] *= factor;
+    }
+  });
+}
+
+function cloneAnimalForLane(
+  source: THREE.Object3D,
+  runClip: THREE.AnimationClip | undefined,
+  animal: RaceAnimal,
+) {
   const root = cloneSkeleton(source);
+  const styledRunClip = runClip?.clone();
+  const materialClones = new Map<THREE.Material, THREE.Material>();
+  const cloneMatteMaterial = (sourceMaterial: THREE.Material) => {
+    const existing = materialClones.get(sourceMaterial);
+    if (existing) return existing;
+    const material = sourceMaterial.clone();
+    if (material instanceof THREE.MeshStandardMaterial) {
+      material.roughness = Math.max(0.68, material.roughness);
+      material.metalness = Math.min(0.04, material.metalness);
+      material.envMapIntensity = Math.min(0.72, material.envMapIntensity);
+      if (material instanceof THREE.MeshPhysicalMaterial) {
+        material.clearcoat = Math.min(0.08, material.clearcoat);
+        material.clearcoatRoughness = Math.max(0.72, material.clearcoatRoughness);
+      }
+      material.needsUpdate = true;
+    }
+    materialClones.set(sourceMaterial, material);
+    return material;
+  };
+
   root.traverse((object) => {
     if (!(object instanceof THREE.Mesh)) return;
     object.castShadow = true;
     object.receiveShadow = false;
+    object.material = Array.isArray(object.material)
+      ? object.material.map(cloneMatteMaterial)
+      : cloneMatteMaterial(object.material);
   });
-  return { root, ownedMaterials: [] as THREE.Material[] };
+
+  // The delivery Run clips own every animated bone's scale. A rest-pose-only
+  // edit would therefore pop back to the source silhouette on the first mixer
+  // frame. Clone the clip per lane and apply the same restrained toy proportion
+  // factor to both rest scale and all absolute scale keys instead.
+  const headName = HEAD_BONE_BY_ANIMAL[animal.id];
+  const headScale = HEAD_SCALE_BY_ANIMAL[animal.id];
+  if (headName && headScale) {
+    stylizeBoneAcrossRestAndClip(root, styledRunClip, headName, headScale);
+  }
+  FOOT_BONE_NAMES.forEach((footName) => {
+    stylizeBoneAcrossRestAndClip(
+      root,
+      styledRunClip,
+      footName,
+      FOOT_SCALE_BY_ANIMAL[animal.id],
+    );
+  });
+
+  return {
+    root,
+    runClip: styledRunClip,
+    ownedMaterials: [...materialClones.values()],
+  };
 }
 
 function resolveStrideLength(
@@ -350,14 +465,19 @@ function AnimalRunner({
     }
     return source;
   }, [animal.modelUrl, animal.sceneRoot, gltf.scene]);
-  // SkeletonUtils is mandatory here: Object3D.clone would share bones/mixers,
-  // causing animals to snap into each other's poses.
-  const animalClone = useMemo(() => cloneAnimalForLane(sourceAnimal), [sourceAnimal]);
-  const character = animalClone.root;
   const runClip = useMemo(
     () => findClip(gltf.animations, animal.clipPrefix, "Run"),
     [animal.clipPrefix, gltf.animations],
   );
+  // SkeletonUtils is mandatory here: Object3D.clone would share bones/mixers,
+  // causing animals to snap into each other's poses. Materials are cloned too,
+  // so this lane can receive matte runtime calibration without mutating GLTF cache.
+  const animalClone = useMemo(
+    () => cloneAnimalForLane(sourceAnimal, runClip, animal),
+    [animal, runClip, sourceAnimal],
+  );
+  const character = animalClone.root;
+  const styledRunClip = animalClone.runClip;
   const animation = useRef<{
     mixer: THREE.AnimationMixer;
     runAction: THREE.AnimationAction | null;
@@ -368,8 +488,8 @@ function AnimalRunner({
     THREE.MathUtils.smoothstep(count, 2, 5),
   );
   const strideLength = useMemo(
-    () => resolveStrideLength(character, runClip, animal) * castScale,
-    [animal, castScale, character, runClip],
+    () => resolveStrideLength(character, styledRunClip, animal) * castScale,
+    [animal, castScale, character, styledRunClip],
   );
   const brakeDistance = useMemo(
     () => distanceToNextPlantedContact(RACE_TRAVEL_DISTANCE, strideLength),
@@ -401,11 +521,13 @@ function AnimalRunner({
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
-      if (!runClip) console.error(`[race] ${animal.id} must contain a Run clip.`);
+      if (!styledRunClip) console.error(`[race] ${animal.id} must contain a Run clip.`);
     }
-    assertRunClipContract(runClip);
+    assertRunClipContract(styledRunClip);
     const mixer = new THREE.AnimationMixer(character);
-    const runAction = runClip ? mixer.clipAction(runClip, character) : null;
+    const runAction = styledRunClip
+      ? mixer.clipAction(styledRunClip, character)
+      : null;
     runAction?.reset().setLoop(THREE.LoopRepeat, Infinity).play();
     if (runAction) runAction.paused = true;
     runAction?.setEffectiveWeight(0);
@@ -416,7 +538,7 @@ function AnimalRunner({
       mixer.uncacheRoot(character);
       animation.current = null;
     };
-  }, [animal.id, character, runClip]);
+  }, [animal.id, character, styledRunClip]);
 
   useEffect(() => {
     crossed.current = phase === "finished";
@@ -497,9 +619,9 @@ function AnimalRunner({
     );
 
     const setupFanOffset = count === 2
-      ? (lane === 0 ? -1.05 : 1.05)
+      ? (lane === 0 ? -1.35 : 1.35)
       : ((lane % 2 === 0 ? -1.15 : 1.15) +
-          (lane - (count - 1) / 2) * 0.4) *
+          (lane - (count - 1) / 2) * 0.5) *
         fieldExpansion(count);
     if (phase === "setup") {
       runner.current.position.x = THREE.MathUtils.damp(
@@ -600,8 +722,8 @@ function AnimalRunner({
     const runtime = animation.current;
     runtime?.runAction?.setEffectiveWeight(runWeight);
 
-    if (runtime?.runAction && runClip && running) {
-      runtime.runAction.time = strideCycle * runClip.duration;
+    if (runtime?.runAction && styledRunClip && running) {
+      runtime.runAction.time = strideCycle * styledRunClip.duration;
     }
     // The brake distance ends on the same authored contact family for every
     // quarter-phase lane. The blend reaches full Idle there, avoiding a
@@ -662,26 +784,24 @@ function AnimalRunner({
 function FloodLight({ x, z }: { x: number; z: number }) {
   return (
     <group position={[x, 0, z]}>
-      <mesh position={[0, 2.35, 0]} castShadow>
-        <cylinderGeometry args={[0.07, 0.1, 4.7, 10]} />
+      <mesh position={[0, 1.85, 0]} castShadow>
+        <cylinderGeometry args={[0.06, 0.09, 3.7, 10]} />
         <meshStandardMaterial color={TRACK.ink} roughness={0.55} />
       </mesh>
-      <RoundedBox args={[1.65, 0.9, 0.2]} radius={0.12} position={[0, 4.75, 0]} castShadow>
-        <meshStandardMaterial color={TRACK.ink} roughness={0.45} />
+      <RoundedBox args={[1.3, 0.66, 0.18]} radius={0.11} position={[0, 3.78, 0]} castShadow>
+        <meshStandardMaterial color={TRACK.cream} roughness={0.52} />
       </RoundedBox>
-      {Array.from({ length: 6 }, (_, index) => {
-        const column = index % 3;
-        const row = Math.floor(index / 3);
+      {Array.from({ length: 3 }, (_, index) => {
         return (
           <mesh
             key={index}
-            position={[(column - 1) * 0.45, 4.92 - row * 0.34, 0.13]}
+            position={[(index - 1) * 0.38, 3.78, 0.11]}
           >
-            <circleGeometry args={[0.12, 12]} />
+            <circleGeometry args={[0.1, 12]} />
             <meshStandardMaterial
-              color={TRACK.cream}
-              emissive={TRACK.cream}
-              emissiveIntensity={1.1}
+              color={TRACK.gold}
+              emissive={TRACK.gold}
+              emissiveIntensity={0.72}
               roughness={0.3}
             />
           </mesh>
@@ -691,137 +811,123 @@ function FloodLight({ x, z }: { x: number; z: number }) {
   );
 }
 
-function StadiumBackdrop({ edge }: { edge: number }) {
-  const standZ = -edge - 3.15;
+function FestivalStandBay({
+  x,
+  z,
+  width,
+  color,
+  tilt,
+}: {
+  x: number;
+  z: number;
+  width: number;
+  color: string;
+  tilt: number;
+}) {
   return (
-    <group>
+    <group position={[x, 0, z]}>
       <RoundedBox
-        args={[41, 0.55, 4.6]}
-        radius={0.22}
-        position={[1, -0.03, standZ]}
+        args={[width, 0.34, 3.15]}
+        radius={0.18}
+        position={[0, 0.02, 0]}
         receiveShadow
       >
-        <meshStandardMaterial color={TRACK.standShade} roughness={0.82} />
+        <meshStandardMaterial color={TRACK.standShade} roughness={0.88} />
       </RoundedBox>
-      {[0, 1, 2].map((row) => (
-        <RoundedBox
-          key={`stand-tier-${row}`}
-          args={[40.2, 0.36, 1.22]}
-          radius={0.12}
-          position={[
-            1,
-            0.34 + row * 0.58,
-            standZ + 1.18 - row * 0.95,
-          ]}
-          receiveShadow
-        >
-          <meshStandardMaterial
-            color={row % 2 ? TRACK.stand : TRACK.cream}
-            roughness={0.84}
-          />
-        </RoundedBox>
-      ))}
-      <mesh position={[1, 2.15, standZ - 1.42]} receiveShadow>
-        <boxGeometry args={[40.5, 3.45, 0.24]} />
-        <meshBasicMaterial color={TRACK.standShade} />
-      </mesh>
-
       <RoundedBox
-        args={[41.5, 0.34, 5.35]}
-        radius={0.16}
-        position={[1, 4.52, standZ - 0.12]}
-        rotation={[0, 0, -0.018]}
+        args={[width - 0.34, 0.34, 1.12]}
+        radius={0.12}
+        position={[0, 0.42, 0.7]}
+        receiveShadow
       >
-        <meshStandardMaterial color={TRACK.cream} roughness={0.48} metalness={0.08} />
+        <meshStandardMaterial color={TRACK.cream} roughness={0.86} />
       </RoundedBox>
-      <mesh position={[1, 4.3, standZ - 0.08]} rotation={[0, 0, -0.018]}>
-        <boxGeometry args={[40.8, 0.12, 4.85]} />
-        <meshBasicMaterial color={TRACK.canopy} />
-      </mesh>
-
-      {[-18, -12, -6, 8, 14, 20].map((x, index) => {
-        return (
-          <group key={`stand-column-${index}`} position={[x, 0, standZ - 1.27]}>
-            <mesh position={[0, 2.14, 0]} castShadow>
-              <boxGeometry args={[0.22, 4.28, 0.28]} />
-              <meshStandardMaterial color={TRACK.support} roughness={0.58} />
-            </mesh>
-          </group>
-        );
-      })}
-
-      {[0, 1, 2].map((row) => (
-        <mesh
-          key={`stand-led-${row}`}
-          position={[
-            1,
-            0.57 + row * 0.58,
-            standZ + 1.8 - row * 0.95,
-          ]}
-        >
-          <boxGeometry args={[39.2, 0.065, 0.065]} />
-          <meshStandardMaterial
-            color={RACE_COLORS[[4, 2, 0][row]]}
-            emissive={RACE_COLORS[[4, 2, 0][row]]}
-            emissiveIntensity={0.82}
-            roughness={0.38}
-          />
+      <RoundedBox
+        args={[width - 0.82, 0.32, 0.96]}
+        radius={0.11}
+        position={[0, 0.82, -0.12]}
+        receiveShadow
+      >
+        <meshStandardMaterial color={TRACK.stand} roughness={0.86} />
+      </RoundedBox>
+      {[-0.42, 0.42].map((fraction) => (
+        <mesh key={fraction} position={[width * fraction, 1.92, -0.62]} castShadow>
+          <boxGeometry args={[0.16, 3.45, 0.2]} />
+          <meshStandardMaterial color={TRACK.support} roughness={0.62} />
         </mesh>
       ))}
-
-      <mesh position={[1, 1.92, standZ - 1.26]}>
-        <boxGeometry args={[39.4, 0.18, 0.08]} />
-        <meshStandardMaterial color={TRACK.standShade} roughness={0.55} />
+      <mesh
+        position={[0, 3.42, -0.08]}
+        rotation={[0, Math.PI / 4, tilt]}
+        scale={[width / 4, 1, 0.72]}
+        castShadow
+      >
+        <coneGeometry args={[2, 1.12, 4]} />
+        <meshStandardMaterial color={color} roughness={0.62} />
       </mesh>
+      {[-0.31, 0, 0.31].map((fraction, index) => (
+        <RoundedBox
+          key={fraction}
+          args={[width * 0.25, 0.18, 0.36]}
+          radius={0.08}
+          position={[width * fraction, 2.88 + tilt * width * fraction, 1.04]}
+        >
+          <meshStandardMaterial
+            color={index % 2 ? TRACK.cream : color}
+            roughness={0.7}
+          />
+        </RoundedBox>
+      ))}
+    </group>
+  );
+}
 
-      <group position={[1, 3.15, standZ - 1.62]}>
-        <RoundedBox args={[5.6, 2.15, 0.34]} radius={0.2} castShadow>
+function StadiumBackdrop({ edge }: { edge: number }) {
+  const standZ = -edge - 3.0;
+  const gap = 0.72;
+  const bayWidth = (FESTIVAL_LENGTH - gap * 2) / 3;
+  const bayStep = bayWidth + gap;
+  return (
+    <group>
+      {[-1, 0, 1].map((offset, index) => (
+        <FestivalStandBay
+          key={offset}
+          x={TRACK_CENTER_X + offset * bayStep}
+          z={standZ}
+          width={bayWidth}
+          color={[TRACK.canopy, TRACK.canopyWarm, TRACK.canopyPink][index]}
+          tilt={[0.028, -0.018, 0.024][index]}
+        />
+      ))}
+
+      <group position={[TRACK_CENTER_X, 2.22, standZ - 1.82]}>
+        <RoundedBox args={[4.7, 1.64, 0.3]} radius={0.18} castShadow>
           <meshStandardMaterial color={TRACK.cream} roughness={0.46} />
         </RoundedBox>
-        <RoundedBox args={[4.95, 1.46, 0.12]} radius={0.14} position={[0, 0, 0.23]}>
+        <RoundedBox args={[4.18, 1.14, 0.12]} radius={0.13} position={[0, 0, 0.21]}>
           <meshStandardMaterial color={TRACK.score} roughness={0.48} />
         </RoundedBox>
-        {Array.from({ length: 7 }, (_, index) => (
+        {Array.from({ length: 3 }, (_, index) => (
           <mesh
             key={`score-light-${index}`}
-            position={[-1.95 + index * 0.65, 0.12 + Math.sin(index) * 0.1, 0.33]}
+            position={[-0.72 + index * 0.72, 0.08, 0.31]}
           >
-            <circleGeometry args={[index === 3 ? 0.3 : 0.21, 14]} />
+            <circleGeometry args={[index === 1 ? 0.25 : 0.18, 14]} />
             <meshStandardMaterial
-              color={index === 3 ? TRACK.gold : RACE_COLORS[index]}
-              emissive={index === 3 ? TRACK.gold : RACE_COLORS[index]}
-              emissiveIntensity={index === 3 ? 0.72 : 0.32}
+              color={index === 1 ? TRACK.gold : RACE_COLORS[index * 2]}
+              emissive={index === 1 ? TRACK.gold : RACE_COLORS[index * 2]}
+              emissiveIntensity={index === 1 ? 0.68 : 0.26}
               roughness={0.38}
             />
           </mesh>
         ))}
-        <mesh position={[0, -0.58, 0.33]}>
-          <boxGeometry args={[3.75, 0.13, 0.06]} />
+        <mesh position={[0, -0.48, 0.31]}>
+          <boxGeometry args={[2.7, 0.11, 0.05]} />
           <meshStandardMaterial color={TRACK.cream} />
         </mesh>
       </group>
-
-      {Array.from({ length: 9 }, (_, index) => (
-        <group
-          key={`stadium-banner-${index}`}
-          position={[-16 + index * 4.25, 2.56, standZ - 1.27]}
-        >
-          <RoundedBox args={[2.35, 0.68, 0.1]} radius={0.09}>
-            <meshStandardMaterial
-              color={index % 2 ? TRACK.cream : RACE_COLORS[index % RACE_COLORS.length]}
-              roughness={0.68}
-            />
-          </RoundedBox>
-          <mesh position={[0, 0, 0.065]}>
-            <boxGeometry args={[1.24, 0.12, 0.04]} />
-            <meshStandardMaterial
-              color={index % 2 ? RACE_COLORS[index % RACE_COLORS.length] : TRACK.cream}
-            />
-          </mesh>
-        </group>
-      ))}
-      <FloodLight x={-15.5} z={standZ - 1.75} />
-      <FloodLight x={17.5} z={standZ - 1.75} />
+      <FloodLight x={TRACK_START_X + 1.25} z={standZ - 1.55} />
+      <FloodLight x={TRACK_FINISH_X - 1.25} z={standZ - 1.55} />
     </group>
   );
 }
@@ -829,9 +935,9 @@ function StadiumBackdrop({ edge }: { edge: number }) {
 function DistantLandscape({ edge }: { edge: number }) {
   const horizonZ = -edge - 8.4;
   const hills = [
-    { x: -15.5, y: 0.45, sx: 7.4, sy: 2.45, color: TRACK.hill },
-    { x: -5.2, y: 0.25, sx: 6.2, sy: 1.9, color: TRACK.hillShade },
-    { x: 9.8, y: 0.38, sx: 7.8, sy: 2.2, color: TRACK.hill },
+    { x: TRACK_START_X + TRACK_LENGTH * 0.1, y: 0.45, sx: TRACK_LENGTH * 0.2, sy: 2.3, color: TRACK.hill },
+    { x: TRACK_CENTER_X - TRACK_LENGTH * 0.12, y: 0.25, sx: TRACK_LENGTH * 0.17, sy: 1.8, color: TRACK.hillShade },
+    { x: TRACK_FINISH_X - TRACK_LENGTH * 0.14, y: 0.38, sx: TRACK_LENGTH * 0.21, sy: 2.1, color: TRACK.hill },
   ] as const;
 
   return (
@@ -850,70 +956,38 @@ function DistantLandscape({ edge }: { edge: number }) {
   );
 }
 
-function StartingGates({
+function StartingLine({
   count,
-  open,
   countdownBeat,
 }: {
   count: number;
-  open: boolean;
   countdownBeat: RaceCountdownBeat;
 }) {
-  const barriers = useRef<Array<THREE.Group | null>>([]);
-  const openStartedAt = useRef(0);
-
-  useEffect(() => {
-    if (open) openStartedAt.current = performance.now();
-  }, [open]);
-
-  useFrame((_, delta) => {
-    const openAge = open
-      ? Math.max(0, (performance.now() - openStartedAt.current) / 1000)
-      : 1;
-    const openingRecoil = open ? Math.sin(openAge * 34) * Math.exp(-openAge * 9) : 0;
-    for (let lane = 0; lane < count; lane++) {
-      const barrier = barriers.current[lane];
-      if (!barrier) continue;
-      barrier.position.y = THREE.MathUtils.damp(
-        barrier.position.y,
-        open ? -0.24 + openingRecoil * 0.045 : 0.54,
-        open ? 26 : 18,
-        delta,
-      );
-      barrier.rotation.z = THREE.MathUtils.damp(
-        barrier.rotation.z,
-        open ? -0.12 + openingRecoil * 0.04 : 0,
-        open ? 25 : 18,
-        delta,
-      );
-    }
-  });
-
   const spacing = laneWidth(count);
   const edge = (count * spacing) / 2;
-  const activeSignal = open || countdownBeat === "go"
+  const activeSignal = countdownBeat === "go"
     ? 2
-    : countdownBeat === 1
+    : countdownBeat === 1 || countdownBeat === 2
       ? 1
       : 0;
   const signalColors = [RACE_COLORS[0], TRACK.gold, TRACK.grassDark] as const;
   return (
     <group>
-      <group position={[GATE_X, 0, -edge - 0.32]}>
-        <mesh position={[0, 1.28, 0]} castShadow>
-          <cylinderGeometry args={[0.08, 0.12, 2.56, 10]} />
+      <group position={[START_LINE_X, 0, -edge - 0.48]}>
+        <mesh position={[0, 1.14, 0]} castShadow>
+          <cylinderGeometry args={[0.07, 0.1, 2.28, 10]} />
           <meshStandardMaterial color={TRACK.ink} roughness={0.5} />
         </mesh>
-        <RoundedBox args={[0.34, 1.48, 0.42]} radius={0.1} position={[0, 2.42, 0]} castShadow>
-          <meshStandardMaterial color={TRACK.ink} roughness={0.42} />
+        <RoundedBox args={[0.32, 1.32, 0.38]} radius={0.1} position={[0, 2.18, 0]} castShadow>
+          <meshStandardMaterial color={TRACK.cream} roughness={0.48} />
         </RoundedBox>
         {signalColors.map((color, index) => (
-          <mesh key={color} position={[0.19, 2.85 - index * 0.42, 0]}>
-            <sphereGeometry args={[0.12, 14, 10]} />
+          <mesh key={color} position={[0.18, 2.55 - index * 0.38, 0]}>
+            <sphereGeometry args={[0.105, 14, 10]} />
             <meshStandardMaterial
               color={color}
               emissive={color}
-              emissiveIntensity={index === activeSignal ? 1.15 : 0.08}
+              emissiveIntensity={index === activeSignal ? 1.05 : 0.045}
               roughness={0.34}
             />
           </mesh>
@@ -923,36 +997,13 @@ function StartingGates({
       {Array.from({ length: count * 2 }, (_, index) => (
         <mesh
           key={`start-check-${index}`}
-          position={[GATE_X + 0.16, -0.002, -edge + ((index + 0.5) / (count * 2)) * edge * 2]}
+          position={[START_LINE_X, -0.002, -edge + ((index + 0.5) / (count * 2)) * edge * 2]}
           receiveShadow
         >
-          <boxGeometry args={[0.34, 0.018, (edge * 2) / (count * 2)]} />
+          <boxGeometry args={[0.38, 0.018, (edge * 2) / (count * 2)]} />
           <meshStandardMaterial color={index % 2 ? TRACK.ink : TRACK.cream} roughness={0.8} />
         </mesh>
       ))}
-
-      {Array.from({ length: count }, (_, lane) => {
-        const center = laneZ(lane, count);
-        const color = RACE_COLORS[lane % RACE_COLORS.length];
-        return (
-          <group
-            key={`gate-${lane}`}
-            ref={(node) => {
-              barriers.current[lane] = node;
-            }}
-            position={[GATE_X + 0.04, 0.54, center]}
-          >
-            <RoundedBox args={[0.12, 0.14, spacing * 0.72]} radius={0.055} castShadow>
-              <meshStandardMaterial
-                color={color}
-                emissive={color}
-                emissiveIntensity={open ? 0.08 : 0.2}
-                roughness={0.46}
-              />
-            </RoundedBox>
-          </group>
-        );
-      })}
     </group>
   );
 }
@@ -960,26 +1011,26 @@ function StartingGates({
 function FinishArch({ count }: { count: number }) {
   const fieldWidth = count * laneWidth(count);
   const edge = fieldWidth / 2 + 0.3;
-  const checks = Math.max(8, count * 2);
+  const checks = Math.max(6, Math.ceil(count * 1.2));
   return (
     <group position={[FINISH_X + 0.38, 0, 0]}>
       <RoundedBox
-        args={[0.34, 3.9, 0.34]}
+        args={[0.27, 3.2, 0.27]}
         radius={0.1}
-        position={[0, 1.92, -edge]}
+        position={[0, 1.57, -edge]}
         castShadow
       >
-        <meshStandardMaterial color={TRACK.ink} roughness={0.42} />
+        <meshStandardMaterial color={TRACK.score} roughness={0.48} />
       </RoundedBox>
       <RoundedBox
-        args={[0.42, 0.68, edge * 2 + 0.42]}
+        args={[0.28, 0.34, edge * 2 + 0.2]}
         radius={0.1}
-        position={[0, 3.72, 0]}
+        position={[0, 3.08, 0]}
         castShadow
       >
         <meshStandardMaterial color={TRACK.cream} roughness={0.38} />
       </RoundedBox>
-      {[0.9, 1.55, 2.2, 2.85].map((y, index) => (
+      {[0.68, 1.16, 1.64, 2.12].map((y, index) => (
         <mesh key={`finish-light-${y}`} position={[0.19, y, -edge]}>
           <sphereGeometry args={[0.11, 12, 9]} />
           <meshStandardMaterial
@@ -993,10 +1044,10 @@ function FinishArch({ count }: { count: number }) {
       {Array.from({ length: checks }, (_, index) => (
         <mesh
           key={`arch-check-${index}`}
-          position={[0.225, 3.72, -edge + ((index + 0.5) / checks) * edge * 2]}
+          position={[0.155, 3.08, -edge + ((index + 0.5) / checks) * edge * 2]}
         >
-          <boxGeometry args={[0.03, 0.34, (edge * 2) / checks]} />
-          <meshStandardMaterial color={index % 2 ? TRACK.ink : TRACK.cream} roughness={0.5} />
+          <boxGeometry args={[0.022, 0.17, (edge * 2) / checks]} />
+          <meshStandardMaterial color={index % 2 ? TRACK.score : TRACK.cream} roughness={0.55} />
         </mesh>
       ))}
       {Array.from({ length: count * 2 }, (_, index) => {
@@ -1009,7 +1060,7 @@ function FinishArch({ count }: { count: number }) {
           </mesh>
         );
       })}
-      <group position={[0, 3.18, -edge - 0.06]} rotation={[0, 0, -0.08]}>
+      <group position={[0, 2.55, -edge - 0.06]} rotation={[0, 0, -0.08]}>
         <mesh position={[0, 0.45, 0]}>
           <cylinderGeometry args={[0.035, 0.045, 1.15, 10]} />
           <meshStandardMaterial color={TRACK.ink} />
@@ -1067,43 +1118,51 @@ function TrackSectionMarker({
 
 function Track({
   count,
-  gatesOpen,
-  showGates,
   countdownBeat,
 }: {
   count: number;
-  gatesOpen: boolean;
-  showGates: boolean;
   countdownBeat: RaceCountdownBeat;
 }) {
   const spacing = laneWidth(count);
   const trackWidth = count * spacing + 0.75;
   const edge = trackWidth / 2;
+  const nearApron = THREE.MathUtils.lerp(
+    NARROW_FIELD_APRON,
+    WIDE_FIELD_APRON,
+    fieldExpansion(count),
+  );
+  const surfaceWidth = trackWidth + nearApron;
+  const surfaceCenterZ = nearApron / 2;
   return (
     <group>
-      <mesh position={[1, -0.42, 4.5]} receiveShadow>
-        <boxGeometry args={[48, 0.6, 36]} />
+      <mesh position={[TRACK_CENTER_X, -0.42, 4]} receiveShadow>
+        <boxGeometry args={[TRACK_LENGTH + 9, 0.6, 32]} />
         <meshStandardMaterial color={TRACK.grass} roughness={0.92} />
       </mesh>
-      <RoundedBox args={[38, 0.22, trackWidth]} radius={0.16} position={[0.5, -0.13, 0]} receiveShadow>
+      <RoundedBox
+        args={[TRACK_LENGTH, 0.22, surfaceWidth]}
+        radius={0.16}
+        position={[TRACK_CENTER_X, -0.13, surfaceCenterZ]}
+        receiveShadow
+      >
         <meshStandardMaterial color={TRACK.dirt} roughness={0.96} />
       </RoundedBox>
       {Array.from({ length: count }, (_, lane) => (
         <mesh
           key={`lane-bed-${lane}`}
-          position={[0.5, -0.008, laneZ(lane, count)]}
+          position={[TRACK_CENTER_X, -0.008, laneZ(lane, count)]}
           receiveShadow
         >
-          <boxGeometry args={[37.2, 0.024, spacing * 0.9]} />
+          <boxGeometry args={[TRACK_LENGTH - 0.56, 0.024, spacing * 0.9]} />
           <meshStandardMaterial
             color={lane % 2 === 0 ? TRACK.dirtLight : TRACK.dirt}
             roughness={0.98}
           />
         </mesh>
       ))}
-      {[-edge, edge].map((z, index) => (
-        <mesh key={`track-edge-${z}`} position={[0.5, 0.015, z]} receiveShadow>
-          <boxGeometry args={[37.5, 0.075, 0.14]} />
+      {[-edge, edge + nearApron].map((z, index) => (
+        <mesh key={`track-edge-${z}`} position={[TRACK_CENTER_X, 0.015, z]} receiveShadow>
+          <boxGeometry args={[TRACK_LENGTH - 0.32, 0.075, 0.14]} />
           <meshStandardMaterial
             color={index === 0 ? TRACK.cream : TRACK.dirtDark}
             roughness={0.78}
@@ -1111,20 +1170,21 @@ function Track({
         </mesh>
       ))}
       {Array.from({ length: count - 1 }, (_, index) => (
-        <mesh key={`lane-line-${index}`} position={[0.5, 0.003, laneZ(index, count) + spacing / 2]}>
-          <boxGeometry args={[37.2, 0.018, 0.07]} />
+        <mesh key={`lane-line-${index}`} position={[TRACK_CENTER_X, 0.003, laneZ(index, count) + spacing / 2]}>
+          <boxGeometry args={[TRACK_LENGTH - 0.56, 0.018, 0.07]} />
           <meshStandardMaterial color={TRACK.cream} transparent opacity={0.9} roughness={0.95} />
         </mesh>
       ))}
-      {/* Three distinct timing gates make forward travel visible against the
+      {/* Three distinct section markers make forward travel visible against the
           otherwise continuous straight. Their thin ground bands pass under
           the pack while the matching far-side boards provide parallax. */}
-      {[-6.8, 2.1, 10.4].map((x, index) => {
+      {SECTION_PROGRESS.map((progress, index) => {
+        const x = START_X + RACE_TRAVEL_DISTANCE * progress;
         const color = RACE_COLORS[[2, 4, 0][index]];
         return (
-          <group key={`section-marker-${x}`}>
-            <mesh position={[x, 0.012, 0]} receiveShadow>
-              <boxGeometry args={[0.15, 0.026, trackWidth * 0.94]} />
+          <group key={`section-marker-${progress}`}>
+            <mesh position={[x, 0.012, surfaceCenterZ]} receiveShadow>
+              <boxGeometry args={[0.15, 0.026, surfaceWidth * 0.94]} />
               <meshStandardMaterial
                 color={color}
                 transparent
@@ -1136,27 +1196,10 @@ function Track({
           </group>
         );
       })}
-      {/* The camera lives on +Z. A near-side rail used to cut directly across
-          the fetlocks and hooves on portrait screens, hiding the exact contact
-          animation this scene is meant to showcase. Keep the far rail for
-          track depth and leave the running silhouettes unobstructed. */}
-      {[-edge].map((z) => (
-        <group key={`rail-${z}`}>
-          <mesh position={[0.5, 0.46, z]} rotation={[0, 0, Math.PI / 2]} castShadow>
-            <cylinderGeometry args={[0.055, 0.055, 37.6, 10]} />
-            <meshStandardMaterial color={TRACK.cream} roughness={0.52} />
-          </mesh>
-          {Array.from({ length: 21 }, (_, index) => (
-            <mesh key={index} position={[-17.8 + index * 1.82, 0.22, z]} castShadow>
-              <cylinderGeometry args={[0.055, 0.07, 0.62, 9]} />
-              <meshStandardMaterial color={index % 2 ? RACE_COLORS[0] : TRACK.cream} roughness={0.55} />
-            </mesh>
-          ))}
-        </group>
-      ))}
-      {showGates && (
-        <StartingGates count={count} open={gatesOpen} countdownBeat={countdownBeat} />
-      )}
+      {/* Both rails are intentionally absent: even the former far rail hid paw
+          contacts in compressed seven-lane portrait framing. Flat edge bands
+          preserve track depth without placing geometry over the runners. */}
+      <StartingLine count={count} countdownBeat={countdownBeat} />
       <FinishArch count={count} />
       <DistantLandscape edge={edge} />
       <StadiumBackdrop edge={edge} />
@@ -1187,22 +1230,17 @@ function CameraRig({
   // The render loop is intentionally imperative. Keeping the mutable Three
   // camera behind a ref also makes that boundary explicit to React Compiler.
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const lookTarget = useRef(new THREE.Vector3(-12.0, 0.68, 0));
-  const desired = useRef(new THREE.Vector3(-12.8, 6.2, 13.5));
-  const widePosition = useRef(new THREE.Vector3());
-  const launchPosition = useRef(new THREE.Vector3());
+  const lookTarget = useRef(new THREE.Vector3(START_X, 0.82, 0));
+  const desired = useRef(new THREE.Vector3(START_X + 4.4, 2.8, 8.2));
+  const startPosition = useRef(new THREE.Vector3());
   const trackPosition = useRef(new THREE.Vector3());
-  const broadcastPosition = useRef(new THREE.Vector3());
-  const compressionPosition = useRef(new THREE.Vector3());
+  const orderPosition = useRef(new THREE.Vector3());
   const finishPosition = useRef(new THREE.Vector3());
   const desiredLook = useRef(new THREE.Vector3());
-  const wideLook = useRef(new THREE.Vector3());
-  const launchLook = useRef(new THREE.Vector3());
+  const startLook = useRef(new THREE.Vector3());
   const trackLook = useRef(new THREE.Vector3());
-  const broadcastLook = useRef(new THREE.Vector3());
-  const compressionLook = useRef(new THREE.Vector3());
+  const orderLook = useRef(new THREE.Vector3());
   const finishLook = useRef(new THREE.Vector3());
-  const closeLook = useRef(new THREE.Vector3());
   const countdownBeatStartedAt = useRef(0);
 
   useEffect(() => {
@@ -1218,16 +1256,17 @@ function CameraRig({
     const camera = cameraRef.current;
     if (!camera) return;
     const winnerZ = result ? laneZ(result.winnerLane, count) : 0;
+    const expansion = fieldExpansion(count);
     // Land close and ahead of the actual winner. Earlier shots establish the
     // full pack; this last beat spends its pixels on the face, eye and planted
     // finish pose instead of shrinking seven silhouettes into another wide.
     camera.position.set(
-      FINISH_X + 5.8,
-      2.8,
-      winnerZ + 7.6,
+      FINISH_X + 4.7,
+      2.75 + expansion * 0.25,
+      winnerZ + 8.4 + expansion * 1.8,
     );
-    camera.lookAt(FINISH_X + 1.3, 1.08, winnerZ + 0.35);
-    camera.fov = 41;
+    camera.lookAt(FINISH_X + 1.0, 1.06, winnerZ * 0.86);
+    camera.fov = 41.5;
     camera.updateProjectionMatrix();
   }, [count, phase, result]);
 
@@ -1243,19 +1282,14 @@ function CameraRig({
       1.05,
       2.05,
     );
-    const landscape = THREE.MathUtils.smoothstep(
-      state.size.width / Math.max(1, state.size.height),
-      1.35,
-      2.25,
-    );
-    let focusX = -12.7;
+    let focusX = START_X;
     let focusZ = 0;
-    let leaderX = focusX;
-    let leaderZ = 0;
     let photoBeat = 0;
-    let winnerFinish = 0.823;
+    let winnerFinish = 0.82;
     let winnerLaneZ = 0;
     if (result && phase === "racing") {
+      // Seven-racer shots frame the complete pack average, not merely the top
+      // three. This keeps both outer lanes inside 390px portrait framing.
       const framedRacerCount = Math.min(
         result.racers.length,
         count >= 6 ? result.racers.length : count >= 4 ? 4 : 3,
@@ -1270,31 +1304,28 @@ function CameraRig({
       const framedProgress = THREE.MathUtils.lerp(
         frontProgress,
         leader.progress,
-        smallField * 0.42,
+        smallField * 0.34,
       );
-      focusX = THREE.MathUtils.lerp(START_X, FINISH_X, framedProgress) - 0.5;
-      focusZ = frontLane * 0.42;
-      leaderX = THREE.MathUtils.lerp(START_X, FINISH_X, leader.progress);
-      leaderZ = laneZ(leader.racer.lane, count);
+      focusX = THREE.MathUtils.lerp(START_X, FINISH_X, framedProgress) - 0.32;
+      focusZ = frontLane * THREE.MathUtils.lerp(0.5, 0.26, expansion);
       const winner = result.racers[result.winnerLane];
       winnerLaneZ = laneZ(result.winnerLane, count);
       winnerFinish = winner.finishAt;
       photoBeat = Math.max(0, 1 - Math.abs(t - winnerFinish) / 0.032);
     }
 
-    // The 13.5-second normalized story separates two jobs that one camera
-    // cannot do well: the forward 3/4 shot sells faces and speed, while a
-    // short broadcast-side breath makes the full order understandable.
-    // Width expansion changes framing only; it never touches seeded progress.
-    widePosition.current.set(
-      -9.8 + expansion * 2.35,
-      4.4 + expansion * 0.48,
-      10.8 + expansion * 2.5 + portrait * 1.6,
+    // Four shots only, all from +Z and ahead of the +X-running pack:
+    // start/launch -> tracking -> order-wide -> finish. The direction never
+    // flips, so a cut cannot make forward travel feel reversed.
+    startPosition.current.set(
+      START_X + 4.35 + expansion * 0.78,
+      2.78 + expansion * 0.42,
+      8.2 + expansion * 5.45 + portrait * 1.45,
     );
-    wideLook.current.set(-14.85, 0.64, expansion * 0.35);
-    let targetFov = 40.5 + expansion * 1.8;
-    let cameraDamping = 7.2;
-    let lookDamping = 8.4;
+    startLook.current.set(START_X + 0.08, 0.84, expansion * 0.12);
+    let targetFov = 40 + expansion * 2.0;
+    let cameraDamping = 8;
+    let lookDamping = 9;
     let shake = 0;
 
     if (phase === "countdown") {
@@ -1311,119 +1342,73 @@ function CameraRig({
         (performance.now() - countdownBeatStartedAt.current) / 1000,
       );
       const beatPunch = Math.exp(-beatAge * 8.5);
-      // Stay above and outside the loaded gate throughout countdown. The low
-      // shot only begins after the doors have had time to clear the silhouettes.
-      launchPosition.current.set(
-        -10.5 + expansion * 2.2,
-        3.25 + expansion * 0.48,
-        10.8 + expansion * 2.5 + portrait * 1.8,
-      );
-      launchLook.current.set(-15.12, 0.86, expansion * 0.35);
-      desired.current
-        .copy(widePosition.current)
-        .lerp(launchPosition.current, countdownPush);
-      desiredLook.current.copy(wideLook.current).lerp(launchLook.current, countdownPush);
+      desired.current.copy(startPosition.current);
+      desiredLook.current.copy(startLook.current);
+      desired.current.x += countdownPush * 0.36;
+      desired.current.y -= countdownPush * 0.12;
+      desired.current.z -= countdownPush * 0.38;
+      desiredLook.current.x += countdownPush * 0.14;
       desired.current.z += beatPunch * (countdownBeat === "go" ? -0.2 : 0.13);
       desired.current.y += beatPunch * (countdownBeat === "go" ? -0.04 : 0.08);
       targetFov = countdownBeat === "go"
-        ? 43 + expansion * 1.35
-        : THREE.MathUtils.lerp(40.5 + expansion * 1.8, 37.5 + expansion * 1.5, countdownPush);
+        ? 42.5 + expansion * 1.7
+        : THREE.MathUtils.lerp(40 + expansion * 2.0, 38.2 + expansion * 1.8, countdownPush);
       shake = reducedMotion ? 0 : beatPunch * (countdownBeat === "go" ? 0.055 : 0.014);
       cameraDamping = countdownBeat === "go" ? 13 : 8.8;
       lookDamping = 10.5;
     } else if (phase === "racing") {
-      const trackingBlend = THREE.MathUtils.smoothstep(t, 0.045, 0.14);
-      const closeBlend =
-        THREE.MathUtils.smoothstep(t, 0.28, 0.36) *
-        (1 - THREE.MathUtils.smoothstep(t, 0.51, 0.59)) *
-        THREE.MathUtils.lerp(0.3, 0.08, expansion);
-      const broadcastBlend =
-        THREE.MathUtils.smoothstep(t, 0.41, 0.47) *
-        (1 - THREE.MathUtils.smoothstep(t, 0.54, 0.6));
-      const compressionBlend = THREE.MathUtils.smoothstep(t, 0.58, 0.71);
-      const finishBlend = THREE.MathUtils.smoothstep(t, 0.735, 0.825);
-      launchPosition.current.set(
-        -10.5 + expansion * 2.2,
-        3.25 + expansion * 0.48,
-        10.8 + expansion * 2.5 + portrait * 1.8,
-      );
+      const trackingBlend = THREE.MathUtils.smoothstep(t, 0.045, 0.15);
+      const orderBlend = THREE.MathUtils.smoothstep(t, 0.46, 0.57);
+      const finishStart = Math.max(0.67, winnerFinish - 0.16);
+      const finishEnd = Math.max(finishStart + 0.075, winnerFinish - 0.035);
+      const finishBlend = THREE.MathUtils.smoothstep(t, finishStart, finishEnd);
       trackPosition.current.set(
-        focusX + 4.6 + expansion * 3.0,
-        2.65 + expansion * 0.38,
-        10.5 + expansion * 3.6 + portrait * 1.8 + smallField * 2.4,
+        focusX + 4.45 + expansion * 1.35,
+        2.64 + expansion * 0.34,
+        8.75 + expansion * 5.5 + portrait * 1.5 + smallField * 3.8,
       );
-      broadcastPosition.current.set(
-        focusX + 0.45,
-        3.35 + expansion * 0.35,
-        14.4 + expansion * 3.6 + portrait * 1.5 + smallField * 1.2,
-      );
-      compressionPosition.current.set(
-        focusX + 4.8 + expansion * 3.0,
-        2.95 + expansion * 0.4,
-        10.7 + expansion * 3.6 + portrait * 1.3 + smallField * 1.8,
+      orderPosition.current.set(
+        focusX + 2.55 + expansion * 0.85,
+        3.42 + expansion * 0.32,
+        11.15 + expansion * 5.35 + portrait * 1.4 + smallField * 1.5,
       );
       finishPosition.current.set(
-        FINISH_X + 5.8,
-        2.8,
-        winnerLaneZ + 7.6,
+        FINISH_X + 4.7,
+        2.75 + expansion * 0.25,
+        winnerLaneZ + 8.4 + expansion * 1.8 + portrait * 0.45,
       );
       desired.current
-        .copy(launchPosition.current)
-        .lerp(trackPosition.current, trackingBlend);
-      // Small fields can afford a stronger mid-race push. Six- and seven-lane
-      // fields keep the complete pack in the framing average and greatly
-      // reduce that push so neither end of the cast disappears at 390px.
-      desired.current.x = THREE.MathUtils.lerp(desired.current.x, leaderX + 3.55, closeBlend);
-      desired.current.y = THREE.MathUtils.lerp(desired.current.y, 2.4, closeBlend);
-      desired.current.z = THREE.MathUtils.lerp(
-        desired.current.z,
-        leaderZ + 7.1 + portrait * 0.9 + smallField * 2.2,
-        closeBlend,
-      );
-      desired.current
-        .lerp(broadcastPosition.current, broadcastBlend)
-        .lerp(compressionPosition.current, compressionBlend)
+        .copy(startPosition.current)
+        .lerp(trackPosition.current, trackingBlend)
+        .lerp(orderPosition.current, orderBlend)
         .lerp(finishPosition.current, finishBlend);
 
-      launchLook.current.set(-15.12, 0.86, expansion * 0.35);
-      // Keep the tracking camera slightly ahead of the pack and look back at
-      // it. The old trailing shot spent most of the race on tails and hid the
-      // facial animation that distinguishes the cast.
       trackLook.current.set(
-        focusX - THREE.MathUtils.lerp(0.42, 0.12, expansion),
+        focusX - THREE.MathUtils.lerp(0.3, 0.08, expansion),
         0.92,
         focusZ,
       );
-      broadcastLook.current.set(
-        focusX - 0.22,
-        0.78,
-        focusZ * 0.3,
-      );
-      compressionLook.current.set(
-        focusX - THREE.MathUtils.lerp(0.30, 0.08, expansion),
-        0.96,
-        focusZ * 0.72,
+      orderLook.current.set(
+        focusX - 0.12,
+        0.86,
+        focusZ * 0.38,
       );
       finishLook.current.set(
-        FINISH_X + 1.3,
-        1.08,
-        winnerLaneZ + 0.35,
+        FINISH_X + 1.0,
+        1.06,
+        winnerLaneZ * 0.86,
       );
       desiredLook.current
-        .copy(launchLook.current)
-        .lerp(trackLook.current, trackingBlend);
-      closeLook.current.set(leaderX - 0.18, 0.96, leaderZ);
-      desiredLook.current.lerp(closeLook.current, closeBlend);
-      desiredLook.current
-        .lerp(broadcastLook.current, broadcastBlend)
-        .lerp(compressionLook.current, compressionBlend)
+        .copy(startLook.current)
+        .lerp(trackLook.current, trackingBlend)
+        .lerp(orderLook.current, orderBlend)
         .lerp(finishLook.current, finishBlend);
 
       const elapsed = Math.max(0, (performance.now() - raceStartedAt) / 1000);
-      const gateImpact = elapsed < 0.22 ? (1 - elapsed / 0.22) * 0.13 : 0;
+      const launchImpact = elapsed < 0.22 ? (1 - elapsed / 0.22) * 0.13 : 0;
       const finalTension = THREE.MathUtils.smoothstep(
         t,
-        0.66,
+        0.65,
         Math.max(0.76, winnerFinish - 0.012),
       );
       // The camera creeps closer before the line and briefly arrests there;
@@ -1437,45 +1422,31 @@ function CameraRig({
           ? Math.sin(state.clock.elapsedTime * 14.8) * 0.026
           : 0;
       desired.current.y += gallopBob;
-      targetFov = THREE.MathUtils.lerp(43 + expansion * 1.35, 44 + expansion * 1.45, trackingBlend);
-      targetFov = THREE.MathUtils.lerp(targetFov, 38.5, closeBlend);
       targetFov = THREE.MathUtils.lerp(
-        targetFov,
-        46.5 + expansion * 1.2,
-        broadcastBlend,
+        40 + expansion * 2.0,
+        43 + expansion * 1.8 + smallField * 1.5,
+        trackingBlend,
       );
-      targetFov = THREE.MathUtils.lerp(targetFov, 42.5 + expansion * 1.3, compressionBlend);
-      targetFov = THREE.MathUtils.lerp(targetFov, 41, finishBlend);
-      targetFov -= finalTension * 2.8 + photoBeat * 1.6;
-      shake = reducedMotion ? 0 : gateImpact + photoBeat * 0.082;
+      targetFov = THREE.MathUtils.lerp(targetFov, 46 + expansion * 1.7, orderBlend);
+      targetFov = THREE.MathUtils.lerp(targetFov, 41.5, finishBlend);
+      targetFov -= finalTension * 2.25 + photoBeat * 1.35;
+      shake = reducedMotion ? 0 : launchImpact + photoBeat * 0.082;
       cameraDamping = photoBeat > 0
         ? 3.2
         : trackingBlend < 1
           ? 10.5
-          : compressionBlend < 1
-            ? 7.2
+          : orderBlend < 1
+            ? 7.4
             : finishBlend < 1
-              ? 6
-              : 5.2;
+              ? 6.2
+              : 5.4;
       lookDamping = photoBeat > 0 ? 4 : 8.5;
     } else {
-      if (count === 2) {
-        // A two-animal field deserves a face-forward toy-box lineup. The
-        // seven-animal oblique overview collapses two lanes into one silhouette.
-        // Keep enough breathing room for the long tiger head and tail; the old
-        // close setup cropped both at 390px before the race even began.
-        desired.current.set(-12.2, 2.65, 6.15);
-        desiredLook.current.set(START_X - 0.08, 0.92, 0);
-        targetFov = 37.5;
-      } else {
-        desired.current.set(
-          -11.72 + expansion * 0.34,
-          2.78 + expansion * 0.42 - landscape * 0.18,
-          10.55 + expansion * 2.42 + portrait * 0.68 + smallField * 1.55 - landscape * 1.55,
-        );
-        desiredLook.current.set(-15.08, 0.78, expansion * 0.16);
-        targetFov = 39.2 + expansion * 1.05 - landscape * 4.3;
-      }
+      desired.current.copy(startPosition.current);
+      desiredLook.current.copy(startLook.current);
+      // Two animals retain a little extra distance for the tiger's long tail;
+      // seven animals use expansion above to protect both outer lanes.
+      desired.current.z += smallField * 0.55;
     }
 
     const wave = state.clock.elapsedTime * 52;
@@ -1521,19 +1492,19 @@ function RaceWorld(props: RaceScene3DProps & { count: number }) {
   return (
     <>
       <color attach="background" args={[TRACK.sky]} />
-      <fog attach="fog" args={[TRACK.sky, 27, 54]} />
+      <fog attach="fog" args={[TRACK.sky, TRACK_LENGTH * 0.86, TRACK_LENGTH * 1.82]} />
       {/* Low fill plus one warm key keeps the matte coat in the tan midrange;
           the previous four-source wash erased the face patch and body volume. */}
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={0.36} />
       <hemisphereLight args={["#ffe2c7", TRACK.grassDark, 0.64]} />
       <directionalLight
-        position={[-4, 10, 6]}
+        position={[TRACK_CENTER_X - 4, 10, 6]}
         intensity={1.35}
         color="#ffd2a8"
         castShadow
         shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-20}
-        shadow-camera-right={20}
+        shadow-camera-left={-TRACK_LENGTH * 0.68}
+        shadow-camera-right={TRACK_LENGTH * 0.68}
         shadow-camera-top={10}
         shadow-camera-bottom={-10}
         shadow-bias={-0.00025}
@@ -1552,8 +1523,6 @@ function RaceWorld(props: RaceScene3DProps & { count: number }) {
 
       <Track
         count={count}
-        showGates={props.phase !== "setup"}
-        gatesOpen={props.phase === "racing" || props.phase === "finished"}
         countdownBeat={props.countdownBeat}
       />
       <Suspense fallback={<LoadingAnimal />}>
@@ -1603,13 +1572,13 @@ export const RaceScene3D = memo(function RaceScene3D(props: RaceScene3DProps) {
   const initialCamera = useMemo(
     () => ({
       position: [
-        -11.6,
-        5.0 + expansion * 0.55,
-        12.8 + expansion * 2.7,
+        START_X + 4.35 + expansion * 0.78,
+        2.78 + expansion * 0.42,
+        8.2 + expansion * 5.45,
       ] as [number, number, number],
-      fov: 40.5 + expansion * 1.8,
+      fov: 40 + expansion * 2,
       near: 0.1,
-      far: 72,
+      far: TRACK_LENGTH * 2.4,
     }),
     [expansion],
   );

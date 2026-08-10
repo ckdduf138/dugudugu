@@ -78,6 +78,26 @@ describe("GameShell immersion", () => {
     expect(document.body.style.overflow).toBe("");
   });
 
+  it("can keep the authored stage immersive behind a result overlay", () => {
+    render(
+      <GameShell
+        stage={<div>stage</div>}
+        setup={<div>setup form</div>}
+        stageLabel="game stage"
+        setupTitle="setup"
+        phase="result"
+        immersiveDuringResult
+      />,
+    );
+
+    const stage = screen.getByRole("region", { name: "game stage" });
+    const shell = document.querySelector("[data-game-immersive='true']");
+    expect(shell).not.toBeNull();
+    expect(shell?.className.split(/\s+/)).toContain("z-10");
+    expect(stage.className.split(/\s+/)).toContain("fixed");
+    expect(document.body.style.overflow).toBe("hidden");
+  });
+
   it("keeps scrolling locked until every overlapping immersive surface closes", () => {
     const renderOverlappingSurfaces = (
       phase: "playing" | "result",

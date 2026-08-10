@@ -4,11 +4,14 @@ import { useEffect } from "react";
 
 let activeLocks = 0;
 let overflowBeforeFirstLock = "";
+let rootOverflowBeforeFirstLock = "";
 
 function acquireBodyScrollLock() {
   if (activeLocks === 0) {
     overflowBeforeFirstLock = document.body.style.overflow;
+    rootOverflowBeforeFirstLock = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
   }
   activeLocks += 1;
 
@@ -19,7 +22,9 @@ function acquireBodyScrollLock() {
     activeLocks = Math.max(0, activeLocks - 1);
     if (activeLocks === 0) {
       document.body.style.overflow = overflowBeforeFirstLock;
+      document.documentElement.style.overflow = rootOverflowBeforeFirstLock;
       overflowBeforeFirstLock = "";
+      rootOverflowBeforeFirstLock = "";
     }
   };
 }

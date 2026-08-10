@@ -2,8 +2,10 @@ export function JsonLd({ data }: { data: object }) {
   return (
     <script
       type="application/ld+json"
-      // Structured data is build-time constant, not user input.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // Escape markup-significant characters even when translated copy is used.
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+      }}
     />
   );
 }

@@ -38,11 +38,14 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
 - The result uses a modern fortune slip surface built from Petr Kratochvil's
   CC0 white-paper photograph: one warm-white WebP with real, restrained fibers
   clipped to a nearly straight machine-cut strip. Accessible KO/EN text and
-  the category icon stay in DOM above it.
+  the category icon stay in DOM above it. The compact shared Dugu handoff may
+  rise once behind this same ribbon after the authored crack; it must not add a
+  second card, new copy, or a second reveal beat.
   Avoid antique parchment, floral corner ornaments, deep scroll curls, and a
   generic elevated result card; those visual languages clash with the modern
   toy UI and the clean image-authored cookie.
-- The global top bar remains visible above the final cookie. Keep the
+- The global TopBar remains visible and operable above the final cookie; the
+  inline result never adds a second lobby action. Keep the
   finished Canvas active with `frameloop="demand"`; switching the WebGL surface
   to `active={false}` caused the frozen canvas compositing layer to cover those
   DOM elements on the tested browser.

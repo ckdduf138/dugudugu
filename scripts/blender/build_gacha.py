@@ -19,9 +19,15 @@ from mathutils import Vector
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "public" / "models" / "draw" / "gacha-machine.glb"
 PREVIEW = Path("/tmp/dugudugu-gacha-preview.png")
+WINDOW_PREVIEW = Path("/tmp/dugudugu-gacha-window-closeup.png")
 CAPSULE_PREVIEW = Path("/tmp/dugudugu-capsule-closeup.png")
 CAPSULE_OPEN_PREVIEW = Path("/tmp/dugudugu-capsule-open-closeup.png")
 CARD_IMAGE = ROOT / "public" / "images" / "games" / "draw.webp"
+CARD_PREVIEW = Path("/tmp/dugudugu-gacha-card-preview.png")
+MAX_GLB_BYTES = 4_000_000
+MAX_DELIVERY_MATERIALS = 10
+MAX_DELIVERY_MESHES = 64
+MAX_DELIVERY_TRIANGLES = 70_000
 
 ASSET_OBJECTS: list[bpy.types.Object] = []
 
@@ -91,48 +97,100 @@ def material(
     return mat
 
 
-CREAM = material("Dugu_Cream", "#fff8ef", roughness=0.43, coat=0.48, coat_roughness=0.2)
-CREAM_MATTE = material("Dugu_CreamMatte", "#f7eadc", roughness=0.7, coat=0.08)
-PINK = material("Dugu_Pink", "#ef7aa8", roughness=0.36, coat=0.38, coat_roughness=0.2)
-PINK_DARK = material("Dugu_PinkDark", "#bf4f7b", roughness=0.42, coat=0.2)
-PINK_LIGHT = material("Dugu_PinkLight", "#f7c6d8", roughness=0.5, coat=0.24, coat_roughness=0.24)
-CORAL = material("Dugu_Coral", "#ff8266", roughness=0.34)
-MINT = material("Dugu_Mint", "#55d8b0", roughness=0.36)
-SKY = material("Dugu_Sky", "#65bdff", roughness=0.34)
-LEMON = material("Dugu_Lemon", "#ffd052", roughness=0.33)
-GRAPE = material("Dugu_Grape", "#9b7af1", roughness=0.36)
-INK = material("Dugu_Ink", "#30263a", roughness=0.5)
-INK_GLOSS = material("Dugu_InkGloss", "#241c30", roughness=0.2, coat=0.72, coat_roughness=0.12)
-GOLD = material("Dugu_Gold", "#efbd55", roughness=0.46, metallic=0.04, coat=0.2, coat_roughness=0.24)
-SILVER = material("Dugu_Silver", "#d8d7e5", roughness=0.38, metallic=0.18, coat=0.3, coat_roughness=0.2)
-GLASS = material("Dugu_FakeGlass", "#dff7ff", roughness=0.1, alpha=0.16, coat=0.76, coat_roughness=0.08)
-CAPSULE_GLASS_PINK = material(
-    "Dugu_CapsuleGlassPink", "#ffb8d2", roughness=0.16, alpha=0.46, coat=0.78, coat_roughness=0.08
+# The reference-led classic machine uses one coral body, one aqua globe, and a
+# neutral gray/ivory mechanism. Four opaque capsule colors keep the inventory
+# cheerful without turning the small mobile silhouette into confetti.
+IVORY = material(
+    "Dugu_Ivory",
+    "#fff0dc",
+    roughness=0.54,
+    coat=0.24,
+    coat_roughness=0.3,
 )
-CAPSULE_GLASS_SKY = material(
-    "Dugu_CapsuleGlassSky", "#a6ddff", roughness=0.16, alpha=0.46, coat=0.78, coat_roughness=0.08
+CORAL = material(
+    "Dugu_Coral",
+    "#f25549",
+    roughness=0.48,
+    coat=0.2,
+    coat_roughness=0.3,
 )
-CAPSULE_GLASS_LEMON = material(
-    "Dugu_CapsuleGlassLemon", "#ffe69a", roughness=0.17, alpha=0.46, coat=0.76, coat_roughness=0.09
+DIAL_GRAY = material(
+    "Dugu_DialGray",
+    "#b9bdba",
+    roughness=0.52,
+    coat=0.18,
+    coat_roughness=0.3,
 )
-CAPSULE_GLASS_MINT = material(
-    "Dugu_CapsuleGlassMint", "#a6efd7", roughness=0.16, alpha=0.46, coat=0.78, coat_roughness=0.08
+INK = material(
+    "Dugu_DeepChute",
+    "#432f35",
+    roughness=0.72,
+    coat=0.04,
 )
-CAPSULE_GLASS_GRAPE = material(
-    "Dugu_CapsuleGlassGrape", "#d3baff", roughness=0.16, alpha=0.46, coat=0.78, coat_roughness=0.08
+AQUA_BACK = material(
+    "Dugu_Aqua",
+    "#cdeff0",
+    roughness=0.68,
+    coat=0.1,
 )
-CAPSULE_GLASS_CORAL = material(
-    "Dugu_CapsuleGlassCoral", "#ffc0b1", roughness=0.16, alpha=0.46, coat=0.78, coat_roughness=0.08
+GLASS = material(
+    "Dugu_FakeGlass",
+    "#bfeff2",
+    roughness=0.16,
+    alpha=0.16,
+    coat=0.58,
+    coat_roughness=0.14,
 )
-GLOW = material("Dugu_Glow", "#fff1a8", roughness=0.2, emission=1.65, coat=0.5, coat_roughness=0.12)
-GLOW_PINK = material("Dugu_GlowPink", "#ff84bd", roughness=0.2, emission=1.25, coat=0.5, coat_roughness=0.12)
-ORANGE = material("Dugu_Orange", "#ff6b5f", roughness=0.58, coat=0.1, coat_roughness=0.42)
-ORANGE_LIGHT = material("Dugu_OrangeLight", "#ff9f78", roughness=0.52, coat=0.1, coat_roughness=0.38)
-ORANGE_DARK = material("Dugu_OrangeDark", "#d74645", roughness=0.62, coat=0.06, coat_roughness=0.46)
-BROWN = material("Dugu_Brown", "#5f2d20", roughness=0.7, coat=0.04)
-BROWN_DARK = material("Dugu_BrownDark", "#351a17", roughness=0.76, coat=0.02)
-AQUA_BACK = material("Dugu_AquaBack", "#e2faf7", roughness=0.82, coat=0.02)
-AQUA_EDGE = material("Dugu_AquaEdge", "#69d9d4", roughness=0.52, coat=0.12, coat_roughness=0.36)
+CAPSULE_PINK = material(
+    "Dugu_CapsulePink",
+    "#f58b9a",
+    roughness=0.42,
+    coat=0.36,
+    coat_roughness=0.2,
+)
+CAPSULE_SKY = material(
+    "Dugu_CapsuleSky",
+    "#79c6e9",
+    roughness=0.42,
+    coat=0.36,
+    coat_roughness=0.2,
+)
+CAPSULE_MINT = material(
+    "Dugu_CapsuleMint",
+    "#91dc9e",
+    roughness=0.42,
+    coat=0.36,
+    coat_roughness=0.2,
+)
+CAPSULE_LEMON = material(
+    "Dugu_CapsuleLemon",
+    "#f6d86d",
+    roughness=0.42,
+    coat=0.36,
+    coat_roughness=0.2,
+)
+
+# Render-only helpers still use these aliases; they do not create materials.
+CREAM = IVORY
+CREAM_MATTE = IVORY
+PINK = CORAL
+PINK_DARK = CORAL
+PINK_LIGHT = IVORY
+MINT = AQUA_BACK
+SKY = AQUA_BACK
+GRAPE = INK
+INK_GLOSS = INK
+GOLD = CAPSULE_LEMON
+SILVER = DIAL_GRAY
+GLOW = CAPSULE_LEMON
+GLOW_PINK = CORAL
+ORANGE = CORAL
+ORANGE_LIGHT = CORAL
+ORANGE_DARK = CORAL
+BROWN = INK
+BROWN_DARK = INK
+AQUA_EDGE = AQUA_BACK
+LEMON = CAPSULE_LEMON
 
 
 def parent(obj: bpy.types.Object, target: bpy.types.Object) -> bpy.types.Object:
@@ -229,6 +287,140 @@ def cylinder(
     if parent_to:
         parent(obj, parent_to)
     return obj
+
+
+def cone(
+    name: str,
+    location: tuple[float, float, float],
+    radius1: float,
+    radius2: float,
+    depth: float,
+    mat: bpy.types.Material,
+    *,
+    rotation: tuple[float, float, float] = (0, 0, 0),
+    vertices: int = 20,
+    bevel: float = 0.012,
+    parent_to: bpy.types.Object | None = None,
+) -> bpy.types.Object:
+    bpy.ops.mesh.primitive_cone_add(
+        vertices=vertices,
+        radius1=radius1,
+        radius2=radius2,
+        depth=depth,
+        location=location,
+        rotation=rotation,
+    )
+    obj = remember(bpy.context.object)
+    obj.name = name
+    if bevel:
+        apply_bevel(obj, bevel, 2)
+    obj.data.materials.append(mat)
+    if parent_to:
+        parent(obj, parent_to)
+    return obj
+
+
+def trapezoid_box(
+    name: str,
+    location: tuple[float, float, float],
+    *,
+    bottom_width: float,
+    top_width: float,
+    bottom_depth: float,
+    top_depth: float,
+    height: float,
+    mat: bpy.types.Material,
+    bevel: float,
+    parent_to: bpy.types.Object | None = None,
+) -> bpy.types.Object:
+    """A softly beveled cabinet that flares toward the floor.
+
+    The profile carries the classic capsule-machine read without copying the
+    exact outline or proportions of any single reference illustration.
+    """
+    bw = bottom_width / 2
+    tw = top_width / 2
+    bd = bottom_depth / 2
+    td = top_depth / 2
+    h = height / 2
+    vertices = [
+        (-bw, -bd, -h),
+        (bw, -bd, -h),
+        (bw, bd, -h),
+        (-bw, bd, -h),
+        (-tw, -td, h),
+        (tw, -td, h),
+        (tw, td, h),
+        (-tw, td, h),
+    ]
+    faces = [
+        (3, 2, 1, 0),
+        (4, 5, 6, 7),
+        (0, 1, 5, 4),
+        (1, 2, 6, 5),
+        (2, 3, 7, 6),
+        (3, 0, 4, 7),
+    ]
+    mesh = bpy.data.meshes.new(f"{name}Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    obj = remember(bpy.data.objects.new(name, mesh))
+    bpy.context.collection.objects.link(obj)
+    obj.location = location
+    apply_bevel(obj, bevel, 4)
+    obj.data.materials.append(mat)
+    if parent_to:
+        parent(obj, parent_to)
+    return obj
+
+
+def boolean_difference(
+    target: bpy.types.Object,
+    cutter: bpy.types.Object,
+) -> bpy.types.Object:
+    """Apply one deterministic hard-surface cavity and discard the cutter."""
+    bpy.ops.object.select_all(action="DESELECT")
+    target.select_set(True)
+    bpy.context.view_layer.objects.active = target
+    modifier = target.modifiers.new("Retrieval cavity", "BOOLEAN")
+    modifier.operation = "DIFFERENCE"
+    modifier.solver = "EXACT"
+    modifier.object = cutter
+    bpy.ops.object.modifier_apply(modifier=modifier.name)
+    target.select_set(False)
+    if cutter in ASSET_OBJECTS:
+        ASSET_OBJECTS.remove(cutter)
+    bpy.data.objects.remove(cutter, do_unlink=True)
+    return target
+
+
+def join_meshes(
+    name: str,
+    objects: list[bpy.types.Object],
+) -> bpy.types.Object:
+    """Join authored pieces into one stable runtime node.
+
+    Capsule roots animate as a unit, so retaining a separate object for every
+    eye, ear, and molded flange only creates needless WebGL draw traversal.
+    Blender preserves material slots on join, while the object count falls to
+    one top, one lower shell, and one collectible per capsule.
+    """
+    meshes = [obj for obj in objects if obj.type == "MESH"]
+    if not meshes:
+        raise ValueError(f"{name} needs at least one mesh")
+    for obj in meshes:
+        if obj in ASSET_OBJECTS:
+            ASSET_OBJECTS.remove(obj)
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    bpy.ops.object.join()
+    joined = meshes[0]
+    joined.name = name
+    ASSET_OBJECTS.append(joined)
+    joined.select_set(False)
+    return joined
 
 
 def torus(
@@ -368,124 +560,6 @@ def heart_prism(
     return obj
 
 
-def mini_animal_toy(
-    name: str,
-    scale: float,
-    mat: bpy.types.Material,
-    *,
-    kind: str,
-    parent_to: bpy.types.Object,
-) -> bpy.types.Object:
-    """Build one grounded capsule-toy silhouette with a stable root name."""
-    toy = remember(bpy.data.objects.new(name, None))
-    bpy.context.collection.objects.link(toy)
-    parent(toy, parent_to)
-
-    sphere(
-        f"{name}_Body",
-        (0, -0.015 * scale, -0.145 * scale),
-        (0.105 * scale, 0.068 * scale, 0.12 * scale),
-        mat,
-        segments=20,
-        rings=14,
-        parent_to=toy,
-    )
-    sphere(
-        f"{name}_Head",
-        (0, -0.02 * scale, 0.015 * scale),
-        (0.135 * scale, 0.074 * scale, 0.13 * scale),
-        mat,
-        segments=24,
-        rings=16,
-        parent_to=toy,
-    )
-    if kind == "bunny":
-        for side in (-1, 1):
-            sphere(
-                f"{name}_Ear_{side}",
-                (side * 0.066 * scale, -0.018 * scale, 0.145 * scale),
-                (0.035 * scale, 0.045 * scale, 0.105 * scale),
-                mat,
-                segments=16,
-                rings=12,
-                parent_to=toy,
-            )
-    else:
-        for side in (-1, 1):
-            sphere(
-                f"{name}_Ear_{side}",
-                (side * 0.092 * scale, -0.018 * scale, 0.098 * scale),
-                (0.046 * scale, 0.042 * scale, 0.048 * scale),
-                mat,
-                segments=16,
-                rings=12,
-                parent_to=toy,
-            )
-    sphere(
-        f"{name}_Muzzle",
-        (0, -0.084 * scale, -0.005 * scale),
-        (0.061 * scale, 0.022 * scale, 0.046 * scale),
-        CREAM_MATTE,
-        segments=16,
-        rings=12,
-        parent_to=toy,
-    )
-    for side in (-1, 1):
-        sphere(
-            f"{name}_Eye_{side}",
-            (side * 0.046 * scale, -0.089 * scale, 0.045 * scale),
-            (0.012 * scale, 0.009 * scale, 0.016 * scale),
-            INK,
-            segments=12,
-            rings=8,
-            parent_to=toy,
-        )
-    sphere(
-        f"{name}_Nose",
-        (0, -0.109 * scale, 0.005 * scale),
-        (0.015 * scale, 0.008 * scale, 0.012 * scale),
-        BROWN_DARK,
-        segments=12,
-        rings=8,
-        parent_to=toy,
-    )
-
-    # The chamber inventory only needs a clean face at mobile size, but the
-    # dispensed hero is held on screen and then enlarged for the reveal. Give
-    # that one figure a complete toy silhouette without multiplying the draw
-    # calls of all twelve background capsules.
-    if name == "PrizeToy":
-        sphere(
-            f"{name}_Belly",
-            (0, -0.089 * scale, -0.135 * scale),
-            (0.063 * scale, 0.02 * scale, 0.073 * scale),
-            CREAM_MATTE,
-            segments=18,
-            rings=12,
-            parent_to=toy,
-        )
-        for side in (-1, 1):
-            sphere(
-                f"{name}_Arm_{side}",
-                (side * 0.105 * scale, -0.03 * scale, -0.13 * scale),
-                (0.038 * scale, 0.038 * scale, 0.078 * scale),
-                mat,
-                segments=18,
-                rings=12,
-                parent_to=toy,
-            )
-            sphere(
-                f"{name}_Foot_{side}",
-                (side * 0.056 * scale, -0.055 * scale, -0.255 * scale),
-                (0.055 * scale, 0.048 * scale, 0.034 * scale),
-                mat,
-                segments=18,
-                rings=12,
-                parent_to=toy,
-            )
-    return toy
-
-
 def lathe_profile(
     name: str,
     profile: tuple[tuple[float, float], ...],
@@ -550,39 +624,37 @@ def capsule_assembly(
     prefix: str,
     suffix: str,
     scale: float,
-    top_mat: bpy.types.Material,
-    lower_mat: bpy.types.Material,
-    inner_mat: bpy.types.Material,
-    inner_shape: str,
+    shell_mat: bpy.types.Material,
 ) -> tuple[bpy.types.Object, bpy.types.Object, bpy.types.Object]:
-    """Create the shared Dugudugu 55:45 capsule product language.
+    """Create a plain two-piece toy capsule with one seam and highlight.
 
-    The softly tinted transparent upper shell and opaque lower cup meet at a
-    narrow injection-molded lip. A small pull tab keeps the opening mechanism
-    legible without turning the seam into a white decorative belt.
+    The new art direction deliberately removes every animal or figurine. The
+    runtime still receives the historical Toy node as an empty transform so
+    opening animation code remains compatible.
     """
     top_name = f"{prefix}Top{suffix}"
     bottom_name = f"{prefix}Bottom{suffix}"
-    band_name = f"{prefix}Band{suffix}"
     latch_name = f"{prefix}Latch{suffix}"
     toy_name = f"{prefix}Toy{suffix}"
 
-    # The two near-equal halves and their short vertical seam walls read as a
-    # manufactured product capsule, not an egg or a flying saucer.
+    # The lid is a touch taller than the cup (roughly 53:47), which reads as a
+    # manufactured capsule instead of a generic sphere while keeping the
+    # silhouette round and friendly at mobile size.
     top = lathe_profile(
         top_name,
         tuple(
             (z * scale, radius * scale)
             for z, radius in (
-                (0.0, 0.335),
-                (0.055, 0.338),
-                (0.135, 0.326),
-                (0.22, 0.282),
-                (0.29, 0.19),
-                (0.34, 0.0),
+                (0.0, 0.315),
+                (0.065, 0.31),
+                (0.16, 0.274),
+                (0.245, 0.198),
+                (0.305, 0.107),
+                (0.326, 0.0),
             )
         ),
-        top_mat,
+        shell_mat,
+        segments=28,
         parent_to=root,
     )
     bottom = lathe_profile(
@@ -590,189 +662,291 @@ def capsule_assembly(
         tuple(
             (z * scale, radius * scale)
             for z, radius in (
-                (-0.31, 0.0),
-                (-0.282, 0.108),
-                (-0.228, 0.21),
-                (-0.145, 0.287),
-                (-0.055, 0.327),
-                (0.0, 0.335),
+                (-0.284, 0.0),
+                (-0.266, 0.105),
+                (-0.213, 0.192),
+                (-0.135, 0.27),
+                (-0.054, 0.308),
+                (0.0, 0.315),
             )
         ),
-        lower_mat,
+        shell_mat,
+        segments=28,
         parent_to=root,
     )
 
-    # One thin molded ring and a small front tab are enough to communicate
-    # where the product opens. There is deliberately no gold seam, dark notch,
-    # exterior badge, or gem.
-    torus(
-        band_name,
-        (0, 0, 0),
-        0.337 * scale,
-        0.014 * scale,
-        lower_mat,
-        parent_to=root,
-    )
-    rounded_box(
+    # One hairline seam in the shell color is enough to explain how it opens;
+    # a bright contrasting belt made the old capsule look ornamental. The
+    # stable Latch node name remains available to runtime inspection tools.
+    latch = torus(
         latch_name,
-        (0, -0.35 * scale, -0.003 * scale),
-        (0.095 * scale, 0.034 * scale, 0.07 * scale),
-        CREAM,
-        0.017 * scale,
-        parent_to=top,
-    )
-
-    # The prize now reads as a tiny grounded character rather than a floating
-    # generic heart/star emblem. The complete figure remains well inside the
-    # shell and the stable root is what the runtime reveal animates.
-    toy = mini_animal_toy(
-        toy_name,
-        scale,
-        inner_mat,
-        kind=inner_shape,
+        (0, 0, 0),
+        0.313 * scale,
+        0.008 * scale,
+        shell_mat,
         parent_to=root,
     )
+
+    # A single almost-flat painted glint gives the lid orientation without
+    # adding a face, badge, second sparkle, or collectible-toy detail.
+    highlight_large = sphere(
+        f"{top_name}_Highlight",
+        (-0.1 * scale, -0.282 * scale, 0.145 * scale),
+        (0.024 * scale, 0.004 * scale, 0.042 * scale),
+        IVORY,
+        segments=12,
+        rings=8,
+        parent_to=root,
+    )
+    top = join_meshes(top_name, [top, highlight_large])
+
+    toy = remember(bpy.data.objects.new(toy_name, None))
+    bpy.context.collection.objects.link(toy)
+    parent(toy, root)
     return top, bottom, toy
 
 
 def build_machine() -> bpy.types.Object:
+    """Build the reference-led classic globe capsule machine.
+
+    The delivery silhouette is intentionally only five readable masses: aqua
+    globe, coral lid, coral trapezoid cabinet, flared base lip, and one neutral
+    dial above a dark half-round chute. It borrows that shared visual grammar
+    from the references without reproducing any single drawing.
+    """
     root = remember(bpy.data.objects.new("GachaRoot", None))
     bpy.context.collection.objects.link(root)
 
-    # All four supplied references reduce the machine to two large masses:
-    # one clear inventory window and one warm control cabinet. The previous
-    # plinth, inset face, dividers, trim bands and feet made it read as a small
-    # arcade prop. Keep only a quiet bottom lip so the silhouette survives at
-    # 390px without sacrificing the authored 3D bevels.
-    rounded_box("Base", (0, 0.03, 0.18), (3.04, 1.76, 0.32), ORANGE_DARK, 0.13, parent_to=root)
-    rounded_box("Body", (0, 0, 1.2), (2.9, 1.68, 2.06), ORANGE, 0.24, parent_to=root)
-
-    # A rectangular fake-glass chamber reads at mobile size and matches the
-    # supplied illustration without relying on transmission.
-    rounded_box("DomeBowl", (0, 0.02, 2.23), (2.8, 1.66, 0.2), ORANGE, 0.065, parent_to=root)
-    rounded_box("ChamberBack", (0, 0.77, 3.34), (2.54, 0.06, 2.16), AQUA_BACK, 0.08, parent_to=root)
-
-    # A shallow aqua funnel is enough to explain the path. It stays behind the
-    # bottom row and avoids introducing another dark mechanical focal point.
-    rounded_box(
-        "ChamberGateBack",
-        (0, 0.62, 2.38),
-        (0.76, 0.12, 0.24),
-        AQUA_EDGE,
-        0.07,
+    # One softly flared coral cabinet replaces the appliance panel, pillars,
+    # feet, gate, and stacked lower trays from the rejected direction.
+    body = trapezoid_box(
+        "Body",
+        (0, 0.0, 1.38),
+        bottom_width=3.12,
+        top_width=2.68,
+        bottom_depth=1.76,
+        top_depth=1.45,
+        height=2.18,
+        mat=CORAL,
+        bevel=0.14,
         parent_to=root,
     )
-    rounded_box(
-        "ChamberGateLip",
-        (0, 0.49, 2.32),
-        (0.5, 0.18, 0.09),
-        CREAM_MATTE,
-        0.045,
+    chute_cutter = cylinder(
+        "ChuteCutter",
+        (0, -0.87, 0.4),
+        0.57,
+        0.66,
+        INK,
+        rotation=(math.pi / 2, 0, 0),
+        vertices=48,
+        bevel=0,
         parent_to=root,
     )
-    rounded_box(
-        "ChamberShelf",
-        (0, 0.49, 2.41),
-        (2.2, 0.24, 0.08),
-        AQUA_EDGE,
-        0.035,
+    boolean_difference(body, chute_cutter)
+    # The post-boolean bevel affects the fresh cut boundary, giving the coral
+    # shell a thin molded lip rather than leaving a razor-sharp CG opening.
+    apply_bevel(body, 0.025, 2)
+    trapezoid_box(
+        "Base",
+        (0, 0.03, 0.21),
+        bottom_width=3.72,
+        top_width=3.22,
+        bottom_depth=2.12,
+        top_depth=1.82,
+        height=0.42,
+        mat=CORAL,
+        bevel=0.13,
         parent_to=root,
     )
 
-    capsule_palette = (PINK, SKY, LEMON, MINT, GRAPE, CORAL)
-    capsule_top_palette = (
-        CAPSULE_GLASS_SKY,
-        CAPSULE_GLASS_LEMON,
-        CAPSULE_GLASS_MINT,
-        CAPSULE_GLASS_GRAPE,
-        CAPSULE_GLASS_CORAL,
-        CAPSULE_GLASS_PINK,
+    # A shallow opaque aqua rear plate gives the transparent globe a readable
+    # pastel body without stacking multiple refractive surfaces.
+    sphere(
+        "ChamberBack",
+        (0, 0.7, 3.62),
+        (1.5, 0.055, 1.32),
+        AQUA_BACK,
+        segments=40,
+        rings=24,
+        parent_to=root,
     )
+
+    # Inventory nodes are authored center-out so the minimum valid two-entry
+    # setup reads as a balanced pair rather than two objects stranded at left.
     capsule_positions = (
-        (-0.96, -0.29, 2.52), (-0.32, -0.42, 2.54), (0.32, -0.4, 2.53), (0.96, -0.27, 2.52),
-        (-0.91, 0.0, 3.07), (-0.29, -0.12, 3.09), (0.34, -0.09, 3.07), (0.94, 0.0, 3.08),
-        (-0.96, 0.18, 3.62), (-0.32, 0.14, 3.64), (0.32, 0.17, 3.62), (0.96, 0.15, 3.63),
+        (-0.98, 0.13, 2.77),
+        (-0.49, -0.10, 2.76),
+        (0.0, -0.18, 2.75),
+        (0.49, 0.02, 2.76),
+        (0.98, 0.16, 2.77),
+        (-0.735, 0.17, 3.2),
+        (-0.245, -0.02, 3.22),
+        (0.245, 0.13, 3.22),
+        (0.735, 0.05, 3.2),
+        (-0.49, 0.18, 3.66),
+        (0.0, 0.13, 3.67),
+        (0.49, 0.2, 3.66),
     )
-    for i, (x, y, z) in enumerate(capsule_positions):
-        capsule_root = remember(bpy.data.objects.new(f"Capsule_{i:02d}", None))
+    capsule_palette = (
+        CAPSULE_PINK,
+        CAPSULE_SKY,
+        CAPSULE_MINT,
+        CAPSULE_LEMON,
+    )
+    for index, (x, y, z) in enumerate(capsule_positions):
+        capsule_root = remember(
+            bpy.data.objects.new(f"Capsule_{index:02d}", None)
+        )
         bpy.context.collection.objects.link(capsule_root)
         capsule_root.location = (x, y, z)
         capsule_root.rotation_euler = (
-            0.08 * ((i % 3) - 1),
-            0.12 * ((i % 4) - 1.5),
-            0.22 * i,
+            math.radians((-3, 2, -2, 3)[index % 4]),
+            math.radians((-5, 4, 6, -3)[index % 4]),
+            math.radians((-9, 7, -4, 8, 3)[index % 5]),
         )
         parent(capsule_root, root)
         capsule_assembly(
             capsule_root,
             prefix="Capsule",
-            suffix=f"_{i:02d}",
-            # Large, almost-touching color blocks match the references. Twelve
-            # stable roots still mirror candidates 1–12; visual simplicity is
-            # achieved by scale and spacing rather than breaking state truth.
-            scale=0.98,
-            top_mat=capsule_top_palette[i % 6],
-            lower_mat=capsule_palette[i % 6],
-            inner_mat=capsule_palette[(i + 3) % 6],
-            inner_shape="bunny" if i % 2 == 0 else "bear",
+            suffix=f"_{index:02d}",
+            scale=0.88,
+            shell_mat=capsule_palette[index % len(capsule_palette)],
         )
 
-    rounded_box("GlassDome", (0, -0.005, 3.34), (2.72, 1.62, 2.3), GLASS, 0.18, parent_to=root)
-    rounded_box("GlassBottomFrame", (0, -0.02, 2.22), (2.82, 1.68, 0.1), AQUA_EDGE, 0.04, parent_to=root)
-    for i, x in enumerate((-1.34, 1.34)):
-        rounded_box(f"GlassEdge_{i}", (x, -0.82, 3.34), (0.045, 0.045, 2.05), AQUA_EDGE, 0.018, parent_to=root)
-
-    rounded_box("Crown", (0, 0, 4.53), (3.0, 1.76, 0.34), ORANGE, 0.15, parent_to=root)
-
-    # One illustrated reflection is enough; more streaks make the chamber look
-    # glossy and expensive rather than like a friendly molded toy.
-    rounded_box(
-        "DomeHighlightTall",
-        (-0.97, -0.835, 3.3),
-        (0.055, 0.025, 1.05),
-        CREAM,
-        0.022,
-        rotation=(0, 0, math.radians(-4)),
+    # The single fake-glass ellipsoid is the recognizable globe. Runtime sets
+    # transparent/depthWrite on this material; transmission is never authored.
+    sphere(
+        "GlassDome",
+        (0, 0, 3.62),
+        (1.61, 0.85, 1.44),
+        GLASS,
+        segments=48,
+        rings=28,
         parent_to=root,
     )
-    sphere("DomeHighlightDot", (-0.93, -0.83, 4.0), (0.07, 0.024, 0.095), CREAM, segments=20, rings=12, parent_to=root)
 
-    # One oversized crank is the only control. Removing the coin-slot plaque
-    # gives it the same instant readability as the supplied flat illustrations.
+    globe_ring = torus(
+        "GlobeBaseRing",
+        (0, 0, 2.55),
+        0.94,
+        0.13,
+        CORAL,
+        parent_to=root,
+    )
+    globe_ring.scale = (1.48, 0.78, 1.0)
+
+    # A low coral lid and one small crown button finish the globe without the
+    # layered appliance arch or ornamental signage of the previous model.
+    lid_cap = sphere(
+        "LidCap",
+        (0, 0, 4.93),
+        (1.15, 0.68, 0.28),
+        CORAL,
+        segments=40,
+        rings=20,
+        parent_to=root,
+    )
+    lid_rim = torus(
+        "LidRim",
+        (0, 0, 4.76),
+        0.92,
+        0.1,
+        CORAL,
+        parent_to=root,
+    )
+    lid_rim.scale = (1.45, 0.76, 1.0)
+    lid_button = sphere(
+        "LidButton",
+        (0, 0, 5.22),
+        (0.32, 0.25, 0.16),
+        CORAL,
+        segments=28,
+        rings=16,
+        parent_to=root,
+    )
+    join_meshes("DomeBowl", [lid_cap, lid_rim, lid_button])
+
+    # Neutral hardware prevents the dial from competing with the coral body.
+    # CrankRoot rests at exactly zero rotation with a vertical bar, ready for
+    # the runtime's one full z-axis turn.
     crank = remember(bpy.data.objects.new("CrankRoot", None))
     bpy.context.collection.objects.link(crank)
-    crank.location = (0.76, -0.94, 1.15)
+    crank.location = (0, -0.94, 1.55)
+    crank.rotation_euler = (0, 0, 0)
     parent(crank, root)
-    torus("CrankOuterRing", (0, -0.01, 0), 0.39, 0.065, CREAM_MATTE, rotation=(math.pi / 2, 0, 0), parent_to=crank)
-    cylinder("CrankHub", (0, 0, 0), 0.31, 0.18, ORANGE_LIGHT, rotation=(math.pi / 2, 0, 0), bevel=0.055, parent_to=crank)
-    cylinder("CrankCap", (0, -0.12, 0), 0.1, 0.05, CREAM, rotation=(math.pi / 2, 0, 0), bevel=0.025, parent_to=crank)
-    rounded_box("CrankArm", (0, -0.14, -0.12), (0.2, 0.16, 0.62), CREAM, 0.075, parent_to=crank)
-    rounded_box("CrankKnob", (0, -0.15, -0.41), (0.27, 0.2, 0.24), CREAM_MATTE, 0.085, parent_to=crank)
+    torus(
+        "CrankOuterRing",
+        (0, 0, 0),
+        0.39,
+        0.046,
+        IVORY,
+        rotation=(math.pi / 2, 0, 0),
+        parent_to=crank,
+    )
+    cylinder(
+        "CrankHub",
+        (0, -0.035, 0),
+        0.34,
+        0.13,
+        DIAL_GRAY,
+        rotation=(math.pi / 2, 0, 0),
+        vertices=40,
+        bevel=0.055,
+        parent_to=crank,
+    )
+    rounded_box(
+        "CrankArm",
+        (0, -0.14, 0),
+        (0.16, 0.13, 0.62),
+        IVORY,
+        0.065,
+        parent_to=crank,
+    )
 
-    # The exit is one deep negative shape plus one shallow landing lip. Extra
-    # frames and nested trays made the lower cabinet busier than the capsules.
-    rounded_box("Chute", (-0.72, -0.93, 1.08), (1.08, 0.14, 0.84), BROWN_DARK, 0.14, parent_to=root)
-    rounded_box("Tray", (-0.72, -1.04, 0.7), (0.94, 0.34, 0.14), BROWN, 0.065, rotation=(math.radians(-6), 0, 0), parent_to=root)
+    # The dark circular back sits well behind the real cut. The body edge can
+    # therefore occlude a falling capsule before it crosses the mouth instead
+    # of letting the prize render on top of the cabinet and crank.
+    cylinder(
+        "Chute",
+        (0, -0.38, 0.62),
+        0.505,
+        0.065,
+        INK,
+        rotation=(math.pi / 2, 0, 0),
+        vertices=44,
+        bevel=0.012,
+        parent_to=root,
+    )
 
-    # Output capsule is hidden until the cutscene drops it into the tray.
+    # Prize capsule stays simple and empty. PrizeToy remains a stable empty
+    # transform so existing opening animation code can snapshot it safely.
     prize = remember(bpy.data.objects.new("PrizeCapsule", None))
     bpy.context.collection.objects.link(prize)
-    prize.location = (-0.72, -1.12, 2.28)
-    # Never export a zero-scale parent with export_apply=True: Blender can bake
-    # the zero transform into every child mesh, making runtime scale recovery
-    # impossible. GachaScene hides this node on the cloned GLB before render.
+    prize.location = (0, -1.14, 2.45)
     prize.scale = (1, 1, 1)
     parent(prize, root)
     capsule_assembly(
         prize,
         prefix="Prize",
         suffix="",
-        scale=1.22,
-        top_mat=CAPSULE_GLASS_SKY,
-        lower_mat=PINK,
-        inner_mat=GLOW_PINK,
-        inner_shape="bunny",
+        scale=1.18,
+        shell_mat=CAPSULE_PINK,
     )
+
+    for name, location in (
+        # Camera/front is negative Blender Y. These positions deliberately
+        # progress from behind the cabinet face to the cut mouth, then onto the
+        # foreground floor: internal.y > mouth.y > landing.y.
+        ("InternalDropAnchor", (0, -0.5, 1.34)),
+        ("ChuteMouthAnchor", (0, -0.72, 0.66)),
+        ("ChuteAnchor", (0, -0.72, 0.66)),
+        ("PrizeTapAnchor", (-0.11, -1.2, 0.48)),
+        ("CameraTarget", (0, 0, 2.55)),
+    ):
+        anchor = remember(bpy.data.objects.new(name, None))
+        bpy.context.collection.objects.link(anchor)
+        anchor.location = location
+        parent(anchor, root)
 
     return root
 
@@ -796,7 +970,7 @@ def export_asset(root: bpy.types.Object) -> None:
     )
 
 
-def validate_exported_prize_bounds() -> dict[str, tuple[float, float, float]]:
+def validate_exported_prize_bounds() -> dict[str, object]:
     """Re-import the written GLB and fail if prize geometry was scale-baked.
 
     This validates the delivery artifact rather than the Blender source scene,
@@ -805,7 +979,7 @@ def validate_exported_prize_bounds() -> dict[str, tuple[float, float, float]]:
     bpy.ops.object.select_all(action="DESELECT")
     bpy.ops.import_scene.gltf(filepath=str(OUT))
     imported = list(bpy.context.selected_objects)
-    bounds: dict[str, tuple[float, float, float]] = {}
+    bounds: dict[str, object] = {}
     prize_node = next(
         (
             candidate
@@ -859,6 +1033,234 @@ def validate_exported_prize_bounds() -> dict[str, tuple[float, float, float]]:
             raise RuntimeError(
                 f"Export validation failed: {stable_name} has zero/tiny bounds {tuple(size)}"
             )
+
+    required_nodes = (
+        "CrankRoot",
+        "PrizeCapsule",
+        "PrizeTop",
+        "PrizeBottom",
+        "PrizeLatch",
+        "PrizeToy",
+        "GlassDome",
+        "InternalDropAnchor",
+        "ChuteMouthAnchor",
+        "PrizeTapAnchor",
+        "ChuteAnchor",
+        "CameraTarget",
+        *(f"Capsule_{index:02d}" for index in range(12)),
+        *(f"CapsuleTop_{index:02d}" for index in range(12)),
+        *(f"CapsuleBottom_{index:02d}" for index in range(12)),
+        *(f"CapsuleLatch_{index:02d}" for index in range(12)),
+        *(f"CapsuleToy_{index:02d}" for index in range(12)),
+    )
+    imported_names = {obj.name for obj in imported}
+    missing = [
+        name
+        for name in required_nodes
+        if not any(
+            candidate == name or candidate.startswith(f"{name}.")
+            for candidate in imported_names
+        )
+    ]
+    if missing:
+        raise RuntimeError(f"Export validation failed: missing stable nodes {missing}")
+
+    def imported_node(stable_name: str) -> bpy.types.Object:
+        node = next(
+            (
+                candidate
+                for candidate in imported
+                if candidate.name == stable_name
+                or candidate.name.startswith(f"{stable_name}.")
+            ),
+            None,
+        )
+        if node is None:
+            raise RuntimeError(f"Export validation failed: missing {stable_name}")
+        return node
+
+    internal_anchor = imported_node("InternalDropAnchor")
+    mouth_anchor = imported_node("ChuteMouthAnchor")
+    landing_anchor = imported_node("PrizeTapAnchor")
+    anchor_depths = (
+        float(internal_anchor.location.y),
+        float(mouth_anchor.location.y),
+        float(landing_anchor.location.y),
+    )
+    anchor_heights = (
+        float(internal_anchor.location.z),
+        float(mouth_anchor.location.z),
+        float(landing_anchor.location.z),
+    )
+    bounds["DropAnchorDepths"] = anchor_depths
+    bounds["DropAnchorHeights"] = anchor_heights
+    if not (anchor_depths[0] > anchor_depths[1] > anchor_depths[2]):
+        raise RuntimeError(
+            "Export validation failed: drop anchors must travel from inside "
+            f"to foreground, got Y={anchor_depths}"
+        )
+    if not (anchor_heights[0] > anchor_heights[1] > anchor_heights[2]):
+        raise RuntimeError(
+            "Export validation failed: drop anchors must descend monotonically, "
+            f"got Z={anchor_heights}"
+        )
+
+    forbidden_figure_terms = (
+        "bunny",
+        "bear",
+        "cat",
+        "puppy",
+        "duck",
+        "robot",
+        "frog",
+        "muzzle",
+        "paw",
+        "ear",
+    )
+    figure_nodes = [
+        name
+        for name in imported_names
+        if any(term in name.lower() for term in forbidden_figure_terms)
+    ]
+    if figure_nodes:
+        raise RuntimeError(
+            f"Export validation failed: figurine geometry leaked into delivery {figure_nodes}"
+        )
+
+    prize_toy_node = next(
+        (
+            candidate
+            for candidate in imported
+            if candidate.name == "PrizeToy"
+            or candidate.name.startswith("PrizeToy.")
+        ),
+        None,
+    )
+    if prize_toy_node is None or prize_toy_node.type != "EMPTY":
+        raise RuntimeError("Export validation failed: PrizeToy must remain an empty node")
+
+    toy_nodes = [
+        candidate
+        for candidate in imported
+        if candidate.name == "PrizeToy"
+        or candidate.name.startswith("PrizeToy.")
+        or candidate.name.startswith("CapsuleToy_")
+    ]
+    if len(toy_nodes) != 13 or any(node.type != "EMPTY" for node in toy_nodes):
+        raise RuntimeError(
+            "Export validation failed: every capsule Toy node must be an empty transform"
+        )
+
+    crank_node = next(
+        (
+            candidate
+            for candidate in imported
+            if candidate.name == "CrankRoot"
+            or candidate.name.startswith("CrankRoot.")
+        ),
+        None,
+    )
+    crank_rest_degrees = (
+        math.degrees(float(crank_node.rotation_euler.z)) if crank_node else math.inf
+    )
+    bounds["CrankRestDegrees"] = crank_rest_degrees
+    if abs(crank_rest_degrees) > 0.01:
+        raise RuntimeError(
+            f"Export validation failed: crank rest is {crank_rest_degrees:.3f} degrees"
+        )
+
+    expected_capsule_x = {
+        0: -0.98,
+        1: -0.49,
+        2: 0.0,
+        3: 0.49,
+        4: 0.98,
+        5: -0.735,
+        6: -0.245,
+        7: 0.245,
+        8: 0.735,
+        9: -0.49,
+        10: 0.0,
+        11: 0.49,
+    }
+    capsule_x: dict[int, float] = {}
+    for index, expected_x in expected_capsule_x.items():
+        stable_name = f"Capsule_{index:02d}"
+        capsule_node = next(
+            (
+                candidate
+                for candidate in imported
+                if candidate.name == stable_name
+                or candidate.name.startswith(f"{stable_name}.")
+            ),
+            None,
+        )
+        if capsule_node is None:
+            raise RuntimeError(f"Export validation failed: missing {stable_name}")
+        actual_x = float(capsule_node.location.x)
+        capsule_x[index] = actual_x
+        if abs(actual_x - expected_x) > 0.02:
+            raise RuntimeError(
+                f"Export validation failed: {stable_name} x={actual_x:.3f}, "
+                f"expected {expected_x:.3f} for center-out reveal"
+            )
+    bounds["InventoryCenterIndices"] = (2, 6, 7, 10)
+
+    meshes = [obj for obj in imported if obj.type == "MESH"]
+    used_materials = {
+        mat
+        for obj in meshes
+        for mat in obj.data.materials
+        if mat is not None
+    }
+    material_names = {mat.name for mat in used_materials}
+    transmission_materials: list[str] = []
+    for mat in used_materials:
+        if not mat.use_nodes or mat.node_tree is None:
+            continue
+        bsdf = mat.node_tree.nodes.get("Principled BSDF")
+        if bsdf is None:
+            continue
+        transmission_input = (
+            bsdf.inputs.get("Transmission Weight")
+            or bsdf.inputs.get("Transmission")
+        )
+        if transmission_input and float(transmission_input.default_value) > 1e-6:
+            transmission_materials.append(mat.name)
+    bounds["TransmissionMaterials"] = len(transmission_materials)
+    if transmission_materials:
+        raise RuntimeError(
+            f"Export validation failed: transmission materials {transmission_materials}"
+        )
+    triangles = sum(
+        sum(max(0, len(polygon.vertices) - 2) for polygon in obj.data.polygons)
+        for obj in meshes
+    )
+    delivery_bytes = OUT.stat().st_size
+    bounds["DeliveryBytes"] = delivery_bytes
+    bounds["MeshNodes"] = len(meshes)
+    bounds["Materials"] = len(material_names)
+    bounds["Triangles"] = triangles
+    if delivery_bytes > MAX_GLB_BYTES:
+        raise RuntimeError(
+            f"Export validation failed: GLB is {delivery_bytes:,} bytes "
+            f"(max {MAX_GLB_BYTES:,})"
+        )
+    if len(meshes) > MAX_DELIVERY_MESHES:
+        raise RuntimeError(
+            f"Export validation failed: {len(meshes)} mesh nodes "
+            f"(max {MAX_DELIVERY_MESHES})"
+        )
+    if len(material_names) > MAX_DELIVERY_MATERIALS:
+        raise RuntimeError(
+            f"Export validation failed: {len(material_names)} materials "
+            f"(max {MAX_DELIVERY_MATERIALS})"
+        )
+    if triangles > MAX_DELIVERY_TRIANGLES:
+        raise RuntimeError(
+            f"Export validation failed: {triangles:,} triangles "
+            f"(max {MAX_DELIVERY_TRIANGLES:,})"
+        )
 
     for obj in imported:
         bpy.data.objects.remove(obj, do_unlink=True)
@@ -940,48 +1342,51 @@ def render_preview() -> None:
         set_tree_render_hidden(prize, True)
     bpy.ops.render.render(write_still=True)
 
+    # Inventory QA at a tighter crop: all twelve supported color balls, seams,
+    # and tiny painted highlights must remain legible behind one glass surface.
+    scene.render.resolution_x = 720
+    scene.render.resolution_y = 720
+    camera.location = (3.8, -7.7, 4.7)
+    camera.data.lens = 76
+    point_camera(camera, (0, 0, 3.48))
+    scene.render.filepath = str(WINDOW_PREVIEW)
+    bpy.ops.render.render(write_still=True)
+
     # The game-card render reveals the hero capsule beside the machine. The
     # runtime GLB was already exported with this object hidden.
     if prize:
         set_tree_render_hidden(prize, False)
-        prize.location = (1.72, -0.52, 0.78)
+        prize.location = (1.72, -0.52, 0.42)
         prize.scale = (1.18, 1.18, 1.18)
         prize.rotation_euler = (math.radians(-5), math.radians(10), math.radians(-12))
-    card_plinth = cylinder(
-        "CardCapsulePlinth",
-        (1.72, -0.4, 0.34),
-        0.56,
-        0.2,
-        CREAM,
-        vertices=48,
-        bevel=0.07,
-    )
-    card_plinth_trim = torus(
-        "CardCapsulePlinthTrim",
-        (1.72, -0.4, 0.45),
-        0.47,
-        0.035,
-        GOLD,
-    )
 
     CARD_IMAGE.parent.mkdir(parents=True, exist_ok=True)
     floor.hide_render = True
     backdrop.hide_render = True
-    scene.render.film_transparent = True
+    # Eevee's fake-glass alpha can smear scanlines when it is composited onto
+    # a transparent WebP film. The lobby art is code-native, so this delivery
+    # card uses the same neutral opaque product-shot background as race.webp
+    # instead of shipping a corrupted alpha asset.
+    scene.render.film_transparent = False
     scene.render.resolution_x = 640
     scene.render.resolution_y = 480
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "WEBP"
-    scene.render.image_settings.color_mode = "RGBA"
+    scene.render.image_settings.color_mode = "RGB"
     scene.render.image_settings.quality = 100
     scene.render.filepath = str(CARD_IMAGE)
-    camera.location = (7.0, -9.65, 5.65)
+    camera.location = (8.1, -11.3, 6.2)
     camera.data.lens = 58
-    point_camera(camera, (0.18, 0, 2.18))
+    point_camera(camera, (0.12, 0, 2.5))
     bpy.ops.render.render(write_still=True)
 
-    # Isolated product QA: if the 55:45 split, flange, latch, and internal toy
-    # do not read here, they will not read during the runtime hero close-up.
+    # Lossless QA companion for comparing the final WebP composition.
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.filepath = str(CARD_PREVIEW)
+    bpy.ops.render.render(write_still=True)
+
+    # Isolated product QA: only the spherical two-piece shell and thin seam
+    # should read here; there is deliberately no plinth or internal figurine.
     def is_prize_part(obj: bpy.types.Object) -> bool:
         current: bpy.types.Object | None = obj
         while current is not None:
@@ -994,9 +1399,7 @@ def render_preview() -> None:
         if obj.type == "EMPTY":
             obj.hide_render = False
         else:
-            obj.hide_render = not (
-                is_prize_part(obj) or obj in {card_plinth, card_plinth_trim}
-            )
+            obj.hide_render = not is_prize_part(obj)
     floor.hide_render = False
     backdrop.hide_render = False
     scene.render.film_transparent = False
@@ -1006,7 +1409,7 @@ def render_preview() -> None:
     scene.render.image_settings.color_mode = "RGBA"
     camera.location = (3.25, -4.75, 2.15)
     camera.data.lens = 72
-    point_camera(camera, (1.72, -0.48, 0.78))
+    point_camera(camera, (1.72, -0.48, 0.46))
     scene.render.filepath = str(CAPSULE_PREVIEW)
     bpy.ops.render.render(write_still=True)
 
@@ -1027,7 +1430,7 @@ def render_preview() -> None:
         prize_toy.scale = tuple(value * 1.32 for value in prize_toy.scale)
     camera.location = (3.35, -5.05, 2.45)
     camera.data.lens = 64
-    point_camera(camera, (1.7, -0.48, 0.96))
+    point_camera(camera, (1.7, -0.48, 0.64))
     scene.render.filepath = str(CAPSULE_OPEN_PREVIEW)
     bpy.ops.render.render(write_still=True)
 
@@ -1040,9 +1443,11 @@ def main() -> None:
     render_preview()
     print(f"Wrote {OUT}")
     print(f"Preview {PREVIEW}")
+    print(f"Window preview {WINDOW_PREVIEW}")
     print(f"Capsule preview {CAPSULE_PREVIEW}")
     print(f"Open capsule preview {CAPSULE_OPEN_PREVIEW}")
     print(f"Card image {CARD_IMAGE}")
+    print(f"Card preview {CARD_PREVIEW}")
     print(f"Validated GLB prize bounds {prize_bounds}")
 
 

@@ -22,7 +22,8 @@ export function TopBar({
 }: Props) {
   return (
     <header
-      className="pointer-events-none fixed inset-x-0 top-0 z-20 flex items-center justify-between gap-3 p-3 sm:p-4"
+      data-result-dialog-navigation="true"
+      className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-3 p-3 sm:p-4"
       style={{
         paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)",
         paddingRight: "calc(env(safe-area-inset-right) + 0.75rem)",

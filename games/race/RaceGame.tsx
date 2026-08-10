@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type KeyboardEvent,
 } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -47,7 +46,7 @@ import {
 } from "./RaceScene3D";
 import styles from "./RaceGame.module.css";
 
-export const RACE_DURATION_MS = 13_500;
+export const RACE_DURATION_MS = 9_800;
 const COUNTDOWN_STEP_MS = 430;
 
 function racerStyle(paletteIndex: number): CSSProperties {
@@ -56,22 +55,6 @@ function racerStyle(paletteIndex: number): CSSProperties {
     "--racer-color": palette.ui,
     "--racer-contrast": palette.labelText,
   } as CSSProperties;
-}
-
-function scrollResultOrder(event: KeyboardEvent<HTMLOListElement>) {
-  const list = event.currentTarget;
-  let nextTop: number | null = null;
-  if (event.key === "ArrowDown") nextTop = list.scrollTop + 44;
-  if (event.key === "ArrowUp") nextTop = list.scrollTop - 44;
-  if (event.key === "PageDown" || event.key === " ") {
-    nextTop = list.scrollTop + list.clientHeight * 0.82;
-  }
-  if (event.key === "PageUp") nextTop = list.scrollTop - list.clientHeight * 0.82;
-  if (event.key === "Home") nextTop = 0;
-  if (event.key === "End") nextTop = list.scrollHeight;
-  if (nextTop == null) return;
-  event.preventDefault();
-  list.scrollTo({ top: nextTop, behavior: "auto" });
 }
 
 export function RaceGame() {
@@ -634,8 +617,6 @@ export function RaceGame() {
             <ol
               className={`${styles.resultOrder} ${styles.resultOrderDense}`}
               aria-label={t("result.remainingOrderLabel")}
-              tabIndex={0}
-              onKeyDown={scrollResultOrder}
             >
               {renderStandingRows(standings.slice(3), 3)}
             </ol>

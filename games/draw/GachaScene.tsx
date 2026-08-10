@@ -4,6 +4,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { ContactShadows, useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { NEUTRAL_HEX } from "@/lib/design-tokens";
+import {
+  CAPSULE_COLOR_HEX,
+  fallbackCapsuleColor,
+  type CapsuleColorKey,
+  type DrawEntry,
+} from "./colors";
 
 export type GachaBeat =
   | "idle"
@@ -12,9 +19,7 @@ export type GachaBeat =
   | "index"
   | "drop"
   | "impact"
-  | "hero"
-  | "open"
-  | "reveal";
+  | "hero";
 
 type MotionProps = {
   beat: GachaBeat;
@@ -22,22 +27,47 @@ type MotionProps = {
 };
 
 type Props = MotionProps & {
-  entryCount: number;
+  entries: readonly DrawEntry[];
+  prizeColor?: CapsuleColorKey;
 };
 
-const MODEL_URL = "/models/draw/gacha-machine.glb?v=20260802-3";
+const MODEL_URL = "/models/draw/gacha-machine.glb?v=20260810-5";
 const MACHINE_SCALE = 0.8;
-const PRIZE_LOCAL_X = -0.7;
-const PRIZE_HERO_X = -0.48;
+const MACHINE_YAW = 0.085;
+const CRANK_CHARGE_SECONDS = 0.42;
+const CRANK_MIX_SECONDS = 1.16;
+const CRANK_TURN_SECONDS = CRANK_CHARGE_SECONDS + CRANK_MIX_SECONDS;
+const FRAME_TARGET = new THREE.Vector3(0, 0.08, 0);
+
+// Candidate counts grow from the visual center of each supported shelf. The
+// GLB keeps stable numbered nodes for animation, but showing Capsule_00 first
+// would make a two-entry setup look like leftover stock in the far-left corner.
+const CAPSULE_SLOTS_BY_COUNT = [
+  [],
+  [2],
+  [1, 3],
+  [1, 2, 3],
+  [0, 1, 3, 4],
+  [0, 1, 2, 3, 4],
+  [0, 1, 2, 3, 4, 6],
+  [0, 1, 2, 3, 4, 6, 7],
+  [0, 1, 2, 3, 4, 5, 6, 8],
+  [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 10],
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11],
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+];
 
 const clamp01 = (value: number) => THREE.MathUtils.clamp(value, 0, 1);
-const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
 const easeInOutCubic = (value: number) =>
   value < 0.5
     ? 4 * value * value * value
     : 1 - Math.pow(-2 * value + 2, 3) / 2;
 
-function CameraDirector({ beat, reducedMotion }: MotionProps) {
+function CameraDirector({
+  beat,
+  reducedMotion,
+}: MotionProps) {
   const camera = useThree((state) => state.camera);
   const desiredRef = useRef(new THREE.Vector3());
   const lookAtRef = useRef(new THREE.Vector3());
@@ -56,59 +86,56 @@ function CameraDirector({ beat, reducedMotion }: MotionProps) {
     const prizeFocus =
       beat === "drop" ||
       beat === "impact" ||
-      beat === "hero" ||
-      beat === "open" ||
-      beat === "reveal";
-    let stageFocusY = 0.08;
+      beat === "hero";
+    // GachaMachineAsset places the authored CameraTarget at this fixed world
+    // point. Keeping the camera target fixed preserves the machine's small
+    // anticipation squash instead of making the camera chase it.
+    const target = FRAME_TARGET;
+    let focusOffsetY = 0;
+    const immersive = mobile && state.size.height / state.size.width > 1.45;
+    const mobileDistance = immersive ? 9.55 : 7.82;
 
     if (prizeFocus) {
       // The machine is the visual anchor. Keep the camera nearly fixed while
       // the capsule travels inside the frame instead of cutting to a detached
       // capsule close-up. This also makes the final DOM result read as a true
       // popup over the same physical machine.
-      stageFocusY = beat === "drop" ? 0.04 : -0.01;
+      focusOffsetY = beat === "drop" ? -0.035 : -0.055;
       desired.set(
-        beat === "drop" ? -0.04 : 0.06,
-        mobile ? 0.5 : 0.48,
-        mobile ? 10.15 : 7.08,
+        target.x + (beat === "drop" ? -0.025 : 0.025),
+        target.y + (mobile ? 0.46 : 0.42),
+        target.z + (mobile ? mobileDistance + 0.1 : 7.06),
       );
     } else {
-      const immersive = mobile && state.size.height / state.size.width > 1.45;
       const positions: Record<
         "idle" | "charge" | "mix" | "index",
         [number, number, number]
       > =
         mobile
           ? {
-              idle: [0.12, 0.58, 7.72],
-              charge: [0.34, 0.04, immersive ? 9.8 : 8.02],
-              mix: [0, 0.66, immersive ? 9.95 : 8.2],
-              index: [-0.08, 0.3, immersive ? 10.05 : 8.35],
+              idle: [0.1, 0.5, mobileDistance],
+              charge: [0.13, 0.45, mobileDistance - 0.12],
+              mix: [0.02, 0.52, mobileDistance],
+              index: [-0.015, 0.48, mobileDistance + 0.05],
             }
           : {
-              idle: [0.3, 0.62, 7.25],
-              charge: [0.48, 0.02, 6.7],
-              mix: [0, 0.68, 6.75],
-              index: [-0.08, 0.3, 6.9],
+              idle: [0.22, 0.52, 7.18],
+              charge: [0.28, 0.43, 6.98],
+              mix: [0.04, 0.53, 7.02],
+              index: [-0.02, 0.47, 7.08],
             };
-      stageFocusY =
+      focusOffsetY =
         beat === "charge"
-          ? -0.34
+          ? -0.08
           : beat === "mix"
-            ? 0.48
+            ? 0.12
             : beat === "index"
-              ? 0.05
-              : 0.08;
-      desired.set(...positions[beat as "idle" | "charge" | "mix" | "index"]);
+              ? 0.02
+              : 0;
+      const [x, y, z] = positions[beat as "idle" | "charge" | "mix" | "index"];
+      desired.set(target.x + x, target.y + y, target.z + z);
     }
 
-    if (beat === "mix" && !reducedMotion) {
-      desired.set(
-        desired.x + Math.sin(elapsed * 1.5) * 0.12,
-        desired.y + Math.sin(elapsed * 2.1) * 0.035,
-        desired.z,
-      );
-    }
     let smoothing = reducedMotion
       ? 1
       : 1 - Math.exp(-dt * (beat === "drop" ? 10 : 5.8));
@@ -118,7 +145,7 @@ function CameraDirector({ beat, reducedMotion }: MotionProps) {
     }
     camera.position.lerp(desired, smoothing);
 
-    lookAt.set(0, stageFocusY, 0.1);
+    lookAt.set(target.x, target.y + focusOffsetY, target.z + 0.04);
     if (beat === "impact" && elapsed >= 0.075 && !reducedMotion) {
       const recoil = elapsed - 0.075;
       const shake = Math.exp(-recoil * 15) * 0.075;
@@ -160,8 +187,6 @@ function CinematicLights({ beat, reducedMotion }: MotionProps) {
       drop: [0.9, 2.2, 0.58, 1.65],
       impact: [1.1 + flash * 0.08, 2.8 + flash, 0.75, 2.6 + flash * 0.65],
       hero: [1.08, 2.75, 0.72, 2.45],
-      open: [1.12, 2.9, 0.76, 2.65],
-      reveal: [1.14, 3.0, 0.8, 2.8],
     };
     const [hemiTarget, keyTarget, fillTarget, glowTarget] = targets[beat];
     const smoothing = reducedMotion ? 1 : 1 - Math.exp(-dt * 10);
@@ -231,115 +256,196 @@ const snapshot = (object: THREE.Object3D | undefined): PartTransform | undefined
       }
     : undefined;
 
-const restore = (object: THREE.Object3D | undefined, base: PartTransform | undefined) => {
-  if (!object || !base) return;
-  object.position.copy(base.position);
-  object.rotation.copy(base.rotation);
-  object.scale.copy(base.scale);
-};
+function sceneLocalPosition(
+  scene: THREE.Object3D,
+  object: THREE.Object3D | undefined,
+  fallback: THREE.Vector3,
+) {
+  if (!object) return fallback.clone();
+  scene.updateWorldMatrix(true, true);
+  const worldPosition = object.getWorldPosition(new THREE.Vector3());
+  return scene.worldToLocal(worldPosition);
+}
 
 const HIDDEN_CAPSULE_SCALE = new THREE.Vector3(0.001, 0.001, 0.001);
+const SURFACE_COLOR = new THREE.Color(NEUTRAL_HEX.surface);
 
-function GachaMachineAsset({ beat, entryCount, reducedMotion }: Props) {
+function paintCapsule(root: THREE.Object3D | undefined, key: CapsuleColorKey) {
+  if (!root) return;
+  const base = new THREE.Color(CAPSULE_COLOR_HEX[key]);
+  const top = base.clone().lerp(SURFACE_COLOR, 0.34);
+  root.traverse((object) => {
+    if (!(object instanceof THREE.Mesh)) return;
+    const materials = Array.isArray(object.material)
+      ? object.material
+      : [object.material];
+    materials.forEach((material) => {
+      if (
+        !(material instanceof THREE.MeshStandardMaterial) ||
+        !material.name.startsWith("Dugu_Capsule")
+      ) {
+        return;
+      }
+      material.color.copy(object.name.includes("Top") ? top : base);
+      material.roughness = object.name.includes("Top") ? 0.38 : 0.46;
+    });
+  });
+}
+
+function GachaMachineAsset({
+  beat,
+  entries,
+  prizeColor,
+  reducedMotion,
+}: Props) {
   const gltf = useGLTF(MODEL_URL);
   const scene = useMemo(() => {
     const clone = gltf.scene.clone(true);
     // The delivery GLB keeps PrizeCapsule at scale 1 so export_apply cannot
     // bake zero-sized child meshes. Hide the cloned runtime node before its
     // first render; the drop beat is the only path that scales it back in.
-    clone.getObjectByName("PrizeCapsule")?.scale.setScalar(0);
+    const prize = clone.getObjectByName("PrizeCapsule");
+    if (prize) prize.visible = false;
     return clone;
   }, [gltf.scene]);
   const rig = useRef<THREE.Group>(null);
   const capsuleScaleTarget = useRef(new THREE.Vector3());
+  const ownedMaterialsRef = useRef<THREE.Material[]>([]);
   const beatStarted = useRef(-1);
   const partsRef = useRef<{
     crank: THREE.Object3D | undefined;
     crankRotation: number;
     prize: THREE.Object3D | undefined;
     prizeBase: PartTransform | undefined;
-    prizeTop: THREE.Object3D | undefined;
-    prizeTopBase: PartTransform | undefined;
-    prizeBottom: THREE.Object3D | undefined;
-    prizeBottomBase: PartTransform | undefined;
-    prizeToy: THREE.Object3D | undefined;
-    prizeToyBase: PartTransform | undefined;
+    rootPosition: THREE.Vector3;
     capsules: THREE.Object3D[];
     capsuleBases: PartTransform[];
-    capsuleCenter: THREE.Vector3;
+    internalPosition: THREE.Vector3;
+    mouthPosition: THREE.Vector3;
+    landingPosition: THREE.Vector3;
   } | null>(null);
 
   useLayoutEffect(() => {
     const crank = scene.getObjectByName("CrankRoot");
     const prize = scene.getObjectByName("PrizeCapsule");
-    const prizeTop = scene.getObjectByName("PrizeTop");
-    const prizeBottom = scene.getObjectByName("PrizeBottom");
-    const prizeToy = scene.getObjectByName("PrizeToy");
+    const cameraTarget = scene.getObjectByName("CameraTarget");
+    const internalDropAnchor = scene.getObjectByName("InternalDropAnchor");
+    const chuteMouthAnchor =
+      scene.getObjectByName("ChuteMouthAnchor") ??
+      scene.getObjectByName("ChuteAnchor");
+    const prizeTapAnchor = scene.getObjectByName("PrizeTapAnchor");
     const capsules = Array.from({ length: 12 }, (_, index) =>
       scene.getObjectByName(`Capsule_${String(index).padStart(2, "0")}`),
     ).filter((item): item is THREE.Object3D => Boolean(item));
 
+    const ownedMaterials: THREE.Material[] = [];
     scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return;
-      const isCapsuleGlass =
-        object.material instanceof THREE.Material &&
-        object.material.name.startsWith("Dugu_CapsuleGlass");
       object.castShadow =
-        !isCapsuleGlass &&
         (object.name === "Body" ||
           object.name === "Base" ||
           object.name === "DomeBowl" ||
-          object.name === "Crown" ||
+          object.name === "GlobeBaseRing" ||
+          object.name === "CrankOuterRing" ||
+          object.name === "CrankHub" ||
+          object.name === "CrankArm" ||
+          object.name === "PrizeTop" ||
           object.name === "PrizeBottom" ||
+          object.name.startsWith("CapsuleTop_") ||
           object.name.startsWith("CapsuleBottom_") ||
-          object.name.startsWith("CapsuleBand_") ||
-          object.name.startsWith("CapsuleToy_"));
+          object.name.startsWith("CapsuleLatch_"));
       object.receiveShadow =
         object.name === "Base" ||
-        object.name === "Tray" ||
-        object.name === "TrayInner";
-      if (Array.isArray(object.material)) return;
-      if (
-        object.material.name === "Dugu_FakeGlass" ||
-        object.material.name.startsWith("Dugu_CapsuleGlass")
-      ) {
-        object.material = object.material.clone();
-        object.material.depthWrite = false;
-        object.material.transparent = true;
-        const capsuleGlass = object.material.name.startsWith("Dugu_CapsuleGlass");
-        object.material.opacity = capsuleGlass ? 0.43 : 0.1;
-        object.material.side = capsuleGlass ? THREE.FrontSide : THREE.DoubleSide;
-      }
+        object.name === "Body" ||
+        object.name.startsWith("CapsuleTop_") ||
+        object.name.startsWith("CapsuleBottom_");
+      const cloneRuntimeMaterial = (material: THREE.Material) => {
+        if (
+          material.name !== "Dugu_FakeGlass" &&
+          !material.name.startsWith("Dugu_Capsule")
+        ) {
+          return material;
+        }
+        const clone = material.clone();
+        ownedMaterials.push(clone);
+        if (clone.name === "Dugu_FakeGlass") {
+          clone.depthWrite = false;
+          clone.transparent = true;
+          clone.opacity = 0.1;
+          clone.side = THREE.DoubleSide;
+        }
+        return clone;
+      };
+      object.material = Array.isArray(object.material)
+        ? object.material.map(cloneRuntimeMaterial)
+        : cloneRuntimeMaterial(object.material);
     });
+    ownedMaterialsRef.current = ownedMaterials;
 
-    const capsuleCenter = capsules.reduce(
-      (center, capsule) => center.add(capsule.position),
-      new THREE.Vector3(),
-    );
-    if (capsules.length > 0) capsuleCenter.multiplyScalar(1 / capsules.length);
     const capsuleBases = capsules.map(
       (capsule) => snapshot(capsule) as PartTransform,
     );
+    const cameraTargetPosition = sceneLocalPosition(
+      scene,
+      cameraTarget,
+      new THREE.Vector3(0, 2.325, 0),
+    );
+    const internalPosition = sceneLocalPosition(
+      scene,
+      internalDropAnchor,
+      new THREE.Vector3(0, 1.34, 0.46),
+    );
+    const mouthPosition = sceneLocalPosition(
+      scene,
+      chuteMouthAnchor,
+      new THREE.Vector3(0, 0.66, 0.79),
+    );
+    const landingPosition = sceneLocalPosition(
+      scene,
+      prizeTapAnchor,
+      new THREE.Vector3(-0.1, 0.52, 1.2),
+    );
+    const cameraOffset = cameraTargetPosition
+      .clone()
+      .multiplyScalar(MACHINE_SCALE)
+      .applyAxisAngle(new THREE.Vector3(0, 1, 0), MACHINE_YAW);
+    const rootPosition = FRAME_TARGET.clone().sub(cameraOffset);
     capsules.forEach((capsule) => capsule.scale.copy(HIDDEN_CAPSULE_SCALE));
     partsRef.current = {
       crank,
       crankRotation: crank?.rotation.z ?? 0,
       prize,
       prizeBase: snapshot(prize),
-      prizeTop,
-      prizeTopBase: snapshot(prizeTop),
-      prizeBottom,
-      prizeBottomBase: snapshot(prizeBottom),
-      prizeToy,
-      prizeToyBase: snapshot(prizeToy),
+      rootPosition,
       capsules,
       capsuleBases,
-      capsuleCenter,
+      internalPosition,
+      mouthPosition,
+      landingPosition,
     };
     return () => {
+      ownedMaterialsRef.current.forEach((material) => material.dispose());
+      ownedMaterialsRef.current = [];
       partsRef.current = null;
     };
   }, [scene]);
+
+  useLayoutEffect(() => {
+    const visibleSlots =
+      CAPSULE_SLOTS_BY_COUNT[
+        Math.min(12, Math.max(0, entries.length))
+      ] ?? [];
+    visibleSlots.forEach((slot, entryIndex) => {
+      paintCapsule(
+        scene.getObjectByName(`Capsule_${String(slot).padStart(2, "0")}`),
+        entries[entryIndex]?.color ?? fallbackCapsuleColor(entryIndex),
+      );
+    });
+    paintCapsule(
+      scene.getObjectByName("PrizeCapsule"),
+      prizeColor ?? fallbackCapsuleColor(0),
+    );
+  }, [entries, prizeColor, scene]);
 
   useEffect(() => {
     beatStarted.current = -1;
@@ -352,8 +458,8 @@ function GachaMachineAsset({ beat, entryCount, reducedMotion }: Props) {
     const parts = partsRef.current;
     if (!root || !parts) return;
 
-    root.position.y = -1.78;
-    root.rotation.y = 0.085;
+    root.position.copy(parts.rootPosition);
+    root.rotation.y = MACHINE_YAW;
 
     if (beat === "charge") {
       const progress = clamp01(elapsed / 0.5);
@@ -365,10 +471,15 @@ function GachaMachineAsset({ beat, entryCount, reducedMotion }: Props) {
       );
       root.rotation.z = reducedMotion ? 0 : Math.sin(elapsed * 28) * 0.008;
     } else if (beat === "mix") {
-      root.scale.setScalar(MACHINE_SCALE);
-      root.rotation.z = reducedMotion
+      const mixProgress = clamp01(elapsed / CRANK_MIX_SECONDS);
+      const rattleEnvelope = reducedMotion
         ? 0
-        : Math.sin(state.clock.elapsedTime * 18) * 0.004;
+        : Math.sin(mixProgress * Math.PI);
+      root.scale.setScalar(MACHINE_SCALE);
+      root.position.x += Math.sin(elapsed * 31) * 0.032 * rattleEnvelope;
+      root.position.y += Math.sin(elapsed * 47) * 0.008 * rattleEnvelope;
+      root.rotation.z =
+        Math.sin(elapsed * 31 + 0.7) * 0.01 * rattleEnvelope;
     } else if (beat === "index") {
       const settle = reducedMotion
         ? 0
@@ -399,33 +510,44 @@ function GachaMachineAsset({ beat, entryCount, reducedMotion }: Props) {
     }
 
     if (parts.crank) {
-      if (beat === "charge") {
-        const windup = easeInOutCubic(clamp01(elapsed / 0.5));
-        parts.crank.rotation.z = parts.crankRotation - windup * 0.34;
-      } else if (beat === "mix") {
-        parts.crank.rotation.z =
-          parts.crankRotation -
-          0.34 +
-          easeInOutCubic(clamp01(elapsed / 1.12)) * Math.PI * 2;
-      } else if (beat === "index") {
-        const indexProgress = easeOutCubic(clamp01(elapsed / 0.34));
-        parts.crank.rotation.z =
-          parts.crankRotation + (1 - indexProgress) * 0.22;
+      if (beat === "idle") {
+        // θ₀ and θ₀ + 2π are the same visible rest orientation. Normalize
+        // instantly between rounds so replay never animates a reverse unwind.
+        parts.crank.rotation.z = parts.crankRotation;
       } else {
-        parts.crank.rotation.z = THREE.MathUtils.lerp(
-          parts.crank.rotation.z,
-          parts.crankRotation,
-          1 - Math.exp(-dt * 7),
+        const turnElapsed =
+          beat === "charge"
+            ? Math.min(elapsed, CRANK_CHARGE_SECONDS)
+            : beat === "mix"
+              ? CRANK_CHARGE_SECONDS + Math.min(elapsed, CRANK_MIX_SECONDS)
+              : CRANK_TURN_SECONDS;
+        // One continuous authored turn across both cues:
+        // θ(T) = θ₀ + 2π·E(clamp(T / 1.58)). At the cue boundary,
+        // charge T=.42 and mix T=.42, so position and velocity stay continuous.
+        // Index and every later beat hold θ₀+2π; none adds another rotation.
+        const turnProgress = easeInOutCubic(
+          clamp01(turnElapsed / CRANK_TURN_SECONDS),
         );
+        parts.crank.rotation.z =
+          parts.crankRotation + turnProgress * Math.PI * 2;
       }
     }
 
     parts.capsules.forEach((capsule, index) => {
       const base = parts.capsuleBases[index];
-      const visible = index < Math.min(12, Math.max(0, entryCount));
+      const visibleCount = Math.min(12, Math.max(0, entries.length));
+      const visible = CAPSULE_SLOTS_BY_COUNT[visibleCount].includes(index);
       const scaleSmoothing = reducedMotion ? 1 : 1 - Math.exp(-dt * 13);
       const scaleBoost =
-        entryCount <= 1 ? 1.26 : entryCount <= 4 ? 1.2 : entryCount <= 6 ? 1.1 : 1;
+        entries.length <= 1
+          ? 1.22
+          : entries.length === 2
+            ? 1.15
+            : entries.length <= 4
+              ? 1.08
+              : entries.length <= 6
+                ? 1.03
+                : 1;
       capsuleScaleTarget.current.copy(base.scale).multiplyScalar(scaleBoost);
       capsule.scale.lerp(
         visible ? capsuleScaleTarget.current : HIDDEN_CAPSULE_SCALE,
@@ -443,8 +565,8 @@ function GachaMachineAsset({ beat, entryCount, reducedMotion }: Props) {
         const direction = index % 2 === 0 ? 1 : -1;
         capsule.position.set(
           base.position.x + Math.sin(elapsed * 6.2 + index * 1.7) * 0.075,
-          base.position.y + Math.abs(Math.sin(elapsed * 5.5 + index)) * 0.12,
-          base.position.z + Math.cos(elapsed * 6.6 + index * 1.35) * 0.04,
+          base.position.y + Math.abs(Math.sin(elapsed * 7.4 + index)) * 0.15,
+          base.position.z + Math.cos(elapsed * 8.2 + index * 1.35) * 0.055,
         );
         capsule.rotation.set(
           base.rotation.x + elapsed * 1.35 * direction,
@@ -488,78 +610,103 @@ function GachaMachineAsset({ beat, entryCount, reducedMotion }: Props) {
       }
     });
 
-    const { prize, prizeTop, prizeBottom, prizeToy } = parts;
+    const { prize } = parts;
     if (!prize) return;
-    restore(prizeTop, parts.prizeTopBase);
-    restore(prizeBottom, parts.prizeBottomBase);
-    restore(prizeToy, parts.prizeToyBase);
-    if (parts.prizeBase) prize.rotation.copy(parts.prizeBase.rotation);
+    if (parts.prizeBase) {
+      prize.rotation.copy(parts.prizeBase.rotation);
+      prize.scale.copy(parts.prizeBase.scale);
+    }
 
     if (beat === "drop") {
-      const progress = easeOutCubic(clamp01(elapsed / 0.42));
-      prize.scale.setScalar(Math.min(1, elapsed / 0.14) * 1.12);
-      prize.position.set(
-        PRIZE_LOCAL_X,
-        THREE.MathUtils.lerp(3.02, 0.82, progress),
-        1.36,
-      );
-      prize.rotation.z += (1 - progress) * 1.2;
+      const progress = clamp01(elapsed / 0.42);
+      const mouthAt = 0.68;
+      prize.visible = true;
+      prize.scale.multiplyScalar(1.08);
+      if (progress < mouthAt) {
+        const mouthProgress = easeInOutCubic(progress / mouthAt);
+        prize.position.set(
+          THREE.MathUtils.lerp(
+            parts.internalPosition.x,
+            parts.mouthPosition.x,
+            mouthProgress,
+          ),
+          THREE.MathUtils.lerp(
+            parts.internalPosition.y,
+            parts.mouthPosition.y,
+            mouthProgress,
+          ),
+          THREE.MathUtils.lerp(
+            parts.internalPosition.z,
+            parts.mouthPosition.z,
+            mouthProgress,
+          ),
+        );
+        prize.rotation.z += THREE.MathUtils.lerp(0.18, 0.08, mouthProgress);
+      } else {
+        const exitProgress = easeInOutCubic(
+          (progress - mouthAt) / (1 - mouthAt),
+        );
+        prize.position.set(
+          THREE.MathUtils.lerp(
+            parts.mouthPosition.x,
+            parts.landingPosition.x,
+            exitProgress,
+          ),
+          THREE.MathUtils.lerp(
+            parts.mouthPosition.y,
+            parts.landingPosition.y,
+            exitProgress,
+          ) + Math.sin(exitProgress * Math.PI) * 0.07,
+          THREE.MathUtils.lerp(
+            parts.mouthPosition.z,
+            parts.landingPosition.z,
+            exitProgress,
+          ),
+        );
+        prize.rotation.z +=
+          THREE.MathUtils.lerp(0.08, -0.12, exitProgress) -
+          Math.sin(exitProgress * Math.PI) * 0.08;
+      }
     } else if (beat === "impact") {
       const bounceTime = Math.max(0, elapsed - 0.075);
       const bounce =
         reducedMotion || elapsed < 0.075
           ? 0
-          : Math.abs(Math.sin(bounceTime * 19)) * Math.exp(-bounceTime * 8) * 0.13;
-      prize.scale.setScalar(1.12);
-      prize.position.set(PRIZE_LOCAL_X, 0.82 + bounce, 1.36);
-      prize.rotation.z +=
-        reducedMotion || elapsed < 0.075
+          : Math.abs(Math.sin(bounceTime * 20)) *
+            Math.exp(-bounceTime * 9) *
+            0.09;
+      const wobble = reducedMotion
+        ? 0
+        : Math.sin(bounceTime * 23) * Math.exp(-bounceTime * 8);
+      const compression =
+        reducedMotion || elapsed >= 0.12
           ? 0
-          : Math.sin(bounceTime * 14) * Math.exp(-bounceTime * 9) * 0.12;
+          : Math.sin(clamp01(elapsed / 0.12) * Math.PI) * 0.075;
+      prize.visible = true;
+      prize.scale.multiplyScalar(1.08);
+      prize.scale.x += compression;
+      prize.scale.y -= compression * 0.72;
+      prize.scale.z += compression;
+      prize.position.copy(parts.landingPosition);
+      prize.position.y += bounce;
+      prize.position.x += wobble * 0.035;
+      prize.rotation.z += wobble * 0.2;
     } else if (beat === "hero") {
-      const progress = easeInOutCubic(clamp01(elapsed / 0.58));
-      prize.scale.setScalar(THREE.MathUtils.lerp(1.12, 1.18, progress));
-      prize.position.set(
-        THREE.MathUtils.lerp(PRIZE_LOCAL_X, PRIZE_HERO_X, progress),
-        THREE.MathUtils.lerp(0.82, 1.18, progress),
-        THREE.MathUtils.lerp(1.36, 1.62, progress),
-      );
-      prize.rotation.y += Math.sin(progress * Math.PI) * 0.22;
-      prize.rotation.z += THREE.MathUtils.lerp(0, -0.08, progress);
-    } else if (beat === "open" || beat === "reveal") {
-      const progress =
-        beat === "reveal" ? 1 : easeInOutCubic(clamp01(elapsed / 0.44));
-      const revealLift =
-        beat === "reveal" ? easeOutCubic(clamp01(elapsed / 0.24)) : 0;
-      prize.scale.setScalar(1.18 + revealLift * 0.03);
-      prize.position.set(
-        PRIZE_HERO_X,
-        1.18 + revealLift * 0.18,
-        1.62,
-      );
-      prize.rotation.z -= 0.08;
-      if (prizeTop && parts.prizeTopBase) {
-        prizeTop.position.y += progress * 0.46;
-        prizeTop.position.z -= progress * 0.1;
-        prizeTop.rotation.x -= progress * 0.3;
-        prizeTop.rotation.z += progress * 0.04;
-      }
-      if (prizeBottom && parts.prizeBottomBase) {
-        prizeBottom.position.y -= progress * 0.055;
-      }
-      if (prizeToy && parts.prizeToyBase) {
-        prizeToy.position.y += progress * 0.28 + revealLift * 0.07;
-        prizeToy.rotation.y += progress * 0.18;
-        const toyScale = 1 + progress * 0.24;
-        prizeToy.scale.copy(parts.prizeToyBase.scale).multiplyScalar(toyScale);
-      }
+      const settle = reducedMotion
+        ? 0
+        : Math.sin(elapsed * 18) * Math.exp(-elapsed * 7);
+      prize.visible = true;
+      prize.scale.multiplyScalar(1.08);
+      prize.position.copy(parts.landingPosition);
+      prize.position.x += settle * 0.012;
+      prize.rotation.z += settle * 0.055;
     } else {
-      prize.scale.setScalar(0);
+      prize.visible = false;
     }
-  });
+  }, -1);
 
   return (
-    <group ref={rig} scale={MACHINE_SCALE} position={[0, -1.78, 0]}>
+    <group ref={rig} scale={MACHINE_SCALE} position={FRAME_TARGET.toArray()}>
       <primitive object={scene} />
     </group>
   );
@@ -574,17 +721,23 @@ function StageDecor() {
   );
 }
 
-export function GachaScene({ beat, entryCount, reducedMotion = false }: Props) {
+export function GachaScene({
+  beat,
+  entries,
+  prizeColor,
+  reducedMotion = false,
+}: Props) {
   return (
     <>
-      <CameraDirector beat={beat} reducedMotion={reducedMotion} />
       <CinematicLights beat={beat} reducedMotion={reducedMotion} />
       <StageDecor />
       <GachaMachineAsset
         beat={beat}
-        entryCount={entryCount}
+        entries={entries}
+        prizeColor={prizeColor}
         reducedMotion={reducedMotion}
       />
+      <CameraDirector beat={beat} reducedMotion={reducedMotion} />
       <ContactShadows
         position={[0, -1.78, 0]}
         opacity={0.34}

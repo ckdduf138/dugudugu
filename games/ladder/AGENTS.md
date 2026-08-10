@@ -49,9 +49,17 @@ Read this file only for changes under `games/ladder/`.
   incomplete; empty fields communicate why. Do not add visible narration pills
   for readiness, portal behavior, route selection, or movement. Accessible
   live announcements remain screen-reader-only.
-- Result mode keeps revealed routes available, lets any top animal replay its
-  route with the same trailing-line motion, and has one Play again action that returns to setup with values
-  preserved. Do not add a separate edit icon or generic
-  result-share control or canvas confetti.
+- Completing every route or choosing `Show all results` opens one accessible
+  mapping popup. Each row pairs the code-native animal profile and name on the
+  left with its frozen outcome on the right. One shared Dugu handoff may peek
+  from behind the mapping surface, but it remains decorative and must not
+  displace, label, or cover a mapping row. Lobby navigation remains the global
+  TopBar outside the popup but inside its focus scope; do not duplicate it in
+  dialog chrome. Closing the popup returns to the board,
+  where revealed routes remain available and any top animal can replay its
+  route with the same trailing-line motion. Result mode keeps explicit
+  `All results` and `Play again` actions so the mapping can be reopened while
+  Play again returns to setup with values preserved. Do not add a separate edit
+  icon, generic result-share control, or canvas confetti.
 - Verify 2, 4, and 6 players at 390px plus tablet/desktop, determinism and
   distribution tests, TypeScript, ESLint, and static build.

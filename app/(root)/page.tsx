@@ -1,4 +1,5 @@
 import { routing } from "@/i18n/routing";
+import { absolutePageUrl } from "@/lib/site";
 
 // The root path "/" has no locale. Static export can't run middleware, so we
 // emit a tiny static page that forwards to the default locale. The <meta
@@ -6,10 +7,11 @@ import { routing } from "@/i18n/routing";
 // link is a no-JS fallback.
 export default function RootPage() {
   const target = `/${routing.defaultLocale}/`;
+  const canonical = absolutePageUrl(target);
   return (
     <>
       <meta httpEquiv="refresh" content={`0; url=${target}`} />
-      <link rel="canonical" href={target} />
+      <link rel="canonical" href={canonical} />
       <main className="grid min-h-screen place-items-center">
         <a className="toy-btn" href={target}>
           들어가기 / Enter

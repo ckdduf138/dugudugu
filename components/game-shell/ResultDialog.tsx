@@ -8,6 +8,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import Image from "next/image";
 import { X } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { spring } from "@/lib/motion";
@@ -23,10 +24,82 @@ const FOCUSABLE = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
+const RESULT_NAVIGATION = "[data-result-dialog-navigation]";
+const NON_CONTENT_ELEMENTS = new Set(["LINK", "SCRIPT", "STYLE", "TEMPLATE"]);
+
 function focusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-    (element) => !element.hidden && element.getAttribute("aria-hidden") !== "true",
+    (element) =>
+      !element.hidden &&
+      !element.closest("[inert], [aria-hidden='true']"),
   );
+}
+
+function resultFocusScope(dialog: HTMLElement): HTMLElement[] {
+  const items = focusableElements(dialog);
+  for (const navigation of document.querySelectorAll<HTMLElement>(
+    RESULT_NAVIGATION,
+  )) {
+    items.push(...focusableElements(navigation));
+  }
+  return Array.from(new Set(items));
+}
+
+type IsolatedElement = {
+  element: HTMLElement;
+  ariaHidden: string | null;
+  inert: boolean;
+  hadInertAttribute: boolean;
+};
+
+function containsResultNavigation(element: HTMLElement) {
+  return (
+    element.matches(RESULT_NAVIGATION) ||
+    Boolean(element.querySelector(RESULT_NAVIGATION))
+  );
+}
+
+/**
+ * Hide only the page branches behind the result. The persistent TopBar stays
+ * exposed so its lobby link remains a pointer, keyboard, and screen-reader
+ * destination while the rest of the game is inactive.
+ */
+function isolateResultBackground(overlay: HTMLElement) {
+  const isolated: IsolatedElement[] = [];
+  let current: HTMLElement = overlay;
+
+  while (current.parentElement) {
+    const parent = current.parentElement;
+    for (const sibling of Array.from(parent.children)) {
+      if (!(sibling instanceof HTMLElement) || sibling === current) continue;
+      if (NON_CONTENT_ELEMENTS.has(sibling.tagName)) continue;
+      if (containsResultNavigation(sibling)) continue;
+
+      isolated.push({
+        element: sibling,
+        ariaHidden: sibling.getAttribute("aria-hidden"),
+        inert: sibling.inert,
+        hadInertAttribute: sibling.hasAttribute("inert"),
+      });
+      sibling.inert = true;
+      sibling.setAttribute("inert", "");
+      sibling.setAttribute("aria-hidden", "true");
+    }
+
+    current = parent;
+    if (parent === document.body) break;
+  }
+
+  return () => {
+    for (const state of isolated) {
+      state.element.inert = state.inert;
+      if (state.hadInertAttribute) state.element.setAttribute("inert", "");
+      else state.element.removeAttribute("inert");
+
+      if (state.ariaHidden === null) state.element.removeAttribute("aria-hidden");
+      else state.element.setAttribute("aria-hidden", state.ariaHidden);
+    }
+  };
 }
 
 type ResultDialogBaseProps = {
@@ -79,6 +152,7 @@ export function ResultDialog({
 }: ResultDialogProps) {
   const titleId = useId();
   const descriptionId = useId();
+  const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const reduceMotion = useReducedMotion();
@@ -93,6 +167,10 @@ export function ResultDialog({
     if (!open) return;
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
+    const overlay = overlayRef.current;
+    const restoreBackground = overlay
+      ? isolateResultBackground(overlay)
+      : () => undefined;
     const focusFrame = requestAnimationFrame(() => {
       const dialog = dialogRef.current;
       if (!dialog) return;
@@ -101,7 +179,7 @@ export function ResultDialog({
         (requestedTarget && dialog.contains(requestedTarget)
           ? requestedTarget
           : null) ??
-        focusableElements(dialog)[0] ??
+        resultFocusScope(dialog)[0] ??
         dialog;
       target.focus();
     });
@@ -117,7 +195,7 @@ export function ResultDialog({
       }
 
       if (event.key !== "Tab") return;
-      const items = focusableElements(dialog);
+      const items = resultFocusScope(dialog);
       if (items.length === 0) {
         event.preventDefault();
         dialog.focus();
@@ -126,13 +204,14 @@ export function ResultDialog({
 
       const first = items[0];
       const last = items[items.length - 1];
-      if (!dialog.contains(document.activeElement)) {
+      const activeElement = document.activeElement;
+      if (!items.includes(activeElement as HTMLElement)) {
         event.preventDefault();
         (event.shiftKey ? last : first).focus();
-      } else if (event.shiftKey && document.activeElement === first) {
+      } else if (event.shiftKey && activeElement === first) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (!event.shiftKey && activeElement === last) {
         event.preventDefault();
         first.focus();
       }
@@ -142,7 +221,8 @@ export function ResultDialog({
     return () => {
       cancelAnimationFrame(focusFrame);
       document.removeEventListener("keydown", onKeyDown);
-      previouslyFocused?.focus();
+      restoreBackground();
+      previouslyFocused?.focus({ preventScroll: true });
     };
   }, [dismissible, initialFocusRef, open]);
 
@@ -154,16 +234,18 @@ export function ResultDialog({
 
   return (
     <div
+      ref={overlayRef}
+      data-result-dialog-overlay
       className={
         presentation === "stage"
-          ? "fixed inset-0 z-30 grid place-items-end overscroll-contain overflow-y-auto bg-[linear-gradient(180deg,transparent_0%,transparent_28%,color-mix(in_srgb,var(--ink)_32%,transparent)_100%)] p-3 sm:place-items-center sm:p-6"
-          : "fixed inset-0 z-30 grid place-items-center overscroll-contain overflow-y-auto bg-gradient-to-b from-candy-pink/45 via-surface/95 to-candy-sky/45 p-4 sm:p-6"
+          ? "fixed inset-0 z-30 grid h-[100svh] min-h-0 w-full min-w-0 items-end justify-items-center overflow-hidden overscroll-none bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--surface)_8%,transparent)_24%,color-mix(in_srgb,var(--ink)_16%,var(--surface))_68%,color-mix(in_srgb,var(--ink)_26%,var(--surface))_100%)] sm:place-items-center"
+          : "fixed inset-0 z-30 grid h-[100svh] min-h-0 w-full min-w-0 place-items-center overflow-hidden overscroll-none bg-gradient-to-b from-candy-pink/45 via-surface/95 to-candy-sky/45"
       }
       style={{
-        paddingTop: "calc(env(safe-area-inset-top) + 1rem)",
-        paddingRight: "calc(env(safe-area-inset-right) + 1rem)",
-        paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)",
-        paddingLeft: "calc(env(safe-area-inset-left) + 1rem)",
+        paddingTop: "calc(env(safe-area-inset-top) + 4.5rem)",
+        paddingRight: "calc(env(safe-area-inset-right) + 0.75rem)",
+        paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)",
+        paddingLeft: "calc(env(safe-area-inset-left) + 0.75rem)",
       }}
       onMouseDown={closeFromBackdrop}
     >
@@ -181,24 +263,31 @@ export function ResultDialog({
       <motion.div
         ref={dialogRef}
         role="dialog"
-        aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         initial={reduceMotion ? false : { opacity: 0, scale: 0.84, y: 24 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={spring.bouncy}
-        style={{
-          maxHeight:
-            "calc(100svh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom))",
-        }}
-        className={`relative w-full max-w-md overscroll-contain overflow-y-auto rounded-[var(--radius-lg)] border border-ink/10 bg-surface p-5 text-center shadow-[var(--shadow-toy)] outline-none sm:p-7 ${
+        style={{ maxHeight: "100%" }}
+        className={`isolate relative flex min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden overscroll-contain rounded-[var(--radius-lg)] border border-ink/10 bg-surface px-5 pb-5 text-center shadow-[var(--shadow-toy)] outline-none sm:max-w-md sm:px-7 sm:pb-7 ${
+          dismissible ? "pt-16 sm:pt-16" : "pt-5 sm:pt-7"
+        } ${
           presentation === "stage"
             ? "mb-[max(0rem,env(safe-area-inset-bottom))] bg-[linear-gradient(155deg,var(--surface),color-mix(in_srgb,var(--candy-lemon)_7%,var(--surface)))]"
             : ""
         } ${className}`}
         onMouseDown={(event) => event.stopPropagation()}
       >
+        <Image
+          aria-hidden="true"
+          src="/images/brand/dugu-mascot-640.webp"
+          alt=""
+          width={640}
+          height={640}
+          className="pointer-events-none absolute -bottom-16 -right-14 -z-10 h-auto w-52 select-none opacity-[0.075]"
+        />
+
         {dismissible && onClose && closeLabel ? (
           <button
             type="button"
@@ -210,17 +299,29 @@ export function ResultDialog({
           </button>
         ) : null}
 
-        {hero ? <div className="mb-3">{hero}</div> : null}
-        <h2 id={titleId} className="font-display text-3xl text-ink sm:text-4xl">
-          {title}
-        </h2>
-        {description ? (
-          <div id={descriptionId} className="mt-2 text-sm font-bold text-ink-soft">
-            {description}
+        <div
+          data-result-dialog-scroll-region
+          role="document"
+          aria-labelledby={titleId}
+          tabIndex={0}
+          className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain outline-none [scrollbar-width:none] focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-candy-sky/25 [&::-webkit-scrollbar]:hidden"
+        >
+          {hero ? <div className="mb-3">{hero}</div> : null}
+          <h2 id={titleId} className="font-display text-3xl text-ink sm:text-4xl">
+            {title}
+          </h2>
+          {description ? (
+            <div id={descriptionId} className="mt-2 text-sm font-bold text-ink-soft">
+              {description}
+            </div>
+          ) : null}
+          <div className="mt-5 min-w-0">{children}</div>
+        </div>
+        {actions ? (
+          <div className="mt-4 grid shrink-0 gap-2 sm:mt-6 sm:grid-cols-2">
+            {actions}
           </div>
         ) : null}
-        <div className="mt-5">{children}</div>
-        {actions ? <div className="mt-6 grid gap-2 sm:grid-cols-2">{actions}</div> : null}
       </motion.div>
     </div>
   );

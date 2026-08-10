@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { liveGames } from "@/games/registry";
 import { routing } from "@/i18n/routing";
-import { SITE_URL } from "@/lib/site";
+import { absolutePageUrl } from "@/lib/site";
 
 export const dynamic = "force-static";
 
@@ -18,12 +18,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const languages = Object.fromEntries(
       routing.locales.map((locale) => [
         locale,
-        `${SITE_URL}/${locale}${path}`,
+        absolutePageUrl(`/${locale}${path}`),
       ]),
     );
 
+    languages["x-default"] = absolutePageUrl(
+      `/${routing.defaultLocale}${path}`,
+    );
+
     return routing.locales.map((locale) => ({
-      url: `${SITE_URL}/${locale}${path}`,
+      url: absolutePageUrl(`/${locale}${path}`),
       changeFrequency: "monthly" as const,
       priority,
       alternates: { languages },

@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { ChevronRight } from "lucide-react";
 import { GameTileArtwork } from "@/components/lobby/GameTileArtwork";
 import { Link } from "@/i18n/navigation";
+import { DuguLinkStatus } from "./DuguLinkStatus";
 
 type Props = {
   slug: string;
@@ -9,6 +10,7 @@ type Props = {
   status: "live" | "soon";
   title: string;
   enterLabel: string;
+  loadingLabel: string;
   soonLabel: string;
   index?: number;
 };
@@ -19,6 +21,7 @@ export function GameCard({
   status,
   title,
   enterLabel,
+  loadingLabel,
   soonLabel,
   index = 0,
 }: Props) {
@@ -96,6 +99,7 @@ export function GameCard({
       className="lobby-card-link block h-full min-h-0 min-w-0 rounded-[var(--radius-lg)] outline-none transition duration-300 hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:ring-[var(--game-accent)]/35 active:scale-[0.985]"
     >
       {card}
+      <DuguLinkStatus label={loadingLabel} title={title} />
     </Link>
   );
 }

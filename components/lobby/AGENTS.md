@@ -21,14 +21,20 @@ The first viewport is a game picker, not a marketing landing page. A user should
 - English card names wrap to at most two lines at 390px instead of truncating;
   portrait-tablet grids are vertically balanced within the first viewport.
 - No raw emoji as artwork, no `backdrop-filter`, and no decorative interaction that looks tappable.
-- Brand identity uses one code-native star-prize toy cabinet: a coral body,
-  pale-sky screen, one lemon star, and asymmetric joystick/button controls.
-  It has no face or mirrored eye-like details. Reuse it in the top bar, favicon,
-  install icons, and social lockup; do not fall back to a generic `D`.
+- Brand identity uses Dugu, one original chameleon mascot. The compact mark is
+  a mint head and spiral tail on a coral rounded square with one lemon star;
+  it must stay recognizable at 16 px without a white plate, text, or a generic
+  `D`. Reuse the silhouette in the top bar, favicon, install icons, and social
+  lockup. The larger transparent mascot illustration may appear once as a
+  clearly named 44 px-or-larger button in the quiet space below the choices.
+  Its optional short introduction stays in that quiet band, never becomes a
+  prerequisite, and never intercepts a game-card link.
 - Lobby delight stays finite: cards may power on once with a short stagger and
-  a single restrained sheen, then remain still. Hover/focus can lift the cabinet
-  and brighten its underlight. No looping sparkle, bob, pulse, or animated
-  background gradient; reduced motion shows the final state immediately.
+  a single restrained sheen, then remain still. Hover/focus can lift the card
+  and brighten its underlight. Dugu may peek in once after the choices settle;
+  tapping the mascot may toggle its single finite introduction.
+  No looping sparkle, bob, pulse, or animated background gradient; reduced
+  motion shows the final state immediately.
 - Lobby artwork is intentionally independent of in-game 3D hero assets so a
   model change does not churn the fast, stable picker UI.
 - Independence does not mean generic symbols: the draw tile keeps the same

@@ -36,6 +36,8 @@ export type GameShellProps = {
   autoCollapseSetup?: boolean;
   /** Expand the existing stage to the full viewport while the cutscene plays. */
   immersiveDuringPlay?: boolean;
+  /** Keep that same stage fixed behind an overlaid result surface. */
+  immersiveDuringResult?: boolean;
   className?: string;
   stageClassName?: string;
   setupClassName?: string;
@@ -76,6 +78,7 @@ export function GameShell({
   collapseSetupLabel,
   autoCollapseSetup = true,
   immersiveDuringPlay = true,
+  immersiveDuringResult = false,
   className = "",
   stageClassName = "",
   setupClassName = "",
@@ -86,7 +89,9 @@ export function GameShell({
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultSetupOpen);
   const setupOpen = controlledSetupOpen ?? uncontrolledOpen;
   const isControlled = controlledSetupOpen !== undefined;
-  const immersive = immersiveDuringPlay && phase === "playing";
+  const immersive =
+    (immersiveDuringPlay && phase === "playing") ||
+    (immersiveDuringResult && phase === "result");
   const hasSetup = setup !== null && setup !== undefined;
 
   const setSetupOpen = (next: boolean) => {
@@ -126,7 +131,9 @@ export function GameShell({
 
   return (
     <section
-      className={`relative isolate min-h-[100svh] overflow-x-clip bg-bg ${className}`}
+      className={`relative isolate min-h-[100svh] overflow-x-clip bg-bg ${
+        immersive ? "z-10" : ""
+      } ${className}`}
       data-game-phase={phase}
       data-game-immersive={immersive ? "true" : "false"}
     >

@@ -2,6 +2,11 @@
 
 Read this file only for changes under `games/race/` or its animal Blender assets.
 
+- The race is temporarily soft-locked with registry status `soon`. Keep the
+  implementation and replay contracts intact for a later release; the public
+  route renders only the static noindex coming-soon surface until its status is
+  deliberately returned to `live`.
+
 ## Fairness boundary
 
 - `logic.ts` freezes seed, winner, full order, and progress curves before the race.
@@ -30,7 +35,9 @@ Read this file only for changes under `games/race/` or its animal Blender assets
 - The result keeps the winner-facing photo-finish stage visible behind one
   compact broadcast-style champion card. The default card shows only the
   podium; fourth place and below live in an explicit collapsed standings
-  disclosure so a seven-animal list never consumes the viewport. Do not
+  disclosure so a seven-animal list never consumes the viewport. The global
+  TopBar owns lobby navigation even while this retained result dialog is open;
+  do not add a duplicate back action to the card. Do not
   restore an opaque full-screen white modal, generic sparkles, canvas
   confetti, or a generic share action.
 
@@ -53,6 +60,14 @@ Read this file only for changes under `games/race/` or its animal Blender assets
 - Each species is cloned from its named GLB root with `SkeletonUtils`; clips
   are namespaced `<species>|Run`. Setup and planted stop use the authored rest
   pose rather than redistributing the pack's long idle/action library.
+- This is a licensed-pack refinement, not an original mascot remodel. Runtime
+  may clone and tune matte materials, normalize wrapper scale, grounding, and
+  silhouette presentation without mutating shared GLB resources. Do not claim
+  original character authorship. Current toy-proportion head/paw adjustments
+  clone each lane's Run clip and multiply both rest scale and every matching
+  absolute scale key; never make a rest-only bone edit that the authored track
+  immediately overwrites. A truly original cast requires reviewed source
+  `.blend` rigs and a separate replacement project.
 
 ## Motion
 
@@ -77,10 +92,17 @@ Read this file only for changes under `games/race/` or its animal Blender assets
 
 - One Canvas, mobile DPR at most 1.5, stop or demand-render behind the result dialog.
 - Immersive phases are countdown and racing; setup controls become inert.
-- Camera sequence: a compact start-light beat, a brief wide gate release,
-  close winner-facing 3/4 tracking, a short broadcast-side group-framing shot
-  for order comprehension, home-stretch compression, then a close
-  winner-facing 3/4 finish. Small fields widen and
+- The live course is a compact 23-unit, 9.8-second sprint. Keep every track,
+  landmark, progress, dust, finish, and camera calculation derived from the
+  shared start/finish constants; do not leave hidden 32m geometry or timings.
+- There are no per-lane starting barriers. A painted ground line, one shared
+  start-light signal, and the animals' planted anticipation communicate start
+  state without an obstacle-like bar. Do not reintroduce retracting rails or
+  imply collision gameplay.
+- Camera sequence uses at most four coherent beats: start group, readable
+  winner-facing 3/4 chase, short broadcast-side group frame, and winner-facing
+  finish. Preserve one dominant travel direction and avoid a cut for each lead
+  change. Small fields widen and
   bias framing toward the leader so both racers remain readable. Six- and
   seven-animal setup uses one alternating shallow X fan while preserving lane
   Z identity, then converges to the shared start line during countdown. The
@@ -103,8 +125,9 @@ Read this file only for changes under `games/race/` or its animal Blender assets
   release, dirt hoof contact, an overtake pass, photo shutter, and a compact
   finish fanfare. Do not substitute generic `tick`, `pop`, or `win` cues.
 - The portrait camera stays on `+Z`. A far-side candy grandstand uses clean
-  empty tiers, roof structure, section columns, LED ribbons, a scoreboard,
-  lamps, low retracting barriers, and one far finish upright. Do not add
+  empty tiers, light roof structure, restrained columns/ribbons, a scoreboard,
+  lamps, and one far finish upright. It must frame the animals rather than read
+  as a giant primitive slab. Do not add
   primitive capsule/sphere crowds; low-quality spectator silhouettes damage
   the product more than intentionally empty seating. Near-side rail/posts remain
   omitted because they hide hoof contact and the leader; do not restore
@@ -116,7 +139,7 @@ Read this file only for changes under `games/race/` or its animal Blender assets
 - A few broad, low-detail meadow hills may sit behind the far stand to keep wide
   screens from becoming flat empty sky. They stay subordinate to racers and
   must not turn into ambiguous sphere clutter or a primitive crowd substitute.
-- Three thin colored timing bands and far-side chevron boards segment the long
+- A few thin colored timing bands and far-side chevron boards segment the short
   straight into readable progress landmarks. They may establish parallax and
   section identity but must not become obstacle-course gameplay.
 - Run race tests, TypeScript, ESLint, static build, and real 390x844 races with

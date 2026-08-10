@@ -20,7 +20,7 @@ import {
   type LucideProps,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { GameShell } from "@/components/game-shell";
+import { DuguResultHandoff, GameShell } from "@/components/game-shell";
 import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
 import { SceneCanvas } from "@/components/scene";
 import {
@@ -429,34 +429,36 @@ export function FortuneGame() {
             exit={{ opacity: 0 }}
             className="pointer-events-auto absolute left-1/2 top-[42%] z-10 w-[min(96vw,25rem)] -translate-x-1/2 text-center"
           >
-            <motion.div
-              initial={
-                reduceMotion
-                  ? false
-                  : {
-                      opacity: 0,
-                      clipPath: "inset(0 50% 0 50%)",
-                      y: 6,
-                    }
-              }
-              animate={{
-                opacity: 1,
-                clipPath: "inset(0 0% 0 0%)",
-                y: 0,
-              }}
-              transition={
-                reduceMotion
-                  ? undefined
-                  : { duration: 0.46, ease: [0.22, 1, 0.36, 1] }
-              }
-              className="relative mx-auto w-full origin-center -rotate-[0.7deg]"
-            >
-              <FortuneRibbon
-                icon={ResultCategoryIcon}
-                message={result.message}
-                reducedMotion={reduceMotion}
-              />
-            </motion.div>
+            <DuguResultHandoff size="ribbon">
+              <motion.div
+                initial={
+                  reduceMotion
+                    ? false
+                    : {
+                        opacity: 0,
+                        clipPath: "inset(0 50% 0 50%)",
+                        y: 6,
+                      }
+                }
+                animate={{
+                  opacity: 1,
+                  clipPath: "inset(0 0% 0 0%)",
+                  y: 0,
+                }}
+                transition={
+                  reduceMotion
+                    ? undefined
+                    : { duration: 0.46, ease: [0.22, 1, 0.36, 1] }
+                }
+                className="relative mx-auto w-full origin-center -rotate-[0.7deg]"
+              >
+                <FortuneRibbon
+                  icon={ResultCategoryIcon}
+                  message={result.message}
+                  reducedMotion={reduceMotion}
+                />
+              </motion.div>
+            </DuguResultHandoff>
             {phase === "done" ? (
               <motion.div
                 initial={reduceMotion ? false : { opacity: 0, y: 6 }}

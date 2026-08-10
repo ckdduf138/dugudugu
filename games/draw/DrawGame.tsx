@@ -1,24 +1,19 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import {
-  Hand,
-  Minus,
-  Play,
-  Plus,
-  RotateCcw,
-} from "lucide-react";
-import { ChipsInput } from "@/components/ui/ChipsInput";
+  ChipsInput,
+  type ChipsInputChange,
+} from "@/components/ui/ChipsInput";
 import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
-import { GameShell } from "@/components/game-shell";
+import {
+  DuguResultHandoff,
+  GameShell,
+  ResultDialog,
+} from "@/components/game-shell";
 import { SceneCanvas } from "@/components/scene";
 import {
   useCueTimeline,
@@ -26,7 +21,11 @@ import {
 } from "@/lib/game";
 import { playSfx, preloadSfx } from "@/lib/audio";
 import { vibrate } from "@/lib/haptics";
-import { cleanCandidates } from "./logic";
+import {
+  CAPSULE_COLOR_CSS,
+  fallbackCapsuleColor,
+  type CapsuleColorKey,
+} from "./colors";
 import { decodeDrawParams } from "./share";
 import { useDrawStore } from "./store";
 import { GachaScene, type GachaBeat } from "./GachaScene";
@@ -40,26 +39,54 @@ const MACHINE_CUES: readonly TimelineCue<GachaBeat>[] = [
   { atMs: 2_680, value: "hero" },
 ];
 
-const OPEN_CUES: readonly TimelineCue<GachaBeat>[] = [
-  { atMs: 0, value: "open" },
-  { atMs: 500, value: "reveal" },
-];
-
 const MACHINE_DURATION_MS = 3_260;
-const OPEN_DURATION_MS = 720;
 
-type DrawInteraction = "idle" | "mixing" | "awaiting-open" | "opening";
+function CapsuleResultMark({
+  colorKey,
+  large = false,
+}: {
+  colorKey: CapsuleColorKey;
+  large?: boolean;
+}) {
+  const color = CAPSULE_COLOR_CSS[colorKey];
+  return (
+    <span
+      aria-hidden
+      className={`relative block shrink-0 overflow-hidden rounded-full border border-ink/10 shadow-[0_5px_12px_color-mix(in_srgb,var(--ink)_12%,transparent)] ${
+        large ? "h-16 w-16" : "h-11 w-11"
+      }`}
+    >
+      <span
+        className="absolute inset-x-0 top-0 h-1/2"
+        style={{
+          background: `color-mix(in srgb, ${color} 62%, var(--surface))`,
+        }}
+      />
+      <span
+        className="absolute inset-x-0 bottom-0 h-1/2"
+        style={{ background: color }}
+      />
+      <span
+        className="absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2"
+        style={{
+          background: `color-mix(in srgb, ${color} 72%, var(--ink))`,
+        }}
+      />
+      <span className="absolute left-[24%] top-[18%] h-[18%] w-[12%] -rotate-[24deg] rounded-full bg-surface/72" />
+    </span>
+  );
+}
 
 export function DrawGame() {
   const t = useTranslations("games.draw");
   const tc = useTranslations("common");
   const reduceMotion = Boolean(useReducedMotion());
 
-  const candidatesText = useDrawStore((state) => state.candidatesText);
-  const winnersCount = useDrawStore((state) => state.winnersCount);
+  const entries = useDrawStore((state) => state.entries);
   const phase = useDrawStore((state) => state.phase);
   const result = useDrawStore((state) => state.result);
-  const setCandidatesText = useDrawStore((state) => state.setCandidatesText);
+  const addCandidates = useDrawStore((state) => state.addCandidates);
+  const removeCandidate = useDrawStore((state) => state.removeCandidate);
   const setWinnersCount = useDrawStore((state) => state.setWinnersCount);
   const beginDraw = useDrawStore((state) => state.beginDraw);
   const reveal = useDrawStore((state) => state.reveal);
@@ -67,18 +94,20 @@ export function DrawGame() {
   const clear = useDrawStore((state) => state.clear);
   const hydrateFromShare = useDrawStore((state) => state.hydrateFromShare);
 
-  const list = useMemo(
-    () => cleanCandidates(candidatesText.split("\n")),
-    [candidatesText],
-  );
+  const list = entries.map((entry) => entry.label);
   const valid = list.length >= 2;
-  const winnerLimit = Math.max(1, list.length);
-  const visibleWinnerCount = Math.min(winnersCount, winnerLimit);
+
+  const handleCandidatesChange = useCallback(
+    (_values: string[], change: ChipsInputChange) => {
+      if (change.type === "add") addCandidates(change.values);
+      else removeCandidate(change.index);
+    },
+    [addCandidates, removeCandidate],
+  );
 
   const [beat, setBeat] = useState<GachaBeat>("idle");
-  const [interaction, setInteraction] = useState<DrawInteraction>("idle");
-  const resultCardRef = useRef<HTMLDivElement>(null);
   const previousEntryCountRef = useRef(list.length);
+  const replayButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const previousCount = previousEntryCountRef.current;
@@ -114,14 +143,7 @@ export function DrawGame() {
         vibrate("pop");
         break;
       case "hero":
-        // The short silence after landing creates anticipation before opening.
-        break;
-      case "open":
-        playSfx("gacha-open", { volume: 0.64 });
-        break;
-      case "reveal":
-        playSfx("gacha-reveal", { volume: 0.7 });
-        vibrate("win");
+        // The capsule gets one quiet hold before the automatic result popup.
         break;
       default:
         break;
@@ -130,21 +152,15 @@ export function DrawGame() {
 
   const finishMachine = useCallback(() => {
     setBeat("hero");
-    setInteraction("awaiting-open");
-  }, []);
+    playSfx("gacha-reveal", { volume: 0.7 });
+    vibrate("win");
+    reveal();
+  }, [reveal]);
   const machineTimeline = useCueTimeline({
     cues: MACHINE_CUES,
     durationMs: MACHINE_DURATION_MS,
     onCue: handleCue,
     onComplete: finishMachine,
-    reducedMotion: reduceMotion,
-  });
-  const finishOpening = useCallback(() => reveal(), [reveal]);
-  const openTimeline = useCueTimeline({
-    cues: OPEN_CUES,
-    durationMs: OPEN_DURATION_MS,
-    onCue: handleCue,
-    onComplete: finishOpening,
     reducedMotion: reduceMotion,
   });
 
@@ -158,7 +174,6 @@ export function DrawGame() {
       "gacha-index",
       "gacha-drop",
       "gacha-land",
-      "gacha-open",
       "gacha-reveal",
     ]);
     return clear;
@@ -168,51 +183,36 @@ export function DrawGame() {
     if (!valid || phase !== "idle") return;
     const round = beginDraw();
     if (!round) return;
-    setInteraction("mixing");
     machineTimeline.start();
   }, [beginDraw, machineTimeline, phase, valid]);
 
-  const openCapsule = useCallback(() => {
-    if (phase !== "rolling" || interaction !== "awaiting-open") return;
-    setInteraction("opening");
-    openTimeline.start();
-  }, [interaction, openTimeline, phase]);
-
   const resetRound = useCallback(() => {
     machineTimeline.reset();
-    openTimeline.reset();
     setBeat("idle");
-    setInteraction("idle");
     reset();
-  }, [machineTimeline, openTimeline, reset]);
+    // A legacy shared URL may hydrate n>1. Returning to the editor enters the
+    // current one-capsule/one-result product flow instead of retaining a hidden
+    // multi-winner setting that the setup UI no longer exposes.
+    setWinnersCount(1);
+  }, [machineTimeline, reset, setWinnersCount]);
 
   const skipCutscene = useCallback(() => {
-    if (interaction === "mixing") machineTimeline.skip();
-    if (interaction === "opening") openTimeline.skip();
-  }, [interaction, machineTimeline, openTimeline]);
+    machineTimeline.skip();
+  }, [machineTimeline]);
 
-  useEffect(() => {
-    if (phase !== "done") return;
-    const frame = requestAnimationFrame(() => resultCardRef.current?.focus());
-    return () => cancelAnimationFrame(frame);
-  }, [phase]);
-
-  const shellPhase = phase === "idle" ? "setup" : phase === "rolling" ? "playing" : "result";
-  const stageBeat = phase === "done" ? "reveal" : beat;
-  const announcement =
-    phase === "done" && result
-      ? t("result.announcement", { winners: result.winners.join(", ") })
-      : phase === "rolling"
-        ? interaction === "awaiting-open"
-          ? t("stage.openPrompt")
-          : interaction === "opening"
-            ? t("stage.opening")
-            : t("stage.mixing")
-        : null;
+  const shellPhase =
+    phase === "idle" ? "setup" : phase === "rolling" ? "playing" : "result";
+  const stageBeat = phase === "done" ? "hero" : beat;
+  const resultAnnouncement = result
+    ? t("result.announcement", { winners: result.winners.join(", ") })
+    : "";
+  const announcement = phase === "rolling" ? t("stage.mixing") : null;
 
   const stage = (
     <SceneCanvas
       active={phase !== "done"}
+      adaptiveDpr={phase !== "done"}
+      frameloop="always"
       reducedMotion={reduceMotion}
       shadows="percentage"
       camera={{ position: [0.15, 2.55, 7.6], fov: 38, near: 0.1, far: 40 }}
@@ -222,7 +222,8 @@ export function DrawGame() {
     >
       <GachaScene
         beat={stageBeat}
-        entryCount={list.length}
+        entries={entries}
+        prizeColor={result?.winnerEntries[0]?.color}
         reducedMotion={reduceMotion}
       />
     </SceneCanvas>
@@ -232,216 +233,163 @@ export function DrawGame() {
     <>
       {(phase === "idle" || phase === "done") ? (
         <div
-          className="absolute inset-x-4 flex items-center justify-between gap-3 sm:inset-x-6"
+          className="absolute inset-x-4 sm:inset-x-6"
           style={{ top: "calc(env(safe-area-inset-top) + 4.5rem)" }}
         >
           <GameRouteTitle>{t("title")}</GameRouteTitle>
-          {phase === "idle" ? (
-            <motion.span
-              key={list.length}
-              initial={
-                reduceMotion ? false : { opacity: 0.55, scale: 0.82, y: -4 }
-              }
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 420, damping: 22 }}
-              className="rounded-full border border-ink/8 bg-surface/88 px-3 py-1.5 text-xs font-black text-ink-soft shadow-sm"
-            >
-              {t("state.count", { count: list.length })}
-            </motion.span>
-          ) : null}
         </div>
       ) : null}
 
-      {phase === "rolling" && interaction === "awaiting-open" ? (
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="pointer-events-auto absolute left-[46%] top-[67%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-        >
-          <motion.button
-            type="button"
-            onClick={openCapsule}
-            aria-label={t("stage.openCapsule")}
-            initial={reduceMotion ? false : { scale: 0.86 }}
-            animate={{ scale: 1 }}
-            whileTap={reduceMotion ? undefined : { scale: 0.94 }}
-            transition={{ type: "spring", stiffness: 310, damping: 22 }}
-            className="group relative grid h-36 w-36 place-items-end rounded-full outline-none focus-visible:ring-4 focus-visible:ring-candy-sky/55"
-          >
-            <span className="relative -mb-3 inline-flex min-h-11 items-center gap-2 rounded-full border border-ink/8 bg-surface/95 px-4 text-sm font-black text-ink shadow-[0_8px_22px_rgba(67,42,31,0.16)] transition group-hover:-translate-y-0.5">
-              <Hand size={17} />
-              {t("stage.openCapsule")}
-            </span>
-          </motion.button>
-        </motion.div>
-      ) : null}
-
-      {phase === "done" && result ? (
-        <motion.div
-          ref={resultCardRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="draw-result-title"
+      {phase === "idle" ? (
+        <motion.button
+          type="button"
           tabIndex={-1}
-          initial={reduceMotion ? false : { opacity: 0, scale: 0.9, y: 16 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 285, damping: 25 }}
-          className="pointer-events-auto absolute inset-x-4 top-[38%] mx-auto flex max-w-sm -translate-y-1/2 flex-col items-center text-center outline-none"
+          aria-hidden={true}
+          disabled={!valid}
+          onClick={start}
+          initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileTap={valid && !reduceMotion ? { scale: 0.94 } : undefined}
+          transition={{ type: "spring", stiffness: 320, damping: 24 }}
+          className="group pointer-events-auto absolute left-1/2 top-[64%] z-10 grid h-24 w-24 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full outline-none disabled:pointer-events-none"
         >
-          <div className="relative w-[min(20rem,calc(100vw-2.5rem))] overflow-hidden rounded-[var(--radius-toy)] border-2 border-candy-coral/20 bg-[linear-gradient(180deg,var(--surface),color-mix(in_srgb,var(--candy-coral)_5%,var(--surface)))] px-5 py-4 shadow-[0_18px_50px_rgba(68,40,27,0.2)]">
-            <span
-              aria-hidden
-              className="absolute inset-x-6 top-0 h-1 rounded-b-full bg-candy-coral"
-            />
-            <p
-              id="draw-result-title"
-              className="text-xs font-black tracking-[0.14em] text-candy-coral"
-            >
-              {t("result.title")}
-            </p>
-            {result.winnerCount > 1 ? (
-              <p className="mt-0.5 text-[0.68rem] font-bold text-ink-soft">
-                {t("result.subtitle", { count: result.winnerCount })}
-              </p>
-            ) : null}
-            <ol
-              className={`max-h-[21svh] overflow-y-auto ${
-                result.winnerCount > 1
-                  ? "mt-1 divide-y divide-ink/[0.06]"
-                  : ""
-              }`}
-            >
-              {result.winners.map((winner, index) => (
-                <motion.li
-                  key={`${winner}-${index}`}
-                  initial={
-                    reduceMotion ? false : { opacity: 0, scale: 0.78, y: 7 }
-                  }
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 360,
-                    damping: 22,
-                    delay: 0.08 + index * 0.055,
-                  }}
-                  className={`flex items-center justify-center px-5 font-display leading-tight text-ink ${
-                    result.winnerCount > 1
-                      ? "min-h-10 text-[clamp(1.35rem,6vw,1.8rem)]"
-                      : "min-h-12 text-[clamp(2.15rem,11vw,3rem)]"
-                  }`}
-                >
-                  {winner}
-                </motion.li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="mt-2.5 flex items-center justify-center">
-            <button
-              type="button"
-              onClick={resetRound}
-              className="toy-btn inline-flex min-h-11 items-center justify-center gap-2 px-5 text-sm"
-            >
-              <RotateCcw size={15} />
-              {t("result.replay")}
-            </button>
-          </div>
-        </motion.div>
+          <span className="absolute left-[calc(100%+0.45rem)] top-1/2 inline-flex min-h-11 w-max -translate-y-1/2 items-center rounded-full border border-ink/8 bg-surface/95 px-4 text-sm font-black text-ink shadow-[0_8px_22px_rgba(67,42,31,0.16)] transition group-hover:translate-x-0.5 group-disabled:border-ink/[0.05] group-disabled:bg-surface/82 group-disabled:text-ink-soft/55 group-disabled:shadow-sm">
+            {t("intro.pull")}
+          </span>
+        </motion.button>
       ) : null}
     </>
   );
 
   const setup = (
-    <div className="pt-1">
+    <div className="rounded-[var(--radius-toy)] border border-ink/8 bg-surface/64 p-3 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <label className="block text-sm font-black text-ink">
-            {t("intro.namesLabel")}
-          </label>
-        </div>
+        <label className="block text-sm font-black text-ink">
+          {t("intro.namesLabel")}
+        </label>
+        <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-black text-ink-soft shadow-sm">
+          {t("intro.entries", { count: list.length })}
+        </span>
       </div>
       <ChipsInput
         values={list}
-        onChange={(values) => setCandidatesText(values.join("\n"))}
+        onChange={handleCandidatesChange}
+        chipColors={entries.map((entry) => CAPSULE_COLOR_CSS[entry.color])}
         placeholder={t("intro.chipPlaceholder")}
         label={t("intro.namesLabel")}
-        onSubmit={start}
         addLabel={tc("add")}
         removeLabel={tc("remove")}
         compact
       />
-
-      <details className="group mt-4 rounded-2xl border border-ink/8 bg-surface/50 px-3">
-        <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 text-sm font-black text-ink marker:content-none">
-          <span>{t("intro.winnersLabel")}</span>
-          <span className="rounded-full bg-surface px-2.5 py-1 font-display text-lg text-candy-pink shadow-sm">
-            {visibleWinnerCount}
-          </span>
-        </summary>
-        <div className="flex items-center justify-end gap-2 border-t border-ink/[0.06] py-3">
-          <button
-            type="button"
-            onClick={() => setWinnersCount(visibleWinnerCount - 1)}
-            disabled={phase !== "idle" || visibleWinnerCount <= 1}
-            className="grid h-11 w-11 place-items-center rounded-full bg-surface text-ink shadow-sm transition active:scale-95 disabled:opacity-35"
-            aria-label={tc("remove")}
-          >
-            <Minus size={17} />
-          </button>
-          <strong className="w-10 text-center font-display text-2xl text-candy-pink">
-            {visibleWinnerCount}
-          </strong>
-          <button
-            type="button"
-            onClick={() => setWinnersCount(visibleWinnerCount + 1)}
-            disabled={phase !== "idle" || visibleWinnerCount >= winnerLimit}
-            className="grid h-11 w-11 place-items-center rounded-full bg-surface text-ink shadow-sm transition active:scale-95 disabled:opacity-35"
-            aria-label={tc("add")}
-          >
-            <Plus size={17} />
-          </button>
-        </div>
-      </details>
-
-      <div className="mt-4">
-        <button
-          type="button"
-          onClick={start}
-          disabled={!valid || phase !== "idle"}
-          className="toy-btn inline-flex min-h-13 items-center justify-center gap-2 text-base disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <Play size={18} fill="currentColor" />
-          {t("intro.pull")}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={start}
+        disabled={!valid || phase !== "idle"}
+        className="sr-only focus:not-sr-only focus:mt-3 focus:inline-flex focus:min-h-11 focus:items-center focus:justify-center focus:rounded-full focus:bg-ink focus:px-4 focus:text-sm focus:font-black focus:text-surface focus:outline-none focus:ring-4 focus:ring-candy-sky/45"
+      >
+        {t("intro.pull")}
+      </button>
     </div>
   );
 
+  const resultDialog = phase === "done" && result ? (
+    <ResultDialog
+      open
+      presentation="stage"
+      title={t("result.title")}
+      description={
+        result.winnerCount > 1
+          ? t("result.subtitle", { count: result.winnerCount })
+          : undefined
+      }
+      announcement={resultAnnouncement}
+      announcementKey={result.seed}
+      initialFocusRef={replayButtonRef}
+      className="place-self-center max-w-sm border border-ink/10 bg-surface [&>img]:hidden"
+      actions={
+        <button
+          ref={replayButtonRef}
+          type="button"
+          onClick={resetRound}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-black text-surface shadow-sm transition hover:-translate-y-0.5 hover:bg-ink/92 active:translate-y-0 sm:col-span-2"
+        >
+          <RotateCcw size={15} />
+          {t("result.replay")}
+        </button>
+      }
+    >
+      <DuguResultHandoff>
+        <ol
+          className={
+            result.winnerCount > 1 ? "divide-y divide-ink/[0.06]" : ""
+          }
+        >
+          {result.winners.map((winner, index) => {
+            const colorKey =
+              result.winnerEntries[index]?.color ?? fallbackCapsuleColor(index);
+            const color = CAPSULE_COLOR_CSS[colorKey];
+            return (
+              <motion.li
+                key={`${winner}-${index}`}
+                initial={
+                  reduceMotion ? false : { opacity: 0, scale: 0.86, y: 7 }
+                }
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 360,
+                  damping: 24,
+                  delay: 0.06 + index * 0.055,
+                }}
+                className={`flex items-center gap-3 rounded-2xl px-3 py-2 text-left font-display leading-tight text-ink ${
+                  result.winnerCount > 1
+                    ? "min-h-14 text-[clamp(1.3rem,6vw,1.75rem)]"
+                    : "min-h-20 text-[clamp(2.15rem,10vw,2.9rem)]"
+                }`}
+                style={{
+                  background: `color-mix(in srgb, ${color} 10%, var(--surface))`,
+                }}
+              >
+                <CapsuleResultMark
+                  colorKey={colorKey}
+                  large={result.winnerCount === 1}
+                />
+                <span className="min-w-0 flex-1 break-words">{winner}</span>
+              </motion.li>
+            );
+          })}
+        </ol>
+      </DuguResultHandoff>
+    </ResultDialog>
+  ) : null;
+
   return (
-    <GameShell
-      stage={stage}
-      stageOverlay={stageOverlay}
-      setup={phase === "done" ? undefined : setup}
-      stageLabel={t("stage.aria")}
-      stageSizing={phase === "done" ? "viewport" : "fill"}
-      setupTitle={t("intro.panelTitle")}
-      setupSummary={t("intro.entries", { count: list.length })}
-      setupCollapsible={false}
-      phase={shellPhase}
-      announcement={announcement}
-      announcementKey={`${phase}:${result?.seed ?? "none"}`}
-      expandSetupLabel={t("stage.expandSetup")}
-      collapseSetupLabel={t("stage.collapseSetup")}
-      skip={{
-        visible:
-          phase === "rolling" &&
-          (machineTimeline.running || openTimeline.running),
-        label: t("stage.skip"),
-        onSkip: skipCutscene,
-        compact: true,
-        className: "shadow-sm",
-      }}
-      className="bg-[linear-gradient(145deg,var(--bg),color-mix(in_srgb,var(--candy-sky)_11%,var(--bg))_52%,color-mix(in_srgb,var(--candy-mint)_10%,var(--bg)))]"
-    />
+    <>
+      <GameShell
+        stage={stage}
+        stageOverlay={stageOverlay}
+        setup={phase === "done" ? undefined : setup}
+        stageLabel={t("stage.aria")}
+        stageSizing={phase === "done" ? "viewport" : "fill"}
+        setupTitle={t("intro.panelTitle")}
+        setupSummary={t("intro.entries", { count: list.length })}
+        setupCollapsible={false}
+        phase={shellPhase}
+        announcement={announcement}
+        announcementKey={`${phase}:${result?.seed ?? "none"}`}
+        expandSetupLabel={t("stage.expandSetup")}
+        collapseSetupLabel={t("stage.collapseSetup")}
+        immersiveDuringResult
+        skip={{
+          visible: phase === "rolling" && machineTimeline.running,
+          label: t("stage.skip"),
+          onSkip: skipCutscene,
+          compact: true,
+          className: "shadow-sm",
+        }}
+        className="bg-[linear-gradient(145deg,var(--bg),color-mix(in_srgb,var(--candy-sky)_11%,var(--bg))_52%,color-mix(in_srgb,var(--candy-mint)_10%,var(--bg)))]"
+      />
+      {resultDialog}
+    </>
   );
 }

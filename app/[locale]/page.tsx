@@ -1,20 +1,56 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MascotPeek } from "@/components/lobby/MascotPeek";
 import { GameCard } from "@/components/ui/GameCard";
+import { JsonLd } from "@/components/ui/JsonLd";
 import { TopBar } from "@/components/ui/TopBar";
 import { games } from "@/games/registry";
+import { routing } from "@/i18n/routing";
+import { websiteJsonLd } from "@/lib/seo";
+import { absolutePageUrl, absoluteUrl } from "@/lib/site";
 
 type Props = { params: Promise<{ locale: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "site" });
+  const title = `${t("name")} | ${t("tagline")}`;
+  const description = t("description");
+  const canonical = absolutePageUrl(`/${locale}`);
+  const socialImage = {
+    url: absoluteUrl("/images/brand/social-card.png"),
+    width: 1200,
+    height: 630,
+    alt: title,
+  };
+  const languageUrls = {
+    ko: absolutePageUrl("/ko"),
+    en: absolutePageUrl("/en"),
+    "x-default": absolutePageUrl(`/${routing.defaultLocale}`),
+  };
+
   return {
-    title: { absolute: `${t("name")} | ${t("tagline")}` },
-    description: t("description"),
+    title: { absolute: title },
+    description,
     alternates: {
-      canonical: `/${locale}`,
-      languages: { ko: "/ko", en: "/en" },
+      canonical,
+      languages: languageUrls,
+    },
+    openGraph: {
+      type: "website",
+      siteName: t("name"),
+      title,
+      description,
+      url: canonical,
+      locale: locale === "ko" ? "ko_KR" : "en_US",
+      alternateLocale: locale === "ko" ? ["en_US"] : ["ko_KR"],
+      images: [socialImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [socialImage],
     },
   };
 }
@@ -27,6 +63,8 @@ export default async function LobbyPage({ params }: Props) {
   return (
     <>
       <TopBar siteName={t("site.name")} soundLabel={t("common.sound")} />
+
+      <JsonLd data={websiteJsonLd()} />
 
       <main className="relative min-h-[100svh] overflow-hidden bg-bg">
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -46,11 +84,18 @@ export default async function LobbyPage({ params }: Props) {
                 status={game.status}
                 title={t(`games.${game.id}.title`)}
                 enterLabel={t("lobby.enter")}
+                loadingLabel={t("common.loading")}
                 soonLabel={t("common.comingSoon")}
               />
             ))}
           </div>
         </section>
+        <MascotPeek
+          openLabel={t("lobby.mascot.open")}
+          closeLabel={t("lobby.mascot.close")}
+          greeting={t("lobby.mascot.greeting")}
+          introduction={t("lobby.mascot.introduction")}
+        />
       </main>
     </>
   );
