@@ -101,7 +101,7 @@ Techniques to reach for (use a subset per game, keep it snappy):
   animated card's transform containing block. Deferred `ssr:false` game chunks
   use the same Dugu-branded fallback, so route handoff remains continuous until
   the actual scene component is ready.
-- **Design tokens** (in `globals.css`): candy palette `--candy-*`, `--ink`, `--surface`; display font **Jua** via `.font-display` / `--font-display`; body **Pretendard**; `.toy-btn`, `rounded-toy`, `--shadow-toy`, `--ease-pop`. Reuse these; keep the cute candy look consistent.
+- **Design tokens** (in `globals.css`): candy palette `--candy-*`, `--ink`, `--surface`; display font **Jua** via `.font-display` / `--font-display`; body **Pretendard**; `.toy-btn`, `.dugu-action-btn`, `rounded-toy`, `--shadow-toy`, `--ease-pop`. Replay/one-more actions use the restrained shared `.dugu-action-btn` mint body and coral tail ring instead of embedding a separate raster mascot inside the button. Reuse these; keep the cute candy look consistent.
 - **Lottie**: assets in `public/lottie/<name>.json`; render with `components/ui/LottieBox.tsx` (no-ops if the file is missing). Regenerate placeholders with `node scripts/gen-lottie.mjs`. Swap in prettier files from LottieFiles anytime (see `public/lottie/README.md`).
 - **SEO**: per-page absolute canonical/hreflang/OG/Twitter metadata + JSON-LD
   (`lib/seo.ts`) + human-readable copy pre-rendered in static HTML. Every live

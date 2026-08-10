@@ -51,9 +51,10 @@ Read this file only for changes under `games/ladder/`.
   live announcements remain screen-reader-only.
 - Completing every route or choosing `Show all results` opens one accessible
   mapping popup. Each row pairs the code-native animal profile and name on the
-  left with its frozen outcome on the right. One shared Dugu handoff may peek
-  from behind the mapping surface, but it remains decorative and must not
-  displace, label, or cover a mapping row. Lobby navigation remains the global
+  left with its frozen outcome on the right. One shared Dugu peeker sits in the
+  popup's upper-left header while the close button owns the right corner; it
+  remains decorative and must not displace, label, or cover a mapping row.
+  Lobby navigation remains the global
   TopBar outside the popup but inside its focus scope; do not duplicate it in
   dialog chrome. Closing the popup returns to the board,
   where revealed routes remain available and any top animal can replay its

@@ -427,9 +427,9 @@ export function FortuneGame() {
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="pointer-events-auto absolute left-1/2 top-[42%] z-10 w-[min(96vw,25rem)] -translate-x-1/2 text-center"
+            className="pointer-events-auto absolute left-1/2 top-[calc(50%-4.875rem)] z-10 w-[min(96vw,25rem)] -translate-x-1/2 text-center sm:top-[calc(50%-5rem)]"
           >
-            <DuguResultHandoff size="ribbon">
+            <DuguResultHandoff size="ribbon" mascotClassName="-top-1">
               <motion.div
                 initial={
                   reduceMotion
@@ -469,9 +469,9 @@ export function FortuneGame() {
                 <button
                   type="button"
                   onClick={replay}
-                  className="toy-btn inline-flex min-h-11 items-center justify-center gap-2 px-5 text-sm"
+                  className="dugu-action-btn inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black outline-none focus-visible:ring-4 focus-visible:ring-candy-mint/35"
                 >
-                  <Cookie size={17} />
+                  <Cookie aria-hidden size={17} />
                   {t("result.replay")}
                 </button>
               </motion.div>

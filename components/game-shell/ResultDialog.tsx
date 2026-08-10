@@ -110,6 +110,8 @@ type ResultDialogBaseProps = {
   children: ReactNode;
   actions?: ReactNode;
   celebration?: ReactNode;
+  /** Decorative mascot anchored in an upper popup corner, never in result content. */
+  mascot?: "peeker";
   presentation?: "modal" | "stage";
   /** A plain-text result sentence for assistive technology. */
   announcement: string;
@@ -141,6 +143,7 @@ export function ResultDialog({
   children,
   actions,
   celebration,
+  mascot,
   presentation = "modal",
   announcement,
   announcementKey,
@@ -270,7 +273,9 @@ export function ResultDialog({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={spring.bouncy}
         style={{ maxHeight: "100%" }}
-        className={`isolate relative flex min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden overscroll-contain rounded-[var(--radius-lg)] border border-ink/10 bg-surface px-5 pb-5 text-center shadow-[var(--shadow-toy)] outline-none sm:max-w-md sm:px-7 sm:pb-7 ${
+        className={`isolate relative flex min-h-0 min-w-0 w-full max-w-full flex-col ${
+          mascot ? "overflow-visible" : "overflow-hidden"
+        } overscroll-contain rounded-[var(--radius-lg)] border border-ink/10 bg-surface px-5 pb-5 text-center shadow-[var(--shadow-toy)] outline-none sm:max-w-md sm:px-7 sm:pb-7 ${
           dismissible ? "pt-16 sm:pt-16" : "pt-5 sm:pt-7"
         } ${
           presentation === "stage"
@@ -287,6 +292,33 @@ export function ResultDialog({
           height={640}
           className="pointer-events-none absolute -bottom-16 -right-14 -z-10 h-auto w-52 select-none opacity-[0.075]"
         />
+
+        {mascot === "peeker" ? (
+          <motion.div
+            aria-hidden="true"
+            initial={
+              reduceMotion
+                ? false
+                : { opacity: 0, x: -14, y: -8 }
+            }
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { ...spring.gentle, delay: 0.1 }
+            }
+            className="pointer-events-none absolute -left-6 -top-[4.4rem] z-20 w-36 origin-bottom-left select-none sm:-top-[4.9rem] sm:w-40"
+          >
+            <Image
+              src="/images/brand/dugu-result-peeker.png"
+              alt=""
+              width={1536}
+              height={1024}
+              loading="eager"
+              className="h-auto w-full drop-shadow-[0_8px_10px_color-mix(in_srgb,var(--ink)_14%,transparent)]"
+            />
+          </motion.div>
+        ) : null}
 
         {dismissible && onClose && closeLabel ? (
           <button

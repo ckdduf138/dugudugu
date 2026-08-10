@@ -332,6 +332,61 @@ a {
   filter: grayscale(0.15);
 }
 
+/* Shared Dugudugu action language: mint body, coral tail ring, soft toy depth. */
+.dugu-action-btn {
+  --dugu-action: var(--candy-mint);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+  border-radius: 999px;
+  color: var(--ink);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--dugu-action) 58%, var(--surface)),
+    color-mix(in srgb, var(--dugu-action) 82%, var(--surface))
+  );
+  box-shadow:
+    0 5px 0 color-mix(in srgb, var(--ink) 12%, transparent),
+    0 11px 20px color-mix(in srgb, var(--dugu-action) 19%, transparent);
+  transition:
+    transform 150ms var(--ease-pop),
+    box-shadow 150ms var(--ease-pop),
+    filter 150ms ease;
+}
+
+.dugu-action-btn::after {
+  position: absolute;
+  right: -0.7rem;
+  bottom: -1.05rem;
+  z-index: -1;
+  width: 3.15rem;
+  height: 3.15rem;
+  border: 0.48rem solid color-mix(in srgb, var(--candy-coral) 42%, transparent);
+  border-radius: 999px;
+  content: "";
+}
+
+@media (hover: hover) {
+  .dugu-action-btn:hover:not(:disabled) {
+    filter: saturate(1.06) brightness(1.015);
+    transform: translateY(-1px);
+  }
+}
+
+.dugu-action-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow:
+    0 2px 0 color-mix(in srgb, var(--ink) 12%, transparent),
+    0 6px 12px color-mix(in srgb, var(--dugu-action) 15%, transparent);
+}
+
+.dugu-action-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.18);
+  opacity: 0.45;
+}
+
 :where(a, button, input, textarea, select):focus-visible {
   outline: 3px solid var(--primary);
   outline-offset: 3px;

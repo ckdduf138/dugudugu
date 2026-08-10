@@ -85,9 +85,9 @@ Read this file only for changes under `games/draw/` or the gacha Blender asset.
 - The result uses the shared accessible `ResultDialog`, centered as a compact
   non-blurred popup over the frozen complete machine. Show one simple
   code-native capsule in the frozen winner color beside the winner name; the
-  name remains the strongest element. Use the shared single Dugu handoff behind
-  that existing result row; do not add another mascot, speech bubble, prop, or
-  card. Keep **Draw again** as the primary game action and the locale-aware
+  name remains the strongest element. Use the shared Dugu peeker in the popup's
+  upper-right header, not inside the result row; do not add another mascot,
+  speech bubble, prop, or card. Keep **Draw again** as the primary game action and the locale-aware
   global TopBar lobby link as persistent navigation; never duplicate that link
   inside the popup.
 - **Draw again** resets to idle with the same candidate entries and colors in

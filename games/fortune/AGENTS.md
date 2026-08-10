@@ -39,7 +39,9 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
   CC0 white-paper photograph: one warm-white WebP with real, restrained fibers
   clipped to a nearly straight machine-cut strip. Accessible KO/EN text and
   the category icon stay in DOM above it. The compact shared Dugu handoff may
-  rise once behind this same ribbon after the authored crack; it must not add a
+  rise once behind the ribbon's right edge after the authored crack. Keep it
+  low and small enough that it reads as resting on the strip, not floating
+  above or pasted onto the message; it must not add a
   second card, new copy, or a second reveal beat.
   Avoid antique parchment, floral corner ornaments, deep scroll curls, and a
   generic elevated result card; those visual languages clash with the modern

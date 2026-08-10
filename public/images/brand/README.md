@@ -17,3 +17,18 @@ The favicon/install mark is separately code-native (`public/brand-icon.svg` and
 `social-card.png` is the 1200×630 static social lockup exported from the same
 code-native chameleon mark. Keeping it as a stable public asset avoids dynamic
 metadata-route hashes in the fully static build.
+
+## Result peeker
+
+- Asset: `dugu-result-peeker.png`
+- Created: 2026-08-11 with OpenAI ImageGen using `dugu-mascot-640.webp` as the
+  character-identity reference
+- Intended use: decorative, transparent over-the-edge artwork in game result
+  surfaces
+- Editing: magenta-key background removal, alpha-edge cleanup, and despill;
+  no third-party source was used
+
+Prompt summary: the same mint, yellow-star-cheek, coral-tail Dugu mascot leans
+over the top edge of the result with both paws resting on it. It has no
+in-image text, props, or background so the result surface remains the semantic
+focus.

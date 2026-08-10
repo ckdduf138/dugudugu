@@ -58,10 +58,16 @@ export function useSceneRuntime(): SceneRuntime {
 }
 
 function supportsWebGL(): boolean {
-  return (
-    typeof WebGL2RenderingContext !== "undefined" ||
-    typeof WebGLRenderingContext !== "undefined"
-  );
+  if (typeof document === "undefined") return false;
+  try {
+    const canvas = document.createElement("canvas");
+    return Boolean(
+      canvas.getContext("webgl2", { failIfMajorPerformanceCaveat: false }) ??
+        canvas.getContext("webgl", { failIfMajorPerformanceCaveat: false }),
+    );
+  } catch {
+    return false;
+  }
 }
 
 function ContextLifecycle({
@@ -164,6 +170,31 @@ function DefaultSceneFallback({ label }: { label?: string }) {
         <span className="absolute right-2 top-14 h-20 w-20 rotate-12 rounded-full bg-candy-lemon/55" />
         <span className="absolute bottom-1 left-12 h-16 w-24 rounded-full bg-candy-mint/45" />
       </div>
+    </div>
+  );
+}
+
+function SceneLoadingFallback() {
+  return (
+    <div
+      aria-hidden
+      className="absolute inset-0 grid place-items-center overflow-hidden bg-[radial-gradient(circle_at_50%_28%,var(--surface),color-mix(in_srgb,var(--candy-lemon)_12%,var(--bg))_58%,var(--bg))]"
+    >
+      <div className="relative h-24 w-24 animate-pulse rounded-[2rem] border border-ink/8 bg-surface/75 shadow-[0_14px_30px_color-mix(in_srgb,var(--ink)_10%,transparent)]">
+        <span className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-candy-coral/35 border-t-candy-coral" />
+      </div>
+    </div>
+  );
+}
+
+function SceneRecoveryFallback({ label }: { label?: string }) {
+  return (
+    <div
+      role={label ? "img" : undefined}
+      aria-label={label}
+      className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_30%,var(--surface),var(--bg))]"
+    >
+      <span aria-hidden className="h-12 w-12 animate-pulse rounded-2xl border border-ink/8 bg-surface/85 shadow-sm" />
     </div>
   );
 }
@@ -289,9 +320,7 @@ export function SceneCanvas({
         className={`relative h-full min-h-0 w-full overflow-hidden ${className}`}
         style={style}
       >
-        {support === "checking"
-          ? renderFallback({ reason: "checking" })
-          : null}
+        {support === "checking" ? <SceneLoadingFallback /> : null}
         {support === "unsupported"
           ? renderFallback({ reason: "unsupported" })
           : null}
@@ -324,7 +353,7 @@ export function SceneCanvas({
               ) : null}
               {children}
             </Canvas>
-            {contextLost ? renderFallback({ reason: "context-lost" }) : null}
+            {contextLost ? <SceneRecoveryFallback label={fallbackLabel} /> : null}
           </SceneErrorBoundary>
         ) : null}
       </div>

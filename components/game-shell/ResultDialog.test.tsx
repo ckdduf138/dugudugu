@@ -19,6 +19,27 @@ async function nextFrame() {
 }
 
 describe("ResultDialog accessibility", () => {
+  it("hangs a decorative peeker over the popup's upper-left border", () => {
+    const view = render(
+      <ResultDialog
+        open
+        title="Winner"
+        announcement="Winner announced"
+        mascot="peeker"
+      >
+        Result
+      </ResultDialog>,
+    );
+    const peeker = Array.from(view.container.querySelectorAll("img")).find(
+      (image) => image.getAttribute("src")?.includes("dugu-result-peeker.png"),
+    );
+
+    expect(peeker).toBeDefined();
+    expect(peeker?.parentElement?.className).toContain("-left-6");
+    expect(peeker?.parentElement?.className).toContain("-top-[4.4rem]");
+    expect(peeker?.parentElement?.className).toContain("sm:-top-[4.9rem]");
+  });
+
   it("focuses the requested action and contains keyboard focus", async () => {
     const firstRef = createRef<HTMLButtonElement>();
     const view = render(

@@ -26,12 +26,21 @@ This module owns layout, immersion, result focus, announcements, skip, and WebGL
   article never shows through; do not use backdrop blur. Skip supports tap and
   Escape.
 - ResultDialog defaults to one quiet Dugu watermark. A result callsite may wrap
-  its real result surface with `DuguResultHandoff` instead: the same existing
-  mascot enters once behind that surface, which hides its lower body so it
-  reads as handing the result forward. Visually suppress the dialog watermark
-  at that callsite so only one Dugu is present; never add explanatory copy or
-  make the decorative image interactive. Reduced motion renders it immediately
-  without an entrance.
+  its real result surface with `DuguResultHandoff` instead: the transparent
+  `dugu-result-peeker.png` artwork leans naturally over its top edge with paws
+  resting on the result surface. The compact ribbon variant stays smaller and
+  sits low at the ribbon's right edge so only a quiet head-and-paws peek reads;
+  the dialog variant gets a clearer peek. The image sits above the card by only a
+  small overlap, so it reads as peeking from behind rather than a sticker.
+  Visually suppress the dialog watermark at that callsite so only one Dugu is
+  present; never add explanatory copy or make the decorative image interactive.
+  Reduced motion renders it immediately without an entrance.
+- For a regular popup, prefer `ResultDialog mascot="peeker"` instead. It lets
+  Dugu extend outside the popup's upper-left rounded border: the head stays
+  outside while the artwork's horizontal body cutoff aligns with the popup's
+  top border and only the paws cross into the surface. Do not inset it into
+  empty header space or switch sides for the close button; the close control
+  remains independently usable at upper right.
 - Setup is an inline control deck immediately below the stage on every
   breakpoint. Do not float it over the stage or move it to a desktop side
   sheet. Touch targets are at least 44 px.

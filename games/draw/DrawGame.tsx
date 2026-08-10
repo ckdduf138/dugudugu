@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/ChipsInput";
 import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
 import {
-  DuguResultHandoff,
   GameShell,
   ResultDialog,
 } from "@/components/game-shell";
@@ -305,25 +304,25 @@ export function DrawGame() {
       announcement={resultAnnouncement}
       announcementKey={result.seed}
       initialFocusRef={replayButtonRef}
+      mascot="peeker"
       className="place-self-center max-w-sm border border-ink/10 bg-surface [&>img]:hidden"
       actions={
         <button
           ref={replayButtonRef}
           type="button"
           onClick={resetRound}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-black text-surface shadow-sm transition hover:-translate-y-0.5 hover:bg-ink/92 active:translate-y-0 sm:col-span-2"
+          className="dugu-action-btn inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black outline-none focus-visible:ring-4 focus-visible:ring-candy-mint/35 sm:col-span-2"
         >
-          <RotateCcw size={15} />
+          <RotateCcw aria-hidden size={16} />
           {t("result.replay")}
         </button>
       }
     >
-      <DuguResultHandoff>
-        <ol
-          className={
-            result.winnerCount > 1 ? "divide-y divide-ink/[0.06]" : ""
-          }
-        >
+      <ol
+        className={
+          result.winnerCount > 1 ? "divide-y divide-ink/[0.06]" : ""
+        }
+      >
           {result.winners.map((winner, index) => {
             const colorKey =
               result.winnerEntries[index]?.color ?? fallbackCapsuleColor(index);
@@ -358,8 +357,7 @@ export function DrawGame() {
               </motion.li>
             );
           })}
-        </ol>
-      </DuguResultHandoff>
+      </ol>
     </ResultDialog>
   ) : null;
 

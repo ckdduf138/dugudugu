@@ -28,17 +28,6 @@ export const games: GameMeta[] = [
     maxPlayers: 6,
   },
   {
-    id: "race",
-    slug: "race",
-    category: "race",
-    accent: CANDY_HEX.coral,
-    icon: "十二",
-    status: "soon",
-    minPlayers: 2,
-    maxPlayers: 12,
-    needsPhysics: false,
-  },
-  {
     id: "fortune",
     slug: "fortune",
     category: "fortune",
@@ -48,6 +37,17 @@ export const games: GameMeta[] = [
     minPlayers: 1,
     maxPlayers: 1,
     needsFracture: false,
+  },
+  {
+    id: "race",
+    slug: "race",
+    category: "race",
+    accent: CANDY_HEX.coral,
+    icon: "十二",
+    status: "soon",
+    minPlayers: 2,
+    maxPlayers: 12,
+    needsPhysics: false,
   },
 ];
 
