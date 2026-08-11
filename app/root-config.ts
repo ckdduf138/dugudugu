@@ -20,6 +20,9 @@ export const rootHtmlClassName =
 
 export const rootMetadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  verification: {
+    google: "V0LWQEMkzQlQoG6mGSp1UFldKcpsvuxhbgMof6G0fUE",
+  },
   applicationName: "두구두구",
   title: {
     default: "두구두구 | 귀여운 랜덤 결정 아케이드",
