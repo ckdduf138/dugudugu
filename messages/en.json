@@ -119,13 +119,13 @@
       "title": "Ladder Game",
       "short": "Watch the animal friends race down",
       "tagline": "A cute 2D ladder traced by the animals themselves",
-      "description": "Choose a fixed cast of cute animals, edit only the outcomes below, and watch their faces follow a crisp 2D ladder through one paired edge portal. A seeded uniform permutation freezes the fair result first.",
+      "description": "Choose a fixed cast of cute animals, edit only the outcomes below, and watch their faces follow a crisp 2D ladder through seeded edge portals sized to the field. A seeded uniform permutation freezes the fair result first.",
       "seo": {
         "title": "Free Online Ladder Game",
         "heading": "A ladder game with animal friends"
       },
       "stage": {
-        "aria": "2D ladder board with animal faces and one paired edge portal",
+        "aria": "2D ladder board with animal faces and multiple paired edge portals",
         "playerFallback": "Player {number}",
       "outcomeFallback": "Result {number}",
       "running": "An animal friend is heading down",
@@ -156,7 +156,7 @@
         "start": "Start ladder",
         "startDisabled": "Enter the outcomes first",
         "editHint": "Choose the field and edit only the outcomes below",
-        "portalHint": "The two edge lanes connect through portals"
+        "portalHint": "Each edge lane has seeded portals"
       },
       "result": {
         "kicker": "LADDER COMPLETE",
@@ -179,7 +179,7 @@
         },
         {
           "q": "Do edge portals make it fairer?",
-          "a": "The fair result is chosen first from a seeded uniform permutation, independently of the portals. Portals give the two edge lanes a second visible direction while preserving that frozen result."
+          "a": "Portals themselves do not make the result fairer. A seeded uniform permutation freezes the result independently first, while portals make the edge-lane paths easier to see. The paired-gate count and rows are seeded-random within safe field-size bounds."
         },
         {
           "q": "Can I inspect each animal's route?",

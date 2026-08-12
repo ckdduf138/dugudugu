@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import { motion } from "framer-motion";
 import type {
@@ -18,11 +19,9 @@ import { LadderAnimalFace } from "./LadderAnimalPortrait";
 import { LADDER_RUN_DURATION_MS, TOKEN_CSS_VARS } from "./visual";
 
 const VIEWBOX_WIDTH = 720;
-const VIEWBOX_HEIGHT = 680;
-const TRACK_LEFT = 92;
-const TRACK_RIGHT = 628;
+const VIEWBOX_HEIGHT = 820;
 const TRACK_TOP = 42;
-const TRACK_BOTTOM = 638;
+const TRACK_BOTTOM = 812;
 const PORTAL_LEFT = 34;
 const PORTAL_RIGHT = 686;
 const RUN_DURATION_SECONDS = LADDER_RUN_DURATION_MS / 1_000;
@@ -34,9 +33,11 @@ type Props = {
   animatingPlayer: number | null;
   animationKey: number;
   revealedPlayers: readonly number[];
-  revealAll: boolean;
   onComplete: () => void;
   label: string;
+  playerAriaLabels: readonly string[];
+  onSelectPlayer: (index: number) => void;
+  outcomeSlots: ReactNode;
   reducedMotion?: boolean;
 };
 
@@ -67,10 +68,7 @@ type RouteMotion = {
 };
 
 const columnX = (column: number, playerCount: number) =>
-  playerCount <= 1
-    ? VIEWBOX_WIDTH / 2
-    : TRACK_LEFT +
-      (column / (playerCount - 1)) * (TRACK_RIGHT - TRACK_LEFT);
+  ((column + 0.5) / playerCount) * VIEWBOX_WIDTH;
 
 const progressY = (progress: number) =>
   TRACK_TOP + progress * (TRACK_BOTTOM - TRACK_TOP);
@@ -204,40 +202,79 @@ function EdgeGate({
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
       style={{ transformOrigin: `${x}px ${y}px` }}
     >
-      <circle
+      <ellipse
         cx={x}
         cy={y}
-        r="9"
-        fill="color-mix(in srgb, var(--candy-grape) 14%, var(--surface))"
+        rx="17"
+        ry="23"
+        fill="none"
         stroke="var(--candy-grape)"
-        strokeWidth="3"
+        strokeWidth="2"
+        opacity=".18"
+      />
+      <ellipse
+        cx={x}
+        cy={y}
+        rx="13"
+        ry="18"
+        fill="color-mix(in srgb, var(--candy-grape) 22%, var(--surface))"
+        stroke="var(--candy-grape)"
+        strokeWidth="4"
       />
       <circle
         cx={x}
         cy={y}
-        r="3.5"
+        r="7"
+        fill="color-mix(in srgb, var(--ink) 72%, var(--candy-grape))"
+        stroke="var(--surface)"
+        strokeWidth="2"
+      />
+      <circle
+        cx={x}
+        cy={y}
+        r="3"
         fill={active ? "var(--candy-coral)" : "var(--candy-grape)"}
       />
       <line
-        x1={x + direction * 9}
-        x2={x + direction * 15}
+        x1={x + direction * 13}
+        x2={x + direction * 25}
         y1={y}
         y2={y}
         stroke="var(--candy-grape)"
-        strokeWidth="3"
+        strokeWidth="4"
         strokeLinecap="round"
       />
     </motion.g>
   );
 }
 
-function AnimalTokenArtwork({ index }: { index: number }) {
+function AnimalTokenArtwork({
+  index,
+  completed = false,
+  selected = false,
+}: {
+  index: number;
+  completed?: boolean;
+  selected?: boolean;
+}) {
   const style = {
     "--portrait-accent": `var(${TOKEN_CSS_VARS[index]})`,
   } as CSSProperties;
 
   return (
     <g aria-hidden style={style}>
+      <circle cx="0" cy="0" r="37" fill="transparent" />
+      {selected ? (
+        <circle
+          cx="0"
+          cy="0"
+          r="34"
+          fill="none"
+          stroke={`var(${TOKEN_CSS_VARS[index]})`}
+          strokeWidth="4"
+          opacity=".3"
+        />
+      ) : null}
       <circle
         cx="0"
         cy="0"
@@ -257,6 +294,24 @@ function AnimalTokenArtwork({ index }: { index: number }) {
           <LadderAnimalFace index={index} />
         </g>
       </g>
+      {completed ? (
+        <g transform="translate(20 -20)">
+          <circle
+            r="9"
+            fill={`var(${TOKEN_CSS_VARS[index]})`}
+            stroke="var(--surface)"
+            strokeWidth="3"
+          />
+          <path
+            d="m-4 0 2.6 2.8L4.5-3"
+            fill="none"
+            stroke="var(--ink)"
+            strokeWidth="2.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      ) : null}
     </g>
   );
 }
@@ -268,9 +323,11 @@ export const LadderBoard2D = memo(function LadderBoard2D({
   animatingPlayer,
   animationKey,
   revealedPlayers,
-  revealAll,
   onComplete,
   label,
+  playerAriaLabels,
+  onSelectPlayer,
+  outcomeSlots,
   reducedMotion = false,
 }: Props) {
   const completionKeyRef = useRef<string | null>(null);
@@ -307,15 +364,14 @@ export const LadderBoard2D = memo(function LadderBoard2D({
 
   return (
     <div
-      role="img"
-      aria-label={label}
       className="relative min-h-0 w-full overflow-hidden rounded-[var(--radius-lg)] border border-ink/8 bg-[color-mix(in_srgb,var(--candy-lemon)_7%,var(--surface))]"
       style={{ touchAction: "pan-y" }}
     >
       <svg
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         className="block h-auto w-full"
-        aria-hidden
+        role="img"
+        aria-label={label}
       >
         <defs>
           <pattern
@@ -389,22 +445,6 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                 strokeWidth="3"
                 strokeLinecap="round"
               />
-              <circle
-                cx={x}
-                cy={TRACK_TOP}
-                r="11"
-                fill={`var(${TOKEN_CSS_VARS[column]})`}
-                stroke="var(--surface)"
-                strokeWidth="5"
-              />
-              <circle
-                cx={x}
-                cy={TRACK_BOTTOM}
-                r="11"
-                fill="var(--surface)"
-                stroke={`var(${TOKEN_CSS_VARS[column]})`}
-                strokeWidth="5"
-              />
             </g>
           );
         })}
@@ -416,7 +456,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
               <g key={rung.id}>
                 <line
                   x1={columnX(0, playerCount)}
-                  x2={PORTAL_LEFT + 8}
+                  x2={PORTAL_LEFT + 13}
                   y1={y}
                   y2={y}
                   stroke="color-mix(in srgb, var(--candy-grape) 72%, var(--ink))"
@@ -426,7 +466,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                 />
                 <line
                   x1={columnX(playerCount - 1, playerCount)}
-                  x2={PORTAL_RIGHT - 8}
+                  x2={PORTAL_RIGHT - 13}
                   y1={y}
                   y2={y}
                   stroke="color-mix(in srgb, var(--candy-grape) 72%, var(--ink))"
@@ -539,6 +579,66 @@ export const LadderBoard2D = memo(function LadderBoard2D({
           </g>
         ) : null}
 
+        {Array.from({ length: playerCount }, (_, column) => {
+          if (animatingPlayer === column) return null;
+          const x = columnX(column, playerCount);
+          const revealed = revealedPlayers.includes(column);
+          const selectable =
+            phase !== "idle" &&
+            animatingPlayer == null &&
+            !(phase === "running" && revealed);
+          return (
+            <g
+              key={`start-token-${column}`}
+              transform={`translate(${x} ${TRACK_TOP})`}
+            >
+              <motion.g
+                data-ladder-start-token={column}
+                role={phase === "idle" ? undefined : "button"}
+                tabIndex={selectable ? 0 : -1}
+                aria-label={
+                  phase === "idle" ? undefined : playerAriaLabels[column]
+                }
+                aria-disabled={phase === "idle" ? undefined : !selectable}
+                aria-pressed={
+                  phase === "idle" ? undefined : highlightedPlayer === column
+                }
+                onClick={() => {
+                  if (selectable) onSelectPlayer(column);
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    selectable &&
+                    (event.key === "Enter" || event.key === " ")
+                  ) {
+                    event.preventDefault();
+                    onSelectPlayer(column);
+                  }
+                }}
+                className={selectable ? "cursor-pointer outline-none" : ""}
+                initial={false}
+                animate={{
+                  opacity: revealed ? 0.38 : 1,
+                  scale: highlightedPlayer === column ? 1.08 : 1,
+                }}
+                whileHover={selectable ? { scale: 1.08 } : undefined}
+                whileTap={selectable ? { scale: 0.94 } : undefined}
+                transition={{ type: "spring", stiffness: 360, damping: 23 }}
+                style={{
+                  filter: "url(#ladder-token-shadow)",
+                  transformOrigin: "0px 0px",
+                }}
+              >
+                <AnimalTokenArtwork
+                  index={column}
+                  completed={revealed}
+                  selected={highlightedPlayer === column}
+                />
+              </motion.g>
+            </g>
+          );
+        })}
+
         {animatedAssignment && animatedMotion ? (
                 <motion.g
                   key={`${round.seed}-token-${animatedAssignment.playerIndex}-${animationKey}`}
@@ -574,40 +674,16 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                 </motion.g>
         ) : null}
 
-        {phase !== "idle"
-          ? round.assignments.map((assignment, index) =>
-            revealedPlayers.includes(index) && animatingPlayer !== index ? (
-              <motion.g
-                key={`finish-${round.seed}-${assignment.playerIndex}`}
-                initial={
-                  reducedMotion
-                    ? false
-                    : {
-                        x: columnX(assignment.outcomeIndex, playerCount),
-                        y: TRACK_BOTTOM,
-                        opacity: 0,
-                        scale: 0.5,
-                      }
-                }
-                animate={{
-                  x: columnX(assignment.outcomeIndex, playerCount),
-                  y: TRACK_BOTTOM,
-                  opacity: 1,
-                  scale: highlightedPlayer === index ? 1.18 : 0.9,
-                }}
-                style={{ filter: "url(#ladder-token-shadow)" }}
-                transition={{
-                  type: "spring",
-                  stiffness: 340,
-                  damping: 22,
-                  delay: revealAll ? index * 0.05 : 0,
-                }}
-              >
-                <AnimalTokenArtwork index={assignment.playerIndex} />
-              </motion.g>
-            ) : null)
-          : null}
       </svg>
+
+      <div
+        className="grid items-center gap-0 border-t border-ink/8 bg-surface/72 pb-3 pt-4 sm:pb-4 sm:pt-5"
+        style={{
+          gridTemplateColumns: `repeat(${playerCount}, minmax(0, 1fr))`,
+        }}
+      >
+        {outcomeSlots}
+      </div>
     </div>
   );
 });

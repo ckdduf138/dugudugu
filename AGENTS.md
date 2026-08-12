@@ -174,12 +174,18 @@ candidates, and the old winner-count control is absent. Legacy `?n>1` links
 still reveal their frozen result once. The result keeps only **Draw again**;
 pressing it preserves the candidates but returns to idle, where the user chooses
 when to turn the crank for the next independently frozen round. The ladder is a single compact
-2D SVG board with four blank outcome placeholders by default, compact
+2D SVG board with four blank outcome placeholders by default and compact
 species-specific code-native animal portraits with distinct ears, muzzles,
-markings, head tilts, large double eye highlights, and cheeks above. Four-player
-portraits use a larger toy-sticker presentation while five- and six-player
-boards compact without overlap; outcome-only editing stays below with 44px `−`/`+`
-controls, seeded uniform assignments, exactly one colored paired edge portal,
+markings, head tilts, large double eye highlights, and cheeks. Player profiles
+exist only at the rail starts—there is no duplicate row above the board—and
+become the route-selection buttons after Start. Five- and six-player boards
+compact without overlap. Route strokes stay behind the start faces; completed
+start faces return checked at reduced opacity. The mobile board uses a taller
+route area, and outcome-only fields sit directly at the rail bottoms with no
+separate endpoint dots; a completed face lands as a prominent upper-left badge in
+its frozen outcome field with larger readable type and clear field separation.
+Player count stays on 44px `−`/`+` controls, alongside
+seeded uniform assignments, exactly one colored paired edge portal,
 an in-board start action, animated animal-face route tokens whose colored path
 grows only behind the moving face, an always-available all-results action that
 reveals every frozen assignment at once, dedicated tactile ladder SFX, and

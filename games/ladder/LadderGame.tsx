@@ -13,8 +13,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
   ArrowRight,
-  Check,
-  ChevronDown,
   ListChecks,
   Minus,
   Play,
@@ -47,6 +45,10 @@ type OutcomeLabelProps = {
   index: number;
   compact: boolean;
   phase: LadderPhase;
+  arrivedPlayerIndex: number | null;
+  highlighted: boolean;
+  revealDelay: number;
+  reducedMotion: boolean;
   placeholder: string;
   ariaLabel: string;
   onChange: (value: string) => void;
@@ -57,6 +59,10 @@ function OutcomeLabel({
   index,
   compact,
   phase,
+  arrivedPlayerIndex,
+  highlighted,
+  revealDelay,
+  reducedMotion,
   placeholder,
   ariaLabel,
   onChange,
@@ -69,158 +75,75 @@ function OutcomeLabel({
 
   if (phase !== "idle") {
     return (
-      <div
-        className="relative flex min-h-13 min-w-0 items-center justify-center rounded-[1rem] border-2 border-[color-mix(in_srgb,var(--label-color)_22%,transparent)] px-1.5 pb-1 pt-2 text-center font-black text-ink shadow-[0_4px_0_color-mix(in_srgb,var(--label-color)_15%,transparent)]"
+      <motion.div
+        aria-label={ariaLabel}
+        className="relative mx-1 flex min-h-14 min-w-0 items-center justify-center rounded-[1rem] border-2 border-[color-mix(in_srgb,var(--label-color)_22%,transparent)] px-0.5 py-1 text-center font-black text-ink shadow-[0_4px_0_color-mix(in_srgb,var(--label-color)_15%,transparent)] sm:mx-1.5"
         style={colorStyle}
+        initial={false}
+        animate={{ scale: highlighted ? 1.035 : 1 }}
+        transition={{ type: "spring", stiffness: 360, damping: 24 }}
       >
-        <span
-          aria-hidden
-          className="absolute left-1/2 top-0 grid h-4 min-w-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-ink/8 bg-surface px-1 font-display text-[9px] leading-none text-ink-soft shadow-sm"
-        >
-          {index + 1}
-        </span>
-        <span className={`mt-1 line-clamp-2 break-all leading-tight sm:text-sm ${compact ? "text-[9px]" : "text-[11px]"}`}>
+        {arrivedPlayerIndex != null ? (
+          <motion.span
+            key={`arrival-${arrivedPlayerIndex}`}
+            data-ladder-outcome-avatar={arrivedPlayerIndex}
+            aria-hidden
+            className={`absolute left-1 top-0 z-10 grid place-items-center rounded-full border-2 border-surface bg-[color-mix(in_srgb,var(--arrival-color)_16%,var(--surface))] shadow-[0_3px_8px_color-mix(in_srgb,var(--ink)_18%,transparent)] ${compact ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"}`}
+            style={
+              {
+                "--arrival-color": `var(${TOKEN_CSS_VARS[arrivedPlayerIndex]})`,
+              } as CSSProperties
+            }
+            initial={
+              reducedMotion
+                ? false
+                : { y: -24, scale: 0.55, opacity: 0 }
+            }
+            animate={{ y: compact ? -12 : -14, scale: 1, opacity: 1 }}
+            transition={
+              reducedMotion
+                ? { duration: 0 }
+                : {
+                    type: "spring",
+                    stiffness: 430,
+                    damping: 22,
+                    delay: revealDelay,
+                  }
+            }
+          >
+            <LadderAnimalPortrait
+              index={arrivedPlayerIndex}
+              className={
+                compact
+                  ? "h-7 w-7 sm:h-8 sm:w-8"
+                  : "h-8 w-8 sm:h-9 sm:w-9"
+              }
+            />
+          </motion.span>
+        ) : null}
+        <span className={`line-clamp-2 break-all leading-tight sm:text-sm ${compact ? "text-[11px]" : "text-[13px]"}`}>
           {value}
         </span>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="relative min-w-0 pt-1" style={colorStyle}>
-      <span
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1 z-10 grid h-4 min-w-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-ink/8 bg-surface px-1 font-display text-[9px] leading-none text-ink-soft shadow-sm"
-      >
-        {index + 1}
-      </span>
-      <textarea
+    <div className="relative mx-1 min-w-0 sm:mx-1.5" style={colorStyle}>
+      <input
+        type="text"
         value={value}
-        onChange={(event) => onChange(event.target.value.replace(/\n/g, " "))}
+        onChange={(event) => onChange(event.target.value)}
         onFocus={(event) => event.currentTarget.select()}
         maxLength={24}
-        rows={2}
         autoComplete="off"
         autoCapitalize="off"
         spellCheck={false}
         aria-label={ariaLabel}
         placeholder={placeholder}
-        className={`h-13 min-w-0 w-full resize-none overflow-hidden rounded-[1rem] border-2 border-[color-mix(in_srgb,var(--label-color)_22%,transparent)] px-1 pb-1.5 pt-3 text-center font-black leading-tight text-ink shadow-[0_4px_0_color-mix(in_srgb,var(--label-color)_15%,transparent)] outline-none transition placeholder:text-ink-soft/48 hover:border-[color-mix(in_srgb,var(--label-color)_40%,transparent)] focus:border-[var(--label-color)] focus:bg-surface focus:ring-4 focus:ring-[color-mix(in_srgb,var(--label-color)_18%,transparent)] sm:px-2 sm:text-sm ${compact ? "text-[9px]" : "text-[11px]"}`}
+        className={`h-12 min-w-0 w-full rounded-[1rem] border-2 border-[color-mix(in_srgb,var(--label-color)_22%,transparent)] px-1 text-center font-black leading-none text-ink shadow-[0_4px_0_color-mix(in_srgb,var(--label-color)_15%,transparent)] outline-none transition placeholder:text-ink-soft/48 hover:border-[color-mix(in_srgb,var(--label-color)_40%,transparent)] focus:border-[var(--label-color)] focus:bg-surface focus:ring-4 focus:ring-[color-mix(in_srgb,var(--label-color)_18%,transparent)] sm:px-1.5 sm:text-sm ${compact ? "text-[11px]" : "text-[13px]"}`}
         style={colorStyle}
       />
-    </div>
-  );
-}
-
-type AnimalSlotProps = {
-  index: number;
-  name: string;
-  compact: boolean;
-  phase: LadderPhase;
-  selected: boolean;
-  revealed: boolean;
-  animating: boolean;
-  inviting: boolean;
-  disabled: boolean;
-  ariaLabel: string;
-  onSelect: () => void;
-};
-
-function AnimalSlot({
-  index,
-  name,
-  compact,
-  phase,
-  selected,
-  revealed,
-  animating,
-  inviting,
-  disabled,
-  ariaLabel,
-  onSelect,
-}: AnimalSlotProps) {
-  const token = `var(${TOKEN_CSS_VARS[index]})`;
-  const content = (
-    <>
-      <span
-        className={`relative grid place-items-center overflow-hidden border font-display text-lg text-ink shadow-[0_5px_0_color-mix(in_srgb,var(--animal-color)_14%,transparent)] transition ${compact ? "h-12 w-12 rounded-[1.05rem]" : "h-16 w-16 rounded-[1.45rem]"} ${
-          selected
-            ? "border-[var(--animal-color)] ring-4 ring-[var(--animal-color)]/20"
-            : "border-ink/8"
-        } ${animating ? "opacity-35" : revealed && phase === "running" ? "opacity-70" : "opacity-100"}`}
-        style={{
-          background:
-            "color-mix(in srgb, var(--animal-color) 16%, var(--surface))",
-        }}
-      >
-        <LadderAnimalPortrait
-          index={index}
-          className={compact ? "h-11 w-11" : "h-[3.75rem] w-[3.75rem]"}
-        />
-        <span
-          aria-hidden
-          className="absolute left-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-surface/90 px-1 font-display text-[9px] leading-none text-ink shadow-sm"
-        >
-          {index + 1}
-        </span>
-        {revealed ? (
-          <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-[var(--animal-color)] text-ink shadow-sm">
-            <Check size={11} strokeWidth={3.5} />
-          </span>
-        ) : null}
-      </span>
-      <span className="mt-1.5 line-clamp-1 w-full text-center text-[11px] font-black leading-tight text-ink-soft sm:text-xs">
-        {name}
-      </span>
-      <motion.span
-        aria-hidden
-        className="mt-0.5 grid h-3 place-items-center text-[var(--animal-color)]"
-        initial={false}
-        animate={
-          inviting
-            ? { opacity: [0.35, 1, 0.35], y: [0, 3, 0] }
-            : { opacity: 0, y: 0 }
-        }
-        transition={
-          inviting
-            ? {
-                duration: 0.9,
-                delay: index * 0.07,
-                repeat: 2,
-                ease: "easeInOut",
-              }
-            : { duration: 0.12 }
-        }
-      >
-        <ChevronDown size={13} strokeWidth={3} />
-      </motion.span>
-    </>
-  );
-  const style = { "--animal-color": token } as CSSProperties;
-
-  if (phase !== "idle") {
-    return (
-      <motion.button
-        type="button"
-        onClick={onSelect}
-        disabled={disabled}
-        aria-pressed={selected}
-        aria-label={ariaLabel}
-        className="flex min-h-14 min-w-0 flex-col items-center rounded-xl px-0.5 py-1 outline-none focus-visible:ring-4 focus-visible:ring-[var(--animal-color)]/30 disabled:cursor-default"
-        style={style}
-        {...pressable}
-      >
-        {content}
-      </motion.button>
-    );
-  }
-
-  return (
-    <div
-      className="flex min-h-14 min-w-0 flex-col items-center px-0.5 py-1"
-      style={style}
-    >
-      {content}
     </div>
   );
 }
@@ -412,9 +335,19 @@ export function LadderGame() {
     round && highlightedPlayer != null
       ? round.assignments[highlightedPlayer]
       : null;
-  const columnsStyle = {
-    gridTemplateColumns: `repeat(${players.length}, minmax(0, 1fr))`,
-  };
+  const arrivedPlayersByOutcome = useMemo(() => {
+    const arrived = Array<number | null>(players.length).fill(null);
+    if (!round || phase === "idle") return arrived;
+    round.assignments.forEach((assignment) => {
+      if (
+        revealedPlayers.includes(assignment.playerIndex) &&
+        animatingPlayer !== assignment.playerIndex
+      ) {
+        arrived[assignment.outcomeIndex] = assignment.playerIndex;
+      }
+    });
+    return arrived;
+  }, [animatingPlayer, phase, players.length, revealedPlayers, round]);
   const allResultsText = round
     ? round.assignments
         .map((assignment) => `${assignment.player} → ${assignment.outcome}`)
@@ -504,37 +437,7 @@ export function LadderGame() {
           </div>
         </header>
 
-        <div className="grid gap-1 px-[6.4%] sm:gap-2.5" style={columnsStyle}>
-          {players.map((player, index) => (
-            <AnimalSlot
-              key={`animal-${index}`}
-              index={index}
-              name={player}
-              compact={players.length >= 5}
-              phase={phase}
-              ariaLabel={t("result.routeAria", {
-                player:
-                  player ||
-                  t("stage.playerFallback", { number: index + 1 }),
-              })}
-              onSelect={() => selectRoute(index)}
-              selected={highlightedPlayer === index}
-              revealed={revealedPlayers.includes(index)}
-              animating={animatingPlayer === index}
-              inviting={
-                phase === "running" &&
-                animatingPlayer == null &&
-                !revealedPlayers.includes(index)
-              }
-              disabled={
-                animatingPlayer != null ||
-                (phase === "running" && revealedPlayers.includes(index))
-              }
-            />
-          ))}
-        </div>
-
-        <div className="relative my-1 sm:my-2">
+        <div className="relative mt-1 sm:mt-2">
           <LadderBoard2D
             round={previewRound}
             phase={phase}
@@ -544,10 +447,45 @@ export function LadderGame() {
             animatingPlayer={animatingPlayer}
             animationKey={animationKey}
             revealedPlayers={revealedPlayers}
-            revealAll={revealAllStagger}
             onComplete={completeRound}
             label={t("stage.aria")}
             reducedMotion={shouldReduceMotion}
+            playerAriaLabels={players.map((player, index) =>
+              t("result.routeAria", {
+                player:
+                  player ||
+                  t("stage.playerFallback", { number: index + 1 }),
+              }),
+            )}
+            onSelectPlayer={selectRoute}
+            outcomeSlots={outcomes.map((outcome, index) => {
+              const arrivedPlayerIndex = arrivedPlayersByOutcome[index];
+              return (
+                <OutcomeLabel
+                  key={`outcome-${index}`}
+                  value={outcome}
+                  index={index}
+                  compact={players.length >= 5}
+                  phase={phase}
+                  arrivedPlayerIndex={arrivedPlayerIndex}
+                  highlighted={
+                    arrivedPlayerIndex != null &&
+                    highlightedPlayer === arrivedPlayerIndex
+                  }
+                  revealDelay={
+                    revealAllStagger && arrivedPlayerIndex != null
+                      ? arrivedPlayerIndex * 0.05
+                      : 0
+                  }
+                  reducedMotion={shouldReduceMotion}
+                  placeholder={t("setup.outcomePlaceholder", {
+                    number: index + 1,
+                  })}
+                  ariaLabel={t("setup.outcomeAria", { number: index + 1 })}
+                  onChange={(value) => setOutcome(index, value)}
+                />
+              );
+            })}
           />
           {phase === "idle" ? (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
@@ -570,26 +508,6 @@ export function LadderGame() {
               </motion.button>
             </div>
           ) : null}
-        </div>
-
-        <div
-          className="grid gap-1 px-[7.2%] pt-1 sm:gap-2.5"
-          style={columnsStyle}
-        >
-          {outcomes.map((outcome, index) => (
-            <OutcomeLabel
-              key={`outcome-${index}`}
-              value={outcome}
-              index={index}
-              compact={players.length >= 5}
-              phase={phase}
-              placeholder={t("setup.outcomePlaceholder", {
-                number: index + 1,
-              })}
-              ariaLabel={t("setup.outcomeAria", { number: index + 1 })}
-              onChange={(value) => setOutcome(index, value)}
-            />
-          ))}
         </div>
 
         {phase === "done" && animatingPlayer == null ? (

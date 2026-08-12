@@ -69,8 +69,8 @@ type LadderConnection = Pick<
   "kind" | "fromColumn" | "toColumn"
 >;
 
-function connectionKey(order: readonly number[], usedPortal: boolean): string {
-  return `${order.join(",")}|${usedPortal ? 1 : 0}`;
+function connectionKey(order: readonly number[], portalUses: number): string {
+  return `${order.join(",")}|${portalUses}`;
 }
 
 function swapConnection(
@@ -87,7 +87,7 @@ function swapConnection(
 
 /**
  * Find a short connection sequence that realizes the already-frozen uniform
- * bottom order and uses the edge portal exactly once.
+ * bottom order and uses the requested number of edge portals.
  *
  * With at most six players there are only 720 permutations, so a breadth-first
  * search is small, deterministic, and easier to audit than special-case swap
@@ -96,6 +96,7 @@ function swapConnection(
 function connectionsForBottomOrder(
   bottomTokens: readonly number[],
   rng: () => number,
+  portalCount: number,
 ): LadderConnection[] {
   const playerCount = bottomTokens.length;
   const connections: LadderConnection[] = [
@@ -121,10 +122,10 @@ function connectionsForBottomOrder(
     { length: playerCount },
     (_, index) => index,
   );
-  const startKey = connectionKey(startOrder, false);
-  const targetKey = connectionKey(bottomTokens, true);
-  const queue: Array<{ order: number[]; usedPortal: boolean }> = [
-    { order: startOrder, usedPortal: false },
+  const startKey = connectionKey(startOrder, 0);
+  const targetKey = connectionKey(bottomTokens, portalCount);
+  const queue: Array<{ order: number[]; portalUses: number }> = [
+    { order: startOrder, portalUses: 0 },
   ];
   const previous = new Map<
     string,
@@ -133,17 +134,18 @@ function connectionsForBottomOrder(
 
   for (let cursor = 0; cursor < queue.length; cursor++) {
     const state = queue[cursor];
-    const stateKey = connectionKey(state.order, state.usedPortal);
+    const stateKey = connectionKey(state.order, state.portalUses);
     if (stateKey === targetKey) break;
 
     for (const connection of orderedConnections) {
-      if (state.usedPortal && connection.kind === "portal") continue;
+      const portalUses =
+        state.portalUses + (connection.kind === "portal" ? 1 : 0);
+      if (portalUses > portalCount) continue;
       const nextOrder = swapConnection(state.order, connection);
-      const usedPortal = state.usedPortal || connection.kind === "portal";
-      const nextKey = connectionKey(nextOrder, usedPortal);
+      const nextKey = connectionKey(nextOrder, portalUses);
       if (previous.has(nextKey)) continue;
       previous.set(nextKey, { key: stateKey, connection });
-      queue.push({ order: nextOrder, usedPortal });
+      queue.push({ order: nextOrder, portalUses });
     }
   }
 
@@ -243,7 +245,17 @@ export function createLadderRound({
     Array.from({ length: playerCount }, (_, index) => index),
     rng,
   );
-  const requiredConnections = connectionsForBottomOrder(bottomTokens, rng);
+  // More players get more paired edge gates. The exact gate rows remain
+  // seeded-random, while the destination permutation is frozen first.
+  const minPortalCount = playerCount <= 2 ? 1 : playerCount <= 4 ? 1 : 2;
+  const maxPortalCount = Math.min(3, playerCount - 1);
+  const portalCount =
+    minPortalCount + randInt(rng, maxPortalCount - minPortalCount + 1);
+  const requiredConnections = connectionsForBottomOrder(
+    bottomTokens,
+    rng,
+    portalCount,
+  );
 
   // A two-column board turns every bridge into the same full-width bar, so a
   // dense 10-row target reads like a fence. Keep that special case to 5–6

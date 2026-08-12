@@ -49,9 +49,16 @@ describe("ladder logic", () => {
               (index === 0 || rung.progress > round.rungs[index - 1].progress),
           ),
         ).toBe(true);
+        const portalCount = round.rungs.filter(
+          (rung) => rung.kind === "portal",
+        ).length;
+        expect(portalCount).toBeGreaterThanOrEqual(
+          count <= 2 ? 1 : count <= 4 ? 1 : 2,
+        );
+        expect(portalCount).toBeLessThanOrEqual(Math.min(3, count - 1));
         expect(
           round.rungs.filter((rung) => rung.kind === "portal"),
-        ).toHaveLength(1);
+        ).toHaveLength(portalCount);
         round.assignments.forEach((assignment) => {
           expect(traceLadderColumn(assignment.playerIndex, round.rungs)).toBe(
             assignment.outcomeIndex,
@@ -102,5 +109,22 @@ describe("ladder logic", () => {
       expect(count).toBeGreaterThan(expected * 0.92);
       expect(count).toBeLessThan(expected * 1.08);
     }
+  });
+
+  it("keeps portal rows seeded-random while preserving the frozen mapping", () => {
+    const first = createLadderRound({
+      players: players.slice(0, 6),
+      outcomes: outcomes.slice(0, 6),
+      seed: 101,
+    });
+    const second = createLadderRound({
+      players: players.slice(0, 6),
+      outcomes: outcomes.slice(0, 6),
+      seed: 102,
+    });
+    expect(first.rungs.filter((rung) => rung.kind === "portal")).toHaveLength(3);
+    expect(second.rungs.filter((rung) => rung.kind === "portal")).toHaveLength(3);
+    expect(first.rungs.filter((rung) => rung.kind === "portal").map((rung) => rung.row))
+      .not.toEqual(second.rungs.filter((rung) => rung.kind === "portal").map((rung) => rung.row));
   });
 });

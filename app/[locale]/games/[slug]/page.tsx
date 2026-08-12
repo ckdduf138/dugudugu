@@ -10,7 +10,7 @@ import { TopBar } from "@/components/ui/TopBar";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { gameJsonLd, type FaqItem } from "@/lib/seo";
+import { gameJsonLd } from "@/lib/seo";
 import { absolutePageUrl, absoluteUrl } from "@/lib/site";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -28,56 +28,6 @@ const SOCIAL_IMAGES: Record<
     height: 630,
   },
 };
-
-function isFaqItem(value: unknown): value is FaqItem {
-  if (typeof value !== "object" || value == null) return false;
-  const item = value as Record<string, unknown>;
-  return typeof item.q === "string" && typeof item.a === "string";
-}
-
-function GameSeoArticle({
-  heading,
-  tagline,
-  description,
-  faq,
-}: {
-  heading: string;
-  tagline: string;
-  description: string;
-  faq: FaqItem[];
-}) {
-  return (
-    <article className="relative border-t border-ink/8 bg-bg px-4 py-14 sm:px-6 sm:py-18">
-      <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-black leading-relaxed text-ink-soft sm:text-base">
-          {tagline}
-        </p>
-        <h1 className="mt-2 font-display text-3xl leading-tight text-ink sm:text-4xl">
-          {heading}
-        </h1>
-        <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-ink-soft sm:text-lg">
-          {description}
-        </p>
-
-        <div className="mt-10 border-t border-ink/12">
-          {faq.map((item) => (
-            <section
-              key={item.q}
-              className="border-b border-ink/12 py-6 sm:grid sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)] sm:gap-8 sm:py-7"
-            >
-              <h2 className="font-display text-xl leading-snug text-ink sm:text-2xl">
-                {item.q}
-              </h2>
-              <p className="mt-2 text-sm font-semibold leading-7 text-ink-soft sm:mt-0 sm:text-base sm:leading-8">
-                {item.a}
-              </p>
-            </section>
-          ))}
-        </div>
-      </div>
-    </article>
-  );
-}
 
 export const dynamicParams = false;
 
@@ -210,9 +160,6 @@ export default async function GamePage({ params }: Props) {
     );
   }
 
-  const rawFaq = gt.raw("faq");
-  const faq = Array.isArray(rawFaq) ? rawFaq.filter(isFaqItem) : [];
-
   return (
     <>
       <GamePlayer slug={slug} />
@@ -234,12 +181,6 @@ export default async function GamePage({ params }: Props) {
         })}
       />
 
-      <GameSeoArticle
-        heading={gt("seo.heading")}
-        tagline={gt("tagline")}
-        description={gt("description")}
-        faq={faq}
-      />
     </>
   );
 }

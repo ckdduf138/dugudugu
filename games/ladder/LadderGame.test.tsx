@@ -46,17 +46,39 @@ describe("LadderGame all-results dialog", () => {
   });
 
   it("maps every animal profile and name to its frozen result, then reopens", async () => {
-    render(
+    const { container } = render(
       <NextIntlClientProvider locale="ko" messages={koMessages}>
         <LadderGame />
       </NextIntlClientProvider>,
     );
 
+    expect(
+      container.querySelectorAll("[data-ladder-start-token]"),
+    ).toHaveLength(2);
+
     fireEvent.click(screen.getByRole("button", { name: "사다리 출발" }));
     const round = useLadderStore.getState().round;
     expect(round).not.toBeNull();
+    const catRouteButton = screen.getByRole("button", {
+      name: "고양이의 경로 보기",
+    });
+    expect(catRouteButton.tagName.toLowerCase()).toBe("g");
 
     fireEvent.click(screen.getByRole("button", { name: "전체 결과 보기" }));
+
+    expect(
+      container.querySelectorAll("[data-ladder-start-token]"),
+    ).toHaveLength(2);
+    expect(
+      container.querySelectorAll("[data-ladder-outcome-avatar]"),
+    ).toHaveLength(round?.assignments.length ?? 0);
+    round?.assignments.forEach((assignment) => {
+      const arrival = container.querySelector(
+        `[data-ladder-outcome-avatar="${assignment.playerIndex}"]`,
+      );
+      expect(arrival?.parentElement?.textContent).toContain(assignment.outcome);
+    });
+    expect(catRouteButton.getAttribute("aria-disabled")).toBe("false");
 
     const dialog = screen.getByRole("dialog", { name: "사다리 결과" });
     const mapping = screen.getByLabelText("동물별 사다리 결과");
