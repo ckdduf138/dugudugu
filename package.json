@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:fairness": "vitest run lib/random.test.ts games/draw/logic.test.ts games/ladder/logic.test.ts games/fortune/logic.test.ts games/race/logic.test.ts --reporter=verbose",
     "test:watch": "vitest"
   },
   "dependencies": {

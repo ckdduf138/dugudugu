@@ -127,7 +127,8 @@ Techniques to reach for (use a subset per game, keep it snappy):
 
 ## 7. Status (update as you go)
 Current foundation: static KO/EN roots with correct initial `<html lang>`,
-seeded pure logic, one-Canvas game shell, rAF cue timeline, adaptive
+seeded pure logic, a deterministic shared fairness audit covering chi-square,
+z-score, and total-variation checks across every game, one-Canvas game shell, rAF cue timeline, adaptive
 quality/WebGL fallback, accessible result dialog, sound/haptics helpers, and a
 Blender→GLB build path.
 The v1.1 UI uses one shared left-aligned Jua route title with two restrained

@@ -29,7 +29,9 @@ export function randomSeed(): number {
   if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     return crypto.getRandomValues(new Uint32Array(1))[0];
   }
-  return (Math.random() * 0xffffffff) >>> 0;
+  // 2^32 is exclusive here, so every uint32 value including 0xffffffff can
+  // be produced. Multiplying by 0xffffffff would omit that final value.
+  return Math.floor(Math.random() * 0x100000000) >>> 0;
 }
 
 export type Rng = () => number;

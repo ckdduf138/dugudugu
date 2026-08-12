@@ -6,6 +6,10 @@ import {
   isFortuneCategory,
   pickFortune,
 } from "./logic";
+import {
+  chiSquareUpperBound,
+  uniformityReport,
+} from "@/lib/testing/uniformity";
 
 describe("fortune logic", () => {
   it("keeps the four one-glance categories explicit", () => {
@@ -39,16 +43,26 @@ describe("fortune logic", () => {
     expect(pickFortune(input)).toEqual(pickFortune(input));
   });
 
-  it("gives each message an approximately uniform chance", () => {
-    const messages = ["A", "B", "C", "D"];
-    const counts = new Map(messages.map((message) => [message, 0]));
-    for (let seed = 0; seed < 20_000; seed += 1) {
-      const result = pickFortune({ category: "luck", messages, seed });
-      counts.set(result.message, (counts.get(result.message) ?? 0) + 1);
-    }
-    for (const count of counts.values()) {
-      expect(count).toBeGreaterThan(4_650);
-      expect(count).toBeLessThan(5_350);
+  it("gives each message a uniform chance in small and full-sized banks", () => {
+    const trials = 50_000;
+
+    for (const bankSize of [2, 25, 100]) {
+      const messages = Array.from(
+        { length: bankSize },
+        (_, index) => `fortune-${index}`,
+      );
+      const counts = Array.from({ length: bankSize }, () => 0);
+      for (let seed = 0; seed < trials; seed += 1) {
+        const result = pickFortune({ category: "luck", messages, seed });
+        counts[result.messageIndex]++;
+      }
+
+      const report = uniformityReport(counts);
+      expect(report.chiSquare).toBeLessThan(
+        chiSquareUpperBound(bankSize),
+      );
+      expect(report.maxZScore).toBeLessThan(5);
+      expect(report.totalVariationDistance).toBeLessThan(0.035);
     }
   });
 

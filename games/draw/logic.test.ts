@@ -1,8 +1,27 @@
 import { describe, it, expect } from "vitest";
 import { drawWinners, cleanCandidates } from "./logic";
 import type { DrawEntry } from "./colors";
+import {
+  chiSquareUpperBound,
+  uniformityReport,
+} from "@/lib/testing/uniformity";
 
 const CANDS = ["가", "나", "다", "라", "마"];
+
+function combinationKeys(itemCount: number, pickCount: number): string[] {
+  const keys: string[] = [];
+  const visit = (start: number, selected: number[]) => {
+    if (selected.length === pickCount) {
+      keys.push(selected.join(","));
+      return;
+    }
+    for (let index = start; index < itemCount; index++) {
+      visit(index + 1, [...selected, index]);
+    }
+  };
+  visit(0, []);
+  return keys;
+}
 
 describe("draw logic", () => {
   it("cleans blanks and trims", () => {
@@ -53,18 +72,71 @@ describe("draw logic", () => {
       .toHaveLength(CANDS.length);
   });
 
-  it("is fair: every candidate wins ~equally over many seeds", () => {
-    const trials = 20000;
-    const wins: Record<string, number> = {};
-    CANDS.forEach((c) => (wins[c] = 0));
-    for (let s = 0; s < trials; s++) {
-      const { winners } = drawWinners({ candidates: CANDS, winners: 1, seed: s });
-      wins[winners[0]]++;
+  it("follows the law of large numbers for one, two, and three winners", () => {
+    const trials = 60_000;
+
+    for (const winnerCount of [1, 2, 3]) {
+      const inclusions = Array.from({ length: CANDS.length }, () => 0);
+      const combinations = new Map(
+        combinationKeys(CANDS.length, winnerCount).map((key) => [key, 0]),
+      );
+
+      for (let seed = 0; seed < trials; seed++) {
+        const result = drawWinners({
+          candidates: CANDS,
+          winners: winnerCount,
+          seed,
+        });
+        const indexes = result.winners
+          .map((winner) => CANDS.indexOf(winner))
+          .sort((a, b) => a - b);
+        for (const index of indexes) inclusions[index]++;
+        const key = indexes.join(",");
+        combinations.set(key, (combinations.get(key) ?? 0) + 1);
+      }
+
+      const inclusionReport = uniformityReport(inclusions);
+      expect(inclusionReport.expectedPerBucket).toBe(
+        (trials * winnerCount) / CANDS.length,
+      );
+      expect(inclusionReport.chiSquare).toBeLessThan(
+        chiSquareUpperBound(CANDS.length),
+      );
+      expect(inclusionReport.maxZScore).toBeLessThan(5);
+
+      const combinationReport = uniformityReport([...combinations.values()]);
+      expect(combinationReport.chiSquare).toBeLessThan(
+        chiSquareUpperBound(combinations.size),
+      );
+      expect(combinationReport.maxZScore).toBeLessThan(5);
+      expect(combinationReport.totalVariationDistance).toBeLessThan(0.015);
     }
-    const expected = trials / CANDS.length; // 4000
-    for (const c of CANDS) {
-      expect(wins[c]).toBeGreaterThan(expected * 0.9);
-      expect(wins[c]).toBeLessThan(expected * 1.1);
+  });
+
+  it("treats duplicate labels as distinct equally weighted capsule entries", () => {
+    const candidates = ["같은 이름", "같은 이름", "다른 이름"];
+    const entries: DrawEntry[] = candidates.map((label, index) => ({
+      id: `ticket-${index}`,
+      label,
+      color: (["pink", "sky", "mint"] as const)[index],
+    }));
+    const counts = [0, 0, 0];
+
+    for (let seed = 0; seed < 30_000; seed++) {
+      const result = drawWinners({
+        candidates,
+        entries,
+        winners: 1,
+        seed,
+      });
+      const winnerIndex = entries.findIndex(
+        (entry) => entry.id === result.winnerEntries[0].id,
+      );
+      counts[winnerIndex]++;
     }
+
+    const report = uniformityReport(counts);
+    expect(report.chiSquare).toBeLessThan(chiSquareUpperBound(counts.length));
+    expect(report.maxZScore).toBeLessThan(5);
   });
 });

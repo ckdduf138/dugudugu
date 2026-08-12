@@ -5,9 +5,26 @@ import {
   isValidLadderSetup,
   traceLadderColumn,
 } from "./logic";
+import { makeRng, shuffle } from "@/lib/random";
+import {
+  chiSquareUpperBound,
+  uniformityReport,
+} from "@/lib/testing/uniformity";
 
 const players = ["A", "B", "C", "D", "E", "F"];
 const outcomes = ["1", "2", "3", "4", "5", "6"];
+
+function portalFreePermutation(playerCount: number, seed: number): number[] {
+  const bottomTokens = shuffle(
+    Array.from({ length: playerCount }, (_, index) => index),
+    makeRng(seed),
+  );
+  const permutation = new Array<number>(playerCount);
+  bottomTokens.forEach((playerIndex, outcomeIndex) => {
+    permutation[playerIndex] = outcomeIndex;
+  });
+  return permutation;
+}
 
 describe("ladder logic", () => {
   it("accepts only complete 2–6 player setups", () => {
@@ -35,6 +52,9 @@ describe("ladder logic", () => {
         expect([...round.permutation].sort((a, b) => a - b)).toEqual(
           Array.from({ length: count }, (_, index) => index),
         );
+        // The visible portal/bridge synthesis must realize, but never alter,
+        // the uniform assignment frozen by the first Fisher–Yates shuffle.
+        expect(round.permutation).toEqual(portalFreePermutation(count, seed));
         expect(
           round.rungs.every(
             (rung, index) =>
@@ -93,21 +113,39 @@ describe("ladder logic", () => {
     }
   });
 
-  it("distributes a player's destination approximately evenly", () => {
-    const counts = [0, 0, 0, 0];
-    const trials = 20_000;
+  it("stays uniform even when results are grouped by visible portal count", () => {
+    const portalCountFrequencies = [0, 0, 0];
+    const destinationsByPortalCount = Array.from({ length: 3 }, () =>
+      Array.from({ length: 4 }, () => 0),
+    );
+    const trials = 30_000;
+
     for (let seed = 0; seed < trials; seed++) {
       const round = createLadderRound({
         players: players.slice(0, 4),
         outcomes: outcomes.slice(0, 4),
         seed,
       });
-      counts[round.permutation[0]]++;
+      const portalCount = round.rungs.filter(
+        (rung) => rung.kind === "portal",
+      ).length;
+      portalCountFrequencies[portalCount - 1]++;
+      destinationsByPortalCount[portalCount - 1][round.permutation[0]]++;
     }
-    const expected = trials / counts.length;
-    for (const count of counts) {
-      expect(count).toBeGreaterThan(expected * 0.92);
-      expect(count).toBeLessThan(expected * 1.08);
+
+    const portalCountReport = uniformityReport(portalCountFrequencies);
+    expect(portalCountReport.chiSquare).toBeLessThan(
+      chiSquareUpperBound(portalCountFrequencies.length),
+    );
+    expect(portalCountReport.maxZScore).toBeLessThan(5);
+
+    for (const counts of destinationsByPortalCount) {
+      const report = uniformityReport(counts);
+      expect(report.chiSquare).toBeLessThan(
+        chiSquareUpperBound(counts.length),
+      );
+      expect(report.maxZScore).toBeLessThan(5);
+      expect(report.totalVariationDistance).toBeLessThan(0.035);
     }
   });
 

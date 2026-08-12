@@ -11,6 +11,10 @@ import {
   progressVelocityAt,
   rankRace,
 } from "./logic";
+import {
+  chiSquareUpperBound,
+  uniformityReport,
+} from "@/lib/testing/uniformity";
 
 const NAMES = ["호랑이", "말", "사슴", "강아지", "고양이", "펭귄", "닭"];
 
@@ -271,18 +275,27 @@ describe("animal race logic", () => {
     }
   });
 
-  it("selects every lane approximately equally for 2, 6, and 7 racers", () => {
+  it("distributes every lane uniformly across every finishing place", () => {
     const trials = 18_000;
     for (const racerCount of [2, 6, 7] as const) {
       const names = namesFor(racerCount);
-      const wins = Array.from({ length: racerCount }, () => 0);
+      const positionCountsByLane = Array.from({ length: racerCount }, () =>
+        Array.from({ length: racerCount }, () => 0),
+      );
       for (let seed = 0; seed < trials; seed++) {
-        wins[createRace({ names, seed }).winnerLane]++;
+        const race = createRace({ names, seed });
+        race.finishOrder.forEach((lane, place) => {
+          positionCountsByLane[lane][place]++;
+        });
       }
-      const expected = trials / racerCount;
-      for (const count of wins) {
-        expect(count).toBeGreaterThan(expected * 0.9);
-        expect(count).toBeLessThan(expected * 1.1);
+
+      for (const counts of positionCountsByLane) {
+        const report = uniformityReport(counts);
+        expect(report.chiSquare).toBeLessThan(
+          chiSquareUpperBound(racerCount),
+        );
+        expect(report.maxZScore).toBeLessThan(5);
+        expect(report.totalVariationDistance).toBeLessThan(0.025);
       }
     }
   });
