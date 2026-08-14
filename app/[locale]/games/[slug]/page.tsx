@@ -10,7 +10,7 @@ import { TopBar } from "@/components/ui/TopBar";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { gameJsonLd } from "@/lib/seo";
+import { faqJsonLd, gameJsonLd, type FaqItem } from "@/lib/seo";
 import { absolutePageUrl, absoluteUrl } from "@/lib/site";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -160,6 +160,8 @@ export default async function GamePage({ params }: Props) {
     );
   }
 
+  const faqItems = gt.raw("faq") as FaqItem[];
+
   return (
     <>
       <GamePlayer slug={slug} />
@@ -180,6 +182,43 @@ export default async function GamePage({ params }: Props) {
           locale,
         })}
       />
+
+      <JsonLd data={faqJsonLd(faqItems)} />
+
+      <article className="border-t border-ink/8 bg-surface px-5 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-3xl">
+          <p className="text-sm font-black tracking-[0.14em] text-ink-soft uppercase">
+            {gt("title")}
+          </p>
+          <h1 className="mt-2 break-keep font-display text-3xl leading-tight text-ink sm:text-4xl">
+            {gt("seo.heading")}
+          </h1>
+          <p className="mt-5 break-keep text-base font-semibold leading-8 text-ink-soft sm:text-lg">
+            {gt("description")}
+          </p>
+
+          <section className="mt-10" aria-labelledby="game-faq-heading">
+            <h2
+              id="game-faq-heading"
+              className="font-display text-2xl text-ink sm:text-3xl"
+            >
+              {t("common.faq")}
+            </h2>
+            <div className="mt-4 divide-y divide-ink/8 border-y border-ink/8">
+              {faqItems.map((item) => (
+                <section key={item.q} className="py-5 sm:py-6">
+                  <h3 className="break-keep text-base font-black leading-7 text-ink sm:text-lg">
+                    {item.q}
+                  </h3>
+                  <p className="mt-2 break-keep text-sm font-semibold leading-7 text-ink-soft sm:text-base">
+                    {item.a}
+                  </p>
+                </section>
+              ))}
+            </div>
+          </section>
+        </div>
+      </article>
 
     </>
   );

@@ -1,7 +1,7 @@
 // Structured-data helpers. The objects are serialized into <script
 // type="application/ld+json"> tags so search engines can show rich results.
 
-import { absolutePageUrl } from "@/lib/site";
+import { absolutePageUrl, absoluteUrl } from "@/lib/site";
 
 export type FaqItem = { q: string; a: string };
 
@@ -19,15 +19,35 @@ export function faqJsonLd(items: FaqItem[]) {
 
 export function websiteJsonLd() {
   const url = absolutePageUrl("/");
+  const organizationId = `${url}#organization`;
 
   return {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${url}#website`,
-    name: "두구두구",
-    alternateName: "Dugudugu",
-    url,
-    inLanguage: ["ko", "en"],
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${url}#website`,
+        name: "두구두구",
+        alternateName: ["Dugudugu", "두구두구 랜덤 아케이드"],
+        url,
+        inLanguage: ["ko", "en"],
+        publisher: { "@id": organizationId },
+      },
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: "두구두구",
+        alternateName: "Dugudugu",
+        url,
+        logo: {
+          "@type": "ImageObject",
+          url: absoluteUrl("/brand-icon-512.png"),
+          contentUrl: absoluteUrl("/brand-icon-512.png"),
+          width: 512,
+          height: 512,
+        },
+      },
+    ],
   };
 }
 

@@ -35,6 +35,12 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html lang={locale} className={rootHtmlClassName}>
       <head>
         <link
+          rel="icon"
+          href="/brand-icon-192.png"
+          type="image/png"
+          sizes="192x192"
+        />
+        <link
           rel="preconnect"
           href="https://cdn.jsdelivr.net"
           crossOrigin="anonymous"

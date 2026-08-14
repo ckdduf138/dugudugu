@@ -29,7 +29,7 @@ export const rootMetadata: Metadata = {
     template: "%s | 두구두구",
   },
   description:
-    "무료 사다리타기 게임, 캡슐 뽑기, 복불복 랜덤 선택, 포츈쿠키를 공정하고 귀엽게 즐기는 두구두구.",
+    "무료 사다리타기 게임, 캡슐 뽑기, 복불복 랜덤 선택, 포춘쿠키를 공정하고 귀엽게 즐기는 두구두구.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -41,13 +41,13 @@ export const rootMetadata: Metadata = {
     siteName: "두구두구",
     title: "두구두구 — 귀여운 랜덤 결정 아케이드",
     description:
-      "캡슐 뽑기, 사다리타기, 포츈쿠키로 공정하고 귀엽게 결정해요.",
+      "캡슐 뽑기, 사다리타기, 포춘쿠키로 공정하고 귀엽게 결정해요.",
     images: [
       {
         url: "/images/brand/social-card.png",
         width: 1200,
         height: 630,
-        alt: "두구두구 — 뽑기, 사다리타기, 포츈쿠키",
+        alt: "두구두구 — 뽑기, 사다리타기, 포춘쿠키",
       },
     ],
   },

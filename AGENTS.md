@@ -11,7 +11,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 > Single source of truth for **both Claude Code and Codex**. Read this before any change. `CLAUDE.md` imports this file, so Claude and Codex share these rules. Keep this file updated when a decision changes.
 
 ## 1. Product
-결과만 얻는 도구가 아니라 결과가 나오기 전 3–6초 자체가 재미있는 **귀여운 랜덤 결정 아케이드** (뽑기 · 사다리타기 · 경주 · 포츈쿠키 · 룰렛 …). 누군가 제비뽑기나 사다리타기 같은 랜덤 게임이 필요할 때 가장 먼저 찾는 사이트가 목표다. KO + EN, fully static, mobile-first. 우선순위는 **게임별로 가장 읽기 좋은 시각 표현과 모션의 완성도 → 사용성/공정성 → 속도 → SEO/수익화**다.
+결과만 얻는 도구가 아니라 결과가 나오기 전 3–6초 자체가 재미있는 **귀여운 랜덤 결정 아케이드** (뽑기 · 사다리타기 · 경주 · 포춘쿠키 · 룰렛 …). 누군가 제비뽑기나 사다리타기 같은 랜덤 게임이 필요할 때 가장 먼저 찾는 사이트가 목표다. KO + EN, fully static, mobile-first. 우선순위는 **게임별로 가장 읽기 좋은 시각 표현과 모션의 완성도 → 사용성/공정성 → 속도 → SEO/수익화**다.
 
 ### Core UX flow (keep it this simple)
 1. **Main**: click a game card → go to its page. Nothing else needed on main.
@@ -268,5 +268,9 @@ GLBs without redistributing the licensed race source
 Meshy MCP remains optional;
 the product no longer depends on a paid generation/download path. Static
 sitemap, robots, manifest, and OG image assets ship with the export. The
+domain root carries the preferred WebSite/Organization name and logo signals,
+every layout declares one stable 192px brand favicon for search, and each live
+game ships its translated h1, description, and visible FAQ in the static HTML
+below the uninterrupted game viewport. The
 production origin is `https://dugudugu-chameleon.vercel.app`; the next gates are
 final real-device a11y/performance QA and search-console indexing checks.

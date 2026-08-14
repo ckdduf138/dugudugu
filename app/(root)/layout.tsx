@@ -15,6 +15,12 @@ export default function RedirectRootLayout({
     <html lang="ko" className={rootHtmlClassName}>
       <head>
         <link
+          rel="icon"
+          href="/brand-icon-192.png"
+          type="image/png"
+          sizes="192x192"
+        />
+        <link
           rel="preconnect"
           href="https://cdn.jsdelivr.net"
           crossOrigin="anonymous"
