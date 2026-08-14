@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { seekOneShotClip } from "./animation";
 
 const MODEL_URL = "/models/fortune/fortune-cookie.glb?v=20260730-15";
 const CRACKED_STEP = 10;
@@ -27,6 +28,7 @@ function CameraChoreography({
   reducedMotion: boolean;
 }) {
   const camera = useThree((state) => state.camera);
+  const invalidate = useThree((state) => state.invalidate);
   const startedAt = useRef(-1);
   const targetPosition = useRef(new THREE.Vector3());
   const targetLook = useRef(new THREE.Vector3());
@@ -35,6 +37,14 @@ function CameraChoreography({
   useEffect(() => {
     startedAt.current = -1;
   }, [beat, crackStep]);
+
+  useLayoutEffect(() => {
+    if (beat !== "reveal") return;
+    camera.position.set(0, 0.22, 12.35);
+    look.current.set(0, 0.18, 0);
+    camera.lookAt(look.current);
+    invalidate();
+  }, [beat, camera, invalidate]);
 
   useFrame((state, delta) => {
     if (startedAt.current < 0) startedAt.current = state.clock.elapsedTime;
@@ -70,11 +80,14 @@ function CameraChoreography({
         Math.cos(elapsed * 190) * strength * 0.55;
     }
 
-    const smoothing = reducedMotion
+    // The result switches the canvas to `frameloop="demand"`. Snap the
+    // camera to its authored reveal pose on that last requested frame instead
+    // of leaving a partially-smoothed camera behind when the loop freezes.
+    const smoothing = reducedMotion || beat === "reveal"
       ? 1
       : 1 -
         Math.exp(
-          -delta * (beat === "crack" || beat === "reveal" ? 24 : 7.5),
+          -delta * (beat === "crack" ? 24 : 7.5),
         );
     camera.position.lerp(targetPosition.current, smoothing);
     look.current.lerp(targetLook.current, smoothing);
@@ -110,6 +123,7 @@ function FortuneAsset({
   reducedMotion,
 }: Pick<Props, "beat" | "crackStep" | "forceFinal" | "reducedMotion">) {
   const gltf = useGLTF(MODEL_URL);
+  const invalidate = useThree((state) => state.invalidate);
   const scene = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const actionRef = useRef<THREE.AnimationAction | null>(null);
@@ -160,9 +174,10 @@ function FortuneAsset({
       setObjectsVisible(objects, visible);
       setObjectsOpacity(objects, visible ? 1 : 0);
     });
-  }, [crackStep, forceFinal]);
+    invalidate();
+  }, [crackStep, forceFinal, invalidate]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const clip =
       THREE.AnimationClip.findByName(gltf.animations, "CrackReveal") ??
       gltf.animations[0];
@@ -170,13 +185,11 @@ function FortuneAsset({
 
     const mixer = new THREE.AnimationMixer(scene);
     const action = mixer.clipAction(clip, scene);
-    action.reset().setLoop(THREE.LoopOnce, 1).play();
-    action.clampWhenFinished = true;
     mixerRef.current = mixer;
     actionRef.current = action;
     clipDurationRef.current = clip.duration;
     scrubTimeRef.current = 0;
-    mixer.setTime(0);
+    seekOneShotClip(mixer, action, 0);
 
     return () => {
       action.stop();
@@ -188,20 +201,23 @@ function FortuneAsset({
     };
   }, [gltf.animations, scene]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mixer = mixerRef.current;
     const action = actionRef.current;
-    if (!mixer) return;
+    if (!mixer || !action) return;
     if (beat === "idle" || beat === "press") {
-      action?.reset().setLoop(THREE.LoopOnce, 1).play();
       scrubTimeRef.current = 0;
-      mixer.setTime(0);
+      seekOneShotClip(mixer, action, 0);
     }
     if (forceFinal || reducedMotion || beat === "reveal") {
       scrubTimeRef.current = clipDurationRef.current;
-      mixer.setTime(clipDurationRef.current);
+      seekOneShotClip(mixer, action, clipDurationRef.current);
     }
-  }, [beat, forceFinal, reducedMotion]);
+    // Apply the pose during React's commit, before R3F renders the frame.
+    // `mixer.setTime` mutates Three objects outside React's prop system, so it
+    // also needs an explicit invalidation when the loop is demand-driven.
+    invalidate();
+  }, [beat, forceFinal, invalidate, reducedMotion]);
 
   useFrame((_state, delta) => {
     const mixer = mixerRef.current;

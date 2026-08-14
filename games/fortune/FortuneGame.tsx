@@ -224,6 +224,7 @@ export function FortuneGame() {
   const activeMessages = categoryMessages[selectedCategory];
   const [beat, setBeat] = useState<FortuneBeat>("idle");
   const [crackStep, setCrackStep] = useState<CrackStep>(0);
+  const [canvasSettled, setCanvasSettled] = useState(false);
 
   const handleCue = useCallback((cue: FortuneVisualCue) => {
     setBeat(cue.beat);
@@ -240,6 +241,22 @@ export function FortuneGame() {
     onComplete: reveal,
     reducedMotion: reduceMotion,
   });
+
+  useEffect(() => {
+    if (phase !== "done" || reduceMotion) return;
+
+    // Keep the continuous loop alive until the authored final pose has been
+    // painted. Freezing on the same render that changes `phase` can discard
+    // the mixer's last frame on slower/mobile compositors.
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => setCanvasSettled(true));
+    });
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      if (secondFrame) cancelAnimationFrame(secondFrame);
+    };
+  }, [phase, reduceMotion]);
 
   useEffect(() => {
     const shared = decodeFortuneParams(window.location.search);
@@ -271,6 +288,7 @@ export function FortuneGame() {
 
   const replay = useCallback(() => {
     timeline.reset();
+    setCanvasSettled(false);
     setBeat("idle");
     setCrackStep(0);
     reset();
@@ -307,7 +325,7 @@ export function FortuneGame() {
         active
         reducedMotion={reduceMotion}
         shadows={false}
-        frameloop={phase === "done" ? "demand" : "always"}
+        frameloop={phase === "done" && canvasSettled ? "demand" : "always"}
         camera={{ position: [0, 0.15, 10.8], fov: 34, near: 0.1, far: 35 }}
         gl={{
           alpha: false,
