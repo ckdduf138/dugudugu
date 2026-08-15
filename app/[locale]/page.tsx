@@ -62,7 +62,7 @@ export default async function LobbyPage({ params }: Props) {
 
   return (
     <>
-      <TopBar siteName={t("site.name")} soundLabel={t("common.sound")} />
+      <TopBar siteName={t("site.name")} />
 
       <JsonLd data={websiteJsonLd()} />
 

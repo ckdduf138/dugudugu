@@ -25,7 +25,6 @@ import {
   SkipCutsceneButton,
 } from "@/components/game-shell";
 import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
-import { playSfx, preloadSfx } from "@/lib/audio";
 import { vibrate } from "@/lib/haptics";
 import { pressable, spring } from "@/lib/motion";
 import {
@@ -186,13 +185,6 @@ export function LadderGame() {
   useEffect(() => {
     const shared = decodeLadderParams(window.location.search);
     if (shared) hydrateFromShare(shared);
-    preloadSfx([
-      "ladder-start",
-      "ladder-step",
-      "ladder-portal",
-      "ladder-select",
-      "ladder-finish",
-    ]);
     return clear;
   }, [clear, hydrateFromShare]);
 
@@ -203,15 +195,8 @@ export function LadderGame() {
 
   useEffect(() => {
     if (animatingPlayer == null) return;
-    let step = 0;
     const timer = window.setInterval(() => {
-      const rates = [0.96, 1.04, 0.99, 1.08];
-      playSfx("ladder-step", {
-        volume: 0.24,
-        rate: rates[step % rates.length],
-      });
       vibrate("tick");
-      step += 1;
     }, 470);
     const assignment = round?.assignments[animatingPlayer];
     const portal = assignment?.path.find((point) => point.via === "portal");
@@ -219,7 +204,6 @@ export function LadderGame() {
       portal == null
         ? null
         : window.setTimeout(() => {
-            playSfx("ladder-portal", { volume: 0.48 });
             vibrate("pop");
           }, Math.max(420, portal.progress * LADDER_RUN_DURATION_MS));
     return () => {
@@ -230,7 +214,6 @@ export function LadderGame() {
 
   useEffect(() => {
     if (phase !== "done" || !round) return;
-    playSfx("ladder-finish", { volume: 0.62 });
     vibrate("win");
   }, [phase, round]);
 
@@ -303,7 +286,6 @@ export function LadderGame() {
     setRevealedPlayers([]);
     setRevealAllStagger(false);
     setResultsDialogOpen(false);
-    playSfx("ladder-start", { volume: 0.54 });
     vibrate("pop");
   }, [beginRound, shouldReduceMotion]);
 
@@ -324,10 +306,6 @@ export function LadderGame() {
     setRevealAllStagger(false);
     setResultsDialogOpen(false);
     setAnimationKey((current) => current + 1);
-    playSfx("ladder-select", {
-      volume: 0.36,
-      rate: 0.98 + index * 0.025,
-    });
     vibrate("tap");
   }, [animatingPlayer, phase, revealedPlayers]);
 
@@ -369,7 +347,7 @@ export function LadderGame() {
 
   return (
     <>
-      <main className="relative min-h-[100svh] overflow-x-hidden bg-[radial-gradient(circle_at_12%_18%,color-mix(in_srgb,var(--candy-sky)_12%,transparent),transparent_27%),radial-gradient(circle_at_88%_74%,color-mix(in_srgb,var(--candy-mint)_11%,transparent),transparent_25%),linear-gradient(180deg,var(--bg),color-mix(in_srgb,var(--candy-lemon)_9%,var(--bg))_58%,color-mix(in_srgb,var(--candy-mint)_7%,var(--bg)))] pb-5 pt-[4.75rem] [--primary:var(--candy-sky)] sm:px-6 sm:pb-8 sm:pt-20">
+      <main className="relative min-h-[100svh] overflow-x-hidden bg-[radial-gradient(circle_at_12%_18%,color-mix(in_srgb,var(--candy-sky)_12%,transparent),transparent_27%),radial-gradient(circle_at_88%_74%,color-mix(in_srgb,var(--candy-mint)_11%,transparent),transparent_25%),linear-gradient(180deg,var(--bg),color-mix(in_srgb,var(--candy-lemon)_9%,var(--bg))_58%,color-mix(in_srgb,var(--candy-mint)_7%,var(--bg)))] pb-5 pt-[calc(env(safe-area-inset-top)+1rem)] [--primary:var(--candy-sky)] sm:px-6 sm:pb-8 sm:pt-[calc(env(safe-area-inset-top)+1.5rem)]">
         <LiveAnnouncer
           message={announcement}
           announcementKey={`${phase}:${round?.seed ?? "setup"}:${highlightedPlayer ?? "none"}:${animatingPlayer ?? "none"}:${revealedPlayers.length}`}
@@ -386,10 +364,10 @@ export function LadderGame() {
           aria-hidden
           className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full border-[18px] border-candy-lemon/[0.08]"
         />
-        <header className="flex items-center justify-between gap-2 px-1 pb-3 sm:gap-3 sm:pb-4">
+        <header className="flex flex-col items-stretch gap-3 px-1 pb-3 sm:gap-4 sm:pb-4">
           <GameRouteTitle id={boardTitleId}>{t("title")}</GameRouteTitle>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             {phase === "idle" ? (
               <div
                 className="inline-grid shrink-0 grid-cols-[2.75rem_3.45rem_2.75rem] items-center rounded-[1.15rem] border-2 border-candy-sky/20 bg-surface p-1 shadow-[0_5px_0_color-mix(in_srgb,var(--candy-sky)_18%,transparent),0_9px_18px_color-mix(in_srgb,var(--ink)_7%,transparent)]"

@@ -54,9 +54,8 @@ Read this file only for changes under `games/ladder/`.
   same full width; larger fields keep the denser 10–16-row rhythm. The mobile
   board deliberately uses the available vertical viewport instead of compressing
   the route into a short square.
-- Ladder audio uses its dedicated file-backed set: a soft wooden start cue,
-  bead-like route steps, one airy portal pass, a small selection tap, and a
-  toy-marimba finish. Do not fall back to generic capsule `pop`/`tick` cues.
+- Ladder ships without runtime audio. Restrained haptics may reinforce start,
+  route steps, portal passage, selection, and completion.
 - Setup's single start action floats in the ladder board and disappears during
   play. The same disabled Start button stays in place while outcomes are
   incomplete; empty fields communicate why. Do not add visible narration pills
@@ -67,9 +66,8 @@ Read this file only for changes under `games/ladder/`.
   left with its frozen outcome on the right. One shared Dugu peeker sits in the
   popup's upper-left header while the close button owns the right corner; it
   remains decorative and must not displace, label, or cover a mapping row.
-  Lobby navigation remains the global
-  TopBar outside the popup but inside its focus scope; do not duplicate it in
-  dialog chrome. Closing the popup returns to the board,
+  The popup contains its own focus scope while the shared footer stays inert.
+  Do not add navigation to the dialog chrome. Closing the popup returns to the board,
   where revealed routes remain available and any rail-start animal can replay
   its route with the same trailing-line motion. Result mode keeps explicit
   `All results` and `Play again` actions so the mapping can be reopened while

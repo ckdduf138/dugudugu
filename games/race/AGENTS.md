@@ -35,9 +35,9 @@ Read this file only for changes under `games/race/` or its animal Blender assets
 - The result keeps the winner-facing photo-finish stage visible behind one
   compact broadcast-style champion card. The default card shows only the
   podium; fourth place and below live in an explicit collapsed standings
-  disclosure so a seven-animal list never consumes the viewport. The global
-  TopBar owns lobby navigation even while this retained result dialog is open;
-  do not add a duplicate back action to the card. Do not
+  disclosure so a seven-animal list never consumes the viewport. The result
+  dialog contains focus while the shared footer stays inert; do not add a back
+  action to the card. Do not
   restore an opaque full-screen white modal, generic sparkles, canvas
   confetti, or a generic share action.
 
@@ -117,13 +117,12 @@ Read this file only for changes under `games/race/` or its animal Blender assets
 - Keep labels in DOM, but do not cover the race with live standings cards. The
   status layer is one compact first/second model pill, a leader-progress rail,
   and no visible sentence narrating the action. Lead-change announcements stay
-  screen-reader-only; the faces, rail, camera, and sound communicate the race
+  screen-reader-only; the faces, rail, and camera communicate the race
   visually. The remaining surfaces use the same bright cream/candy toy language as setup and result;
   do not turn the live HUD into an opaque plum sports-broadcast panel. During
   the cutscene the only actionable DOM control is Skip.
-- Race audio is file-backed and beat-specific: start-light clicks, gate
-  release, dirt hoof contact, an overtake pass, photo shutter, and a compact
-  finish fanfare. Do not substitute generic `tick`, `pop`, or `win` cues.
+- Race ships without runtime audio. Restrained haptics may reinforce launch,
+  photo finish, and the final result.
 - The portrait camera stays on `+Z`. A far-side candy grandstand uses clean
   empty tiers, light roof structure, restrained columns/ribbons, a scoreboard,
   lamps, and one far finish upright. It must frame the animals rather than read

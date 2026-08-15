@@ -59,7 +59,7 @@ Read this file only for changes under `games/draw/` or the gacha Blender asset.
   390×844. Charge and mix may use one short purposeful push, but the machine
   stays planted and the frame does not bob, orbit, or wander.
 
-## Setup, result, and sound contract
+## Setup, result, and haptics contract
 
 - Normal setup is one capsule = one result. Keep the candidate field label,
   count, and chips in one compact tray. The machine's centered crank is the
@@ -77,19 +77,16 @@ Read this file only for changes under `games/draw/` or the gacha Blender asset.
   derive a deterministic color assignment without consuming or changing the
   historical seeded winner permutation. Freeze `winnerEntries` alongside the
   existing string `winners` and `order` compatibility fields.
-- Draw uses its own dry plastic/mechanical files: `gacha-load`, `gacha-turn`,
-  `gacha-rattle`, `gacha-index`, `gacha-drop`, `gacha-land`, and
-  `gacha-reveal`. Each cue maps to one visible event. The removed manual-open
-  beat must not play `gacha-open`, and generic repeated excitement cues must
-  not replace physical timing.
+- Draw ships without runtime audio. Restrained haptics may reinforce candidate
+  insertion, crank/index contact, capsule impact, and result reveal without
+  changing the authored timing.
 - The result uses the shared accessible `ResultDialog`, centered as a compact
   non-blurred popup over the frozen complete machine. Show one simple
   code-native capsule in the frozen winner color beside the winner name; the
   name remains the strongest element. Use the shared Dugu peeker in the popup's
   upper-right header, not inside the result row; do not add another mascot,
-  speech bubble, prop, or card. Keep **Draw again** as the primary game action and the locale-aware
-  global TopBar lobby link as persistent navigation; never duplicate that link
-  inside the popup.
+  speech bubble, prop, or card. Keep **Draw again** as the only game action;
+  the shared locale footer stays outside and inert behind the popup.
 - **Draw again** resets to idle with the same candidate entries and colors in
   one-result mode;
   it does not compute or start another draw. The user deliberately presses the

@@ -6,14 +6,12 @@ import { persist } from "zustand/middleware";
 export type QualityTier = "low" | "medium" | "high";
 
 type SettingsState = {
-  sound: boolean;
   haptics: boolean;
   /** Render quality; auto-detected on first load, user-overridable. */
   quality: QualityTier;
   /** Set true once auto-detection has run so it won't override user choice. */
   qualityAutoDetected: boolean;
 
-  toggleSound: () => void;
   toggleHaptics: () => void;
   setQuality: (q: QualityTier) => void;
   autoDetectQuality: () => void;
@@ -34,12 +32,10 @@ function detectQuality(): QualityTier {
 export const useSettings = create<SettingsState>()(
   persist(
     (set, get) => ({
-      sound: true,
       haptics: true,
       quality: "high",
       qualityAutoDetected: false,
 
-      toggleSound: () => set((s) => ({ sound: !s.sound })),
       toggleHaptics: () => set((s) => ({ haptics: !s.haptics })),
       setQuality: (quality) => set({ quality, qualityAutoDetected: true }),
       autoDetectQuality: () => {

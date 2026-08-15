@@ -392,7 +392,7 @@ export function FortuneGame() {
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
             className="pointer-events-none absolute inset-x-4 z-10 flex justify-start sm:inset-x-6"
-            style={{ top: "calc(env(safe-area-inset-top) + 4.5rem)" }}
+            style={{ top: "calc(env(safe-area-inset-top) + 1.5rem)" }}
           >
             <GameRouteTitle>{t("title")}</GameRouteTitle>
           </motion.div>
@@ -407,7 +407,7 @@ export function FortuneGame() {
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
             className="pointer-events-auto absolute left-1/2 grid w-[min(92vw,29rem)] -translate-x-1/2 grid-cols-4 gap-1.5"
-            style={{ top: "calc(env(safe-area-inset-top) + 7.5rem)" }}
+            style={{ top: "calc(env(safe-area-inset-top) + 5.25rem)" }}
           >
             {CATEGORY_VISUALS.map(
               ({ id, icon: CategoryIcon, activeClassName }) => {

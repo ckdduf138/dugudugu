@@ -170,7 +170,7 @@ export function GameShell({
           {skip ? (
             <div
               className="absolute right-3 z-20 sm:right-5"
-              style={{ top: "calc(env(safe-area-inset-top) + 8.75rem)" }}
+              style={{ top: "calc(env(safe-area-inset-top) + 1rem)" }}
             >
               <SkipCutsceneButton {...skip} />
             </div>

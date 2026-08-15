@@ -22,14 +22,12 @@ import {
   SkipCutsceneButton,
 } from "@/components/game-shell";
 import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
-import { playSfx, preloadSfx } from "@/lib/audio";
 import { vibrate } from "@/lib/haptics";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import {
   getRaceWinner,
   MAX_RACERS,
   MIN_RACERS,
-  progressAt,
   rankRace,
   type RaceStanding,
 } from "./logic";
@@ -38,12 +36,7 @@ import { RACE_ANIMALS } from "./animals";
 import { RaceRosterEditor } from "./RaceRosterEditor";
 import { decodeRaceParams } from "./share";
 import { useRaceStore } from "./store";
-import {
-  GALLOP_STRIDE_WORLD,
-  RACE_TRAVEL_DISTANCE,
-  RaceScene3D,
-  type RaceCountdownBeat,
-} from "./RaceScene3D";
+import { RaceScene3D, type RaceCountdownBeat } from "./RaceScene3D";
 import styles from "./RaceGame.module.css";
 
 export const RACE_DURATION_MS = 9_800;
@@ -82,7 +75,6 @@ export function RaceGame() {
   const [leadChangeBeat, setLeadChangeBeat] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const playAgainRef = useRef<HTMLButtonElement>(null);
-  const hoofBeatRef = useRef(-1);
   const photoCuePlayedRef = useRef(false);
   const previousLeaderRef = useRef<string | null>(null);
 
@@ -111,14 +103,6 @@ export function RaceGame() {
   useEffect(() => {
     const shared = decodeRaceParams(window.location.search);
     if (shared) hydrateSharedRace(shared);
-    preloadSfx([
-      "race-count",
-      "race-go",
-      "race-hoof",
-      "race-overtake",
-      "race-photo",
-      "race-finish",
-    ]);
     return clear;
   }, [clear, hydrateSharedRace]);
 
@@ -143,18 +127,14 @@ export function RaceGame() {
       return () => window.clearTimeout(instant);
     }
 
-    playSfx("race-count", { rate: 0.82, volume: 0.48 });
     const two = window.setTimeout(() => {
       setCountdown(2);
-      playSfx("race-count", { rate: 0.94, volume: 0.52 });
     }, COUNTDOWN_STEP_MS);
     const one = window.setTimeout(() => {
       setCountdown(1);
-      playSfx("race-count", { rate: 1.08, volume: 0.56 });
     }, COUNTDOWN_STEP_MS * 2);
     const go = window.setTimeout(() => {
       setCountdown("go");
-      playSfx("race-go", { rate: 1.04, volume: 0.68 });
       vibrate("pop");
     }, COUNTDOWN_STEP_MS * 3);
     const launch = window.setTimeout(() => {
@@ -187,23 +167,8 @@ export function RaceGame() {
         ) {
           setLeadLeaderName(leader.name);
           setLeadChangeBeat((beat) => beat + 1);
-          playSfx("race-overtake", { rate: 1.04, volume: 0.28 });
         }
         previousLeaderRef.current = leader.id;
-        const travelled = progressAt(leader, normalizedTime) * RACE_TRAVEL_DISTANCE;
-        const beat = Math.floor(travelled / (GALLOP_STRIDE_WORLD / 4));
-        if (hoofBeatRef.current < 0) {
-          hoofBeatRef.current = beat;
-        } else if (beat > hoofBeatRef.current) {
-          hoofBeatRef.current = beat;
-          const ratePattern = [0.72, 0.8, 0.76, 0.87] as const;
-          playSfx("race-hoof", {
-            rate:
-              ratePattern[beat % ratePattern.length] *
-              (0.94 + normalizedTime * 0.12),
-            volume: 0.13 + normalizedTime * 0.065,
-          });
-        }
 
         const winnerRacer = result.racers[result.winnerLane];
         if (
@@ -212,7 +177,6 @@ export function RaceGame() {
         ) {
           photoCuePlayedRef.current = true;
           setPhotoFinishActive(true);
-          playSfx("race-photo", { rate: 0.94, volume: 0.46 });
           vibrate("pop");
         }
       }
@@ -248,7 +212,6 @@ export function RaceGame() {
 
   useEffect(() => {
     if (phase !== "finished" || !revealReady) return;
-    playSfx("race-finish", { volume: 0.68 });
     vibrate("win");
   }, [phase, revealReady]);
 
@@ -257,7 +220,6 @@ export function RaceGame() {
     setRevealReady(false);
     setRaceStartedAt(0);
     setRaceClock(0);
-    hoofBeatRef.current = -1;
     photoCuePlayedRef.current = false;
     previousLeaderRef.current = null;
     setLeadLeaderName(null);
@@ -278,7 +240,6 @@ export function RaceGame() {
     setRevealReady(false);
     setRaceStartedAt(0);
     setRaceClock(0);
-    hoofBeatRef.current = -1;
     photoCuePlayedRef.current = false;
     previousLeaderRef.current = null;
     setLeadLeaderName(null);

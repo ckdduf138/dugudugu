@@ -46,8 +46,8 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
   Avoid antique parchment, floral corner ornaments, deep scroll curls, and a
   generic elevated result card; those visual languages clash with the modern
   toy UI and the clean image-authored cookie.
-- The global TopBar remains visible and operable above the final cookie; the
-  inline result never adds a second lobby action. Keep the
+- The shared locale footer follows the viewport and the inline result never
+  adds a lobby action. Keep the
   finished Canvas active with `frameloop="demand"`; switching the WebGL surface
   to `active={false}` caused the frozen canvas compositing layer to cover those
   DOM elements on the tested browser.
@@ -90,11 +90,8 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
   icons. Reduced motion is static. Keep the delivery paper under 100 KB. The
   earlier Blender-authored hand and paper remain under `rejected/` for audit
   and must not be referenced by the runtime.
-- Fortune intentionally ships without an action SFX after review found no
-  licensed recording that reads specifically as a hand-snapped fortune cookie.
-  Keep the restrained tap/final-snap haptics. Do not substitute generic biscuit
-  cracking, chewing, synthetic taps, reveal chimes, paper flourishes, ceramic
-  clatter, or strain drones.
+- Fortune ships without runtime audio. Keep the restrained tap/final-snap
+  haptics.
 
 ## Verification
 

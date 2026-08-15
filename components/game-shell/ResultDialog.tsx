@@ -24,7 +24,6 @@ const FOCUSABLE = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
-const RESULT_NAVIGATION = "[data-result-dialog-navigation]";
 const NON_CONTENT_ELEMENTS = new Set(["LINK", "SCRIPT", "STYLE", "TEMPLATE"]);
 
 function focusableElements(root: HTMLElement): HTMLElement[] {
@@ -36,13 +35,7 @@ function focusableElements(root: HTMLElement): HTMLElement[] {
 }
 
 function resultFocusScope(dialog: HTMLElement): HTMLElement[] {
-  const items = focusableElements(dialog);
-  for (const navigation of document.querySelectorAll<HTMLElement>(
-    RESULT_NAVIGATION,
-  )) {
-    items.push(...focusableElements(navigation));
-  }
-  return Array.from(new Set(items));
+  return focusableElements(dialog);
 }
 
 type IsolatedElement = {
@@ -52,18 +45,7 @@ type IsolatedElement = {
   hadInertAttribute: boolean;
 };
 
-function containsResultNavigation(element: HTMLElement) {
-  return (
-    element.matches(RESULT_NAVIGATION) ||
-    Boolean(element.querySelector(RESULT_NAVIGATION))
-  );
-}
-
-/**
- * Hide only the page branches behind the result. The persistent TopBar stays
- * exposed so its lobby link remains a pointer, keyboard, and screen-reader
- * destination while the rest of the game is inactive.
- */
+/** Hide every page branch behind the active result surface. */
 function isolateResultBackground(overlay: HTMLElement) {
   const isolated: IsolatedElement[] = [];
   let current: HTMLElement = overlay;
@@ -73,7 +55,6 @@ function isolateResultBackground(overlay: HTMLElement) {
     for (const sibling of Array.from(parent.children)) {
       if (!(sibling instanceof HTMLElement) || sibling === current) continue;
       if (NON_CONTENT_ELEMENTS.has(sibling.tagName)) continue;
-      if (containsResultNavigation(sibling)) continue;
 
       isolated.push({
         element: sibling,
@@ -245,7 +226,7 @@ export function ResultDialog({
           : "fixed inset-0 z-30 grid h-[100svh] min-h-0 w-full min-w-0 place-items-center overflow-hidden overscroll-none bg-gradient-to-b from-candy-pink/45 via-surface/95 to-candy-sky/45"
       }
       style={{
-        paddingTop: "calc(env(safe-area-inset-top) + 4.5rem)",
+        paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)",
         paddingRight: "calc(env(safe-area-inset-right) + 0.75rem)",
         paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)",
         paddingLeft: "calc(env(safe-area-inset-left) + 0.75rem)",
@@ -266,6 +247,7 @@ export function ResultDialog({
       <motion.div
         ref={dialogRef}
         role="dialog"
+        aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}

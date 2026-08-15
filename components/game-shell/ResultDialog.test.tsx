@@ -126,8 +126,7 @@ describe("ResultDialog accessibility", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("keeps the persistent TopBar operable while isolating the game background", async () => {
-    const onBack = vi.fn();
+  it("isolates every background branch and contains focus in the dialog", async () => {
     const view = render(
       <>
         <section>
@@ -146,47 +145,32 @@ describe("ResultDialog accessibility", () => {
             Result
           </ResultDialog>
         </section>
-        <header data-result-dialog-navigation="true">
-          <button type="button" onClick={onBack}>
-            Back to lobby
-          </button>
-          <button type="button">Language</button>
-        </header>
-        <article data-testid="seo-background">
-          <a href="https://example.com/rules">Game rules</a>
-        </article>
+        <footer data-testid="page-footer">
+          <button type="button">English</button>
+        </footer>
       </>,
     );
     await nextFrame();
 
     const dialog = view.getByRole("dialog");
-    const back = view.getByRole("button", { name: "Back to lobby" });
     const close = view.getByRole("button", { name: "Close" });
-    const language = view.getByRole("button", { name: "Language" });
     const gameBackground = view.getByTestId("game-background");
-    const seoBackground = view.getByTestId("seo-background");
+    const pageFooter = view.getByTestId("page-footer");
 
-    expect(dialog.hasAttribute("aria-modal")).toBe(false);
-    expect(dialog.contains(back)).toBe(false);
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
     expect(dialog.contains(close)).toBe(true);
     expect(gameBackground.inert).toBe(true);
     expect(gameBackground.getAttribute("aria-hidden")).toBe("true");
-    expect(seoBackground.inert).toBe(true);
-    expect(seoBackground.getAttribute("aria-hidden")).toBe("true");
-    expect(back.closest("[inert], [aria-hidden='true']")).toBeNull();
+    expect(pageFooter.inert).toBe(true);
+    expect(pageFooter.getAttribute("aria-hidden")).toBe("true");
     expect(view.queryByRole("button", { name: "Start game" })).toBeNull();
-    expect(view.queryByRole("link", { name: "Game rules" })).toBeNull();
-
-    fireEvent.click(back);
-    expect(onBack).toHaveBeenCalledOnce();
-
-    language.focus();
-    fireEvent.keyDown(document, { key: "Tab" });
-    expect(document.activeElement).toBe(close);
+    expect(view.queryByRole("button", { name: "English" })).toBeNull();
 
     close.focus();
     fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
-    expect(document.activeElement).toBe(language);
+    expect(document.activeElement).toBe(
+      view.getByRole("button", { name: "Play again" }),
+    );
 
     gameBackground.querySelector("button")?.focus();
     fireEvent.keyDown(document, { key: "Tab" });
@@ -220,7 +204,7 @@ describe("ResultDialog accessibility", () => {
     expect(overlay?.className).toContain("h-[100svh]");
     expect(overlay?.className).toContain("overflow-hidden");
     expect(overlay?.className).not.toContain("overflow-y-auto");
-    expect(overlay?.style.paddingTop).toContain("4.5rem");
+    expect(overlay?.style.paddingTop).toContain("0.75rem");
     expect(dialog.className).toContain("min-w-0");
     expect(dialog.className).toContain("overflow-hidden");
     expect(dialog.style.maxHeight).toBe("100%");

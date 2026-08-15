@@ -16,16 +16,12 @@
     "back": "Back",
     "backToLobby": "Back to lobby",
     "start": "Start",
-    "sound": "Sound",
-    "soundOn": "Sound on",
-    "soundOff": "Sound off",
     "loading": "Dugu is setting up the game…",
     "add": "Add",
     "remove": "Remove",
     "winner": "Winner",
     "result": "Result",
-    "comingSoon": "Coming soon",
-    "faq": "Frequently asked questions"
+    "comingSoon": "Coming soon"
   },
   "lobby": {
     "eyebrow": "RANDOM ARCADE · OPEN",
@@ -100,21 +96,7 @@
         "needMore": "Add at least 2 entries",
         "ready": "Ready",
         "entries": "{count} entries"
-      },
-      "faq": [
-        {
-          "q": "How do I use Capsule Draw?",
-          "a": "Enter one option per line and tap the machine crank. After the machine dispenses one capsule, it automatically shows one result."
-        },
-        {
-          "q": "Is the result truly random?",
-          "a": "Yes. A seeded random draw freezes the outcome when you tap the crank; the capsule animation only reveals that already-fixed result."
-        },
-        {
-          "q": "How many picks come out at once?",
-          "a": "Each round dispenses one capsule with one result. Play again keeps the same entries, and you can tap the crank when you are ready for another draw."
-        }
-      ]
+      }
     },
     "ladder": {
       "title": "Ladder Game",
@@ -172,21 +154,7 @@
       "close": "Close all results",
       "replay": "Play again",
         "edit": "Edit"
-      },
-      "faq": [
-        {
-          "q": "How does the ladder game work?",
-          "a": "Choose the fixed animal field, edit the outcomes below, and press Start ladder. Colored tokens follow the rungs and paired edge portals to reveal each result."
-        },
-        {
-          "q": "Do edge portals make it fairer?",
-          "a": "Portals themselves do not make the result fairer. A seeded uniform permutation freezes the result independently first, while portals make the edge-lane paths easier to see. The paired-gate count and rows are seeded-random within safe field-size bounds."
-        },
-        {
-          "q": "Can I inspect each animal's route?",
-          "a": "Yes. After the result, tap an animal face at the top to highlight only that animal's path again."
-        }
-      ]
+      }
     },
     "race": {
       "title": "Animal Race",
@@ -238,21 +206,7 @@
         "podiumLabel": "Top three standings",
         "fullOrder": "View full standings",
         "remainingOrderLabel": "Fourth place and below"
-      },
-      "faq": [
-        {
-          "q": "How do I play the Animal Race?",
-          "a": "Choose two to seven animals and press Start. Tiger, horse, deer, dog, cat, penguin, and chicken race down a long track; there are no names to enter."
-        },
-        {
-          "q": "Is the race fair?",
-          "a": "Yes. The champion, full finishing order, and motion curves are generated from seeded randomness, with an equal chance for every animal."
-        },
-        {
-          "q": "Does the race play differently each time?",
-          "a": "Yes. Each start generates the champion, full order, and overtake timing together, producing a fresh comeback story."
-        }
-      ]
+      }
     },
     "fortune": {
       "title": "Fortune Cookie",
@@ -407,21 +361,7 @@
         "announcement": "Your {category} fortune-cookie message is: {message}",
         "inlineLabel": "A LITTLE {category} FROM YOUR COOKIE",
         "replay": "One more"
-      },
-      "faq": [
-        {
-          "q": "Which categories can I choose?",
-          "a": "Pick luck, courage, connection, or comfort—whichever feels right now. Each category has its own built-in message bank, so there is nothing to type."
-        },
-        {
-          "q": "When is the result chosen?",
-          "a": "When you tap the cookie, one message from the selected category is frozen with seeded randomness. The progressive cookie animation only reveals that immutable result."
-        },
-        {
-          "q": "Will One more give me a new message?",
-          "a": "Yes. One more restores the intact cookie and lets you draw a fresh message from the same category."
-        }
-      ]
+      }
     }
   }
 }

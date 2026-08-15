@@ -33,7 +33,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Next.js 16** App Router, `output: 'export'` (100% static). React 19, TypeScript.
 - **Tailwind v4** (tokens in `app/globals.css` `@theme`). Design tokens below — never hardcode palette/radius.
 - **next-intl** i18n (`/ko`, `/en`). **Zustand** state. **Vitest** for pure logic.
-- **3D runtime = R3F/three + authored GLB.** Blender 5.x is the source-of-truth DCC; glTF/GLB is the web delivery format. Framer Motion is for DOM UI orchestration, Howler for SFX/BGM, canvas-confetti only for lightweight result accents.
+- **3D runtime = R3F/three + authored GLB.** Blender 5.x is the source-of-truth DCC; glTF/GLB is the web delivery format. Framer Motion is for DOM UI orchestration, while restrained device haptics reinforce a few physical beats. The product ships without runtime audio.
 
 ### Engine decision: R3F is the product surface
 - **Default = authored 3D in live character games.** The lobby and ladder are deliberate exceptions: the lobby is a fast static 2×2/4-up game picker, while the ladder is a crisp code-native SVG board because route verification matters more than depth. Neither uses a Canvas. 2D DOM stays responsible for readable Korean/English text, inputs, accessibility, and fallback content.
@@ -48,16 +48,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Meshy/MCP:** Meshy may generate a new draft mesh only from an owned/original prompt or reference. Its rigging endpoint is humanoid-oriented, so quadrupeds still require the reviewed Blender rig/animation pipeline. Never ship the raw generated output: retopology/remesh, silhouette correction, material cleanup, clip validation, provenance, and delivery-budget checks happen in Blender first.
 - **⚠ NEVER use `transmission` materials on alpha canvases.** Transmission refracts only the 3D scene, not the DOM page behind it, and can render as a dark blob. The authored gacha GLB uses alpha fake glass; clone that material at runtime, set `transparent`, low opacity, and `depthWrite:false`.
 - **⚠ NEVER put `backdrop-blur` over a live WebGL canvas.** It can force recomposition every frame and flicker. Freeze the Canvas (`active={false}`/`frameloop="never"`) before an opaque result overlay, or use a normal translucent/gradient fill without backdrop filtering.
-- Overlay/celebration layering is fixed: result dialog `z-30`, persistent
-  global TopBar `z-40`, canvas-confetti `zIndex: 60` (set in
-  `lib/confetti.ts`). Keep new layers consistent with this scale.
+- Overlay layering is fixed: result dialog `z-30`; the lobby-only brand TopBar
+  remains `z-40`. Keep new layers consistent with this scale.
 
 ## 2b. Quality bar — Animal Crossing charm, mobile-game finish
-The target is not photorealism. It is a coherent, toy-like world with clear silhouettes, friendly proportions, controlled PBR/toon materials, polished camera cuts, expressive anticipation/impact/recovery, and excellent sound timing.
+The target is not photorealism. It is a coherent, toy-like world with clear silhouettes, friendly proportions, controlled PBR/toon materials, polished camera cuts, and expressive anticipation/impact/recovery.
 - **3D motion**: authored idle/action/celebrate clips, clean contact and weight shift, short camera choreography, no linear tweens or perpetual meaningless floating.
 - **DOM motion**: use shared springs/variants in `lib/motion.ts`; keep UI motion subordinate to the 3D beat.
 - **Cohesive art direction**: one mascot language, soft bevels, warm key light + cool fill, candy accents over a calmer cream/ink base. No raw emoji as game art.
-- **Sound design**: every meaningful action has an SFX (`playSfx`, files in `public/sounds/`). Silent-if-missing is OK during dev but the shipped bar includes sound.
+- **Haptics**: use a few restrained taps/impacts where they reinforce visible physical contact. Do not add runtime audio or a sound setting.
 - **Loading & intro**: branded loading state, no blank flashes or layout shift.
 - **Detail & delight**: micro-interactions, personality, tasteful easter eggs.
 - **Performance is part of the craft**: adaptive DPR/quality, pause when hidden/covered, one Canvas per page, 60fps target on a mid mobile at 390px, code-split and preload only the selected game.
@@ -71,7 +70,7 @@ Techniques to reach for (use a subset per game, keep it snappy):
 - **Impact**: screen shake, white flash, ~60–90ms freeze-frame, quick zoom-punch (scale 1→1.06→1).
 - **Speed lines / streaks**, particle burst (Lottie or confetti), **color flash**, brief **slow-mo**.
 - **Kinetic typography**: big cute result text springing in (Jua font).
-- **Sound + haptics synced to beats** (Howler `playSfx`, `vibrate`).
+- **Haptics synced to physical beats** (`vibrate`).
 - **Budget**: draw/ladder ~2.5–4s; the authored derby is ~10s so overtakes can read. Always **skippable**, pause-safe, and driven by rAF/elapsed time. Honor `prefers-reduced-motion` with an instant or very short fallback.
 
 ## 4. Architecture & conventions
@@ -103,11 +102,16 @@ Techniques to reach for (use a subset per game, keep it snappy):
   the actual scene component is ready.
 - **Design tokens** (in `globals.css`): candy palette `--candy-*`, `--ink`, `--surface`; display font **Jua** via `.font-display` / `--font-display`; body **Pretendard**; `.toy-btn`, `.dugu-action-btn`, `rounded-toy`, `--shadow-toy`, `--ease-pop`. Replay/one-more actions use the restrained shared `.dugu-action-btn` mint body and coral tail ring instead of embedding a separate raster mascot inside the button. Reuse these; keep the cute candy look consistent.
 - **Lottie**: assets in `public/lottie/<name>.json`; render with `components/ui/LottieBox.tsx` (no-ops if the file is missing). Regenerate placeholders with `node scripts/gen-lottie.mjs`. Swap in prettier files from LottieFiles anytime (see `public/lottie/README.md`).
-- **SEO**: per-page absolute canonical/hreflang/OG/Twitter metadata + JSON-LD
-  (`lib/seo.ts`) + human-readable copy pre-rendered in static HTML. Every live
-  game route owns exactly one visible server-rendered `h1` in the article below
-  the uninterrupted game viewport; the visual in-game `GameRouteTitle` is not
-  a heading. Locked routes stay `noindex` and omit the SEO article/JSON-LD.
+- **SEO**: per-page absolute canonical/hreflang/OG/Twitter metadata + game
+  JSON-LD (`lib/seo.ts`). Game routes do not append a visible SEO description
+  or FAQ below the play surface. Every live route owns one server-rendered
+  screen-reader-only `h1`; the matching in-game `GameRouteTitle` remains the
+  visible label rather than a duplicate heading. Locked routes stay `noindex`
+  and omit game JSON-LD.
+- **Shared route chrome**: live game routes have no persistent back, sound, or
+  locale controls. The shared footer follows the page and offers explicit
+  `한국어` / `English` selection while preserving the current path, query, and
+  hash. The lobby alone keeps the compact brand/home TopBar.
 - **Monetization (later)**: Google AdSense. Never place ads over the interactive/cutscene area; reserve slot height to avoid CLS. Needs a privacy page.
 
 ## 5. Do / Don't
@@ -120,19 +124,18 @@ Techniques to reach for (use a subset per game, keep it snappy):
 ## 6. Commands
 - `pnpm dev` (dev server) · `pnpm build` (static export → `out/`) · `pnpm test` (Vitest) · `pnpm lint`
 - `node scripts/gen-lottie.mjs` — regenerate placeholder Lottie assets.
-- `node scripts/gen-draw-sfx.mjs` — regenerate the draw-specific capsule SFX.
-- `node scripts/gen-ladder-sfx.mjs` — regenerate the ladder-specific tactile SFX.
-- `node scripts/gen-race-sfx.mjs` — regenerate the race-specific track SFX.
 - Visual check (headless): `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --enable-unsafe-swiftshader --window-size=390,844 --virtual-time-budget=8000 --screenshot=out.png URL` (the swiftshader flag is required only if a page uses WebGL).
 
 ## 7. Status (update as you go)
 Current foundation: static KO/EN roots with correct initial `<html lang>`,
 seeded pure logic, a deterministic shared fairness audit covering chi-square,
 z-score, and total-variation checks across every game, one-Canvas game shell, rAF cue timeline, adaptive
-quality/WebGL fallback, accessible result dialog, sound/haptics helpers, and a
+quality/WebGL fallback, accessible result dialog, haptics helpers, and a
 Blender→GLB build path.
-The v1.1 UI uses one shared left-aligned Jua route title with two restrained
-candy bulbs across all four games. Visible narration is removed when motion,
+The v1.1 UI uses one shared larger left-aligned Jua route title with two
+restrained candy bulbs across all four games. Live game pages omit the old
+back/sound/locale utility bar; a shared footer owns explicit Korean/English
+selection. The product ships without runtime audio. Visible narration is removed when motion,
 position, rank, or completion state already communicates the same fact; action
 labels, result copy, semantic labels, and screen-reader announcements remain.
 Live experiences: a direct first-viewport lobby with Dugu, one original mint
@@ -164,9 +167,8 @@ cutscene drives the crank through
 exactly one continuous revolution across charge and mix, followed by gate index,
 an occluded internal-to-mouth-to-landing chute drop, impact, and a short damped
 closed-capsule wobble. It then reveals the frozen
-result automatically; the redundant second tap-to-open step and its open SFX are
-removed. Seven synchronized dry plastic/mechanical SFX map one-to-one to visible
-events. The complete machine freezes behind one centered, non-blurred accessible
+result automatically; the redundant second tap-to-open step is removed.
+Restrained haptics reinforce contact beats. The complete machine freezes behind one centered, non-blurred accessible
 result popup. Dugu rises once behind the colored winning row so the mascot
 reads as handing the immutable result forward without redundant copy. Normal
 setup is one capsule = one result: candidates live in one
@@ -189,13 +191,12 @@ Player count stays on 44px `−`/`+` controls, alongside
 seeded uniform assignments, exactly one colored paired edge portal,
 an in-board start action, animated animal-face route tokens whose colored path
 grows only behind the moving face, an always-available all-results action that
-reveals every frozen assignment at once, dedicated tactile ladder SFX, and
+reveals every frozen assignment at once, tactile haptics, and
 in-board route inspection/results. Show all results opens one dismissible,
 focus-contained mapping popup with the animal portrait and name on the left and
 its frozen result on the right; Dugu presents that mapping from behind the
-result surface. Result popups never duplicate lobby navigation:
-the existing global TopBar remains visible and joins the dialog focus scope
-while the game and SEO background are inert. The animal race is temporarily
+result surface. Result popups contain focus while the game and shared footer
+are inert. The animal race is temporarily
 locked as a non-indexed coming-soon route and disabled lobby card while the
 following authored implementation remains in the repository for a later
 release. The seeded animal race uses
@@ -224,9 +225,8 @@ signal, a restrained layered meadow horizon, screen-reader-only lead
 announcements, and a four-beat camera grammar make the seeded lead changes
 readable. Per-lane retracting bars are removed; a painted start line and planted
 animal anticipation communicate the launch without implying an obstacle.
-Dedicated
-start-light, gate, dirt-hoof, overtake, photo, and finish SFX replace the old
-generic UI cues. The race supports 2–7 fixed animal identities, a 23m track, a
+The retained race ships without runtime audio and keeps restrained launch,
+photo-finish, and result haptics. The race supports 2–7 fixed animal identities, a 23m track, a
 9.8-second overtake story, and a
 winner-facing photo finish. Its result now keeps the finish stage visible under
 a compact broadcast-style champion card with a three-animal podium and
@@ -248,7 +248,7 @@ floral corners, and deep scroll curls are intentionally removed. A compact
 shared route title sits above the category selector in idle and result, then
 exits with the selector during opening so the action remains dominant; the
 result ribbon retains the chosen category icon and the same small Dugu handoff.
-Fortune intentionally uses haptics without a mismatched generic biscuit SFX.
+Fortune intentionally uses haptics without runtime audio.
 Reduced-motion and WebGL fallbacks,
 Backward-compatible URL decoders and accessible announcements remain, while
 generic result-share controls and canvas-confetti have been removed from the
@@ -270,7 +270,7 @@ the product no longer depends on a paid generation/download path. Static
 sitemap, robots, manifest, and OG image assets ship with the export. The
 domain root carries the preferred WebSite/Organization name and logo signals,
 every layout declares one stable 192px brand favicon for search, and each live
-game ships its translated h1, description, and visible FAQ in the static HTML
-below the uninterrupted game viewport. The
+game ships translated metadata, game JSON-LD, and one screen-reader-only h1
+without appending a visible SEO description or FAQ below the play surface. The
 production origin is `https://dugudugu-chameleon.vercel.app`; the next gates are
 final real-device a11y/performance QA and search-console indexing checks.

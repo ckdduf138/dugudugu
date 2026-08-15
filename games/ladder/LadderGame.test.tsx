@@ -11,11 +11,6 @@ import koMessages from "@/messages/ko.json";
 import { LadderGame } from "./LadderGame";
 import { useLadderStore } from "./store";
 
-vi.mock("@/lib/audio", () => ({
-  playSfx: vi.fn(),
-  preloadSfx: vi.fn(),
-}));
-
 vi.mock("@/lib/haptics", () => ({ vibrate: vi.fn() }));
 
 async function nextFrame() {

@@ -18,7 +18,6 @@ import {
   useCueTimeline,
   type TimelineCue,
 } from "@/lib/game";
-import { playSfx, preloadSfx } from "@/lib/audio";
 import { vibrate } from "@/lib/haptics";
 import {
   CAPSULE_COLOR_CSS,
@@ -111,10 +110,6 @@ export function DrawGame() {
   useEffect(() => {
     const previousCount = previousEntryCountRef.current;
     if (phase === "idle" && list.length > previousCount) {
-      playSfx("gacha-load", {
-        volume: 0.42,
-        rate: 0.96 + Math.min(list.length, 12) * 0.012,
-      });
       vibrate("tap");
     }
     previousEntryCountRef.current = list.length;
@@ -124,21 +119,10 @@ export function DrawGame() {
     setBeat(nextBeat);
     switch (nextBeat) {
       case "charge":
-        playSfx("gacha-turn", { volume: 0.62 });
-        vibrate("tap");
-        break;
-      case "mix":
-        playSfx("gacha-rattle", { volume: 0.5, rate: 0.98 });
-        break;
       case "index":
-        playSfx("gacha-index", { volume: 0.58 });
         vibrate("tap");
-        break;
-      case "drop":
-        playSfx("gacha-drop", { volume: 0.56 });
         break;
       case "impact":
-        playSfx("gacha-land", { volume: 0.74 });
         vibrate("pop");
         break;
       case "hero":
@@ -151,7 +135,6 @@ export function DrawGame() {
 
   const finishMachine = useCallback(() => {
     setBeat("hero");
-    playSfx("gacha-reveal", { volume: 0.7 });
     vibrate("win");
     reveal();
   }, [reveal]);
@@ -166,15 +149,6 @@ export function DrawGame() {
   useEffect(() => {
     const shared = decodeDrawParams(window.location.search);
     if (shared) hydrateFromShare(shared);
-    preloadSfx([
-      "gacha-load",
-      "gacha-turn",
-      "gacha-rattle",
-      "gacha-index",
-      "gacha-drop",
-      "gacha-land",
-      "gacha-reveal",
-    ]);
     return clear;
   }, [clear, hydrateFromShare]);
 
@@ -233,7 +207,7 @@ export function DrawGame() {
       {(phase === "idle" || phase === "done") ? (
         <div
           className="absolute inset-x-4 sm:inset-x-6"
-          style={{ top: "calc(env(safe-area-inset-top) + 4.5rem)" }}
+          style={{ top: "calc(env(safe-area-inset-top) + 1.5rem)" }}
         >
           <GameRouteTitle>{t("title")}</GameRouteTitle>
         </div>
