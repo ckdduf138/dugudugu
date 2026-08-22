@@ -86,6 +86,7 @@ export function MascotPeek({
           width={640}
           height={640}
           sizes="(min-width: 640px) 88px, 80px"
+          loading="eager"
           className="pointer-events-none absolute -bottom-3 -right-2 h-auto w-20 max-w-none drop-shadow-[0_10px_12px_color-mix(in_srgb,var(--ink)_14%,transparent)] transition-transform duration-200 ease-[var(--ease-pop)] group-active/mascot:scale-95 sm:-bottom-3 sm:-right-2 sm:w-[5.5rem]"
         />
       </button>

@@ -1,13 +1,12 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SiteFooter } from "./SiteFooter";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
 const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
 
 vi.mock("next-intl", () => ({
   useLocale: () => "ko",
-  useTranslations: () => (key: string) =>
-    key === "site.name" ? "두구두구" : "언어",
+  useTranslations: () => () => "언어",
 }));
 
 vi.mock("@/i18n/navigation", () => ({
@@ -15,7 +14,7 @@ vi.mock("@/i18n/navigation", () => ({
   useRouter: () => ({ replace }),
 }));
 
-describe("SiteFooter locale switcher", () => {
+describe("LocaleSwitcher", () => {
   beforeEach(() => {
     replace.mockReset();
     window.history.replaceState(
@@ -27,8 +26,8 @@ describe("SiteFooter locale switcher", () => {
 
   afterEach(cleanup);
 
-  it("shows both languages and preserves the current query and hash", () => {
-    const view = render(<SiteFooter />);
+  it("preserves the current query and hash while switching locale", () => {
+    const view = render(<LocaleSwitcher />);
 
     expect(
       view.getByRole("button", { name: "한국어" }).getAttribute("aria-pressed"),

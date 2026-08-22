@@ -57,16 +57,16 @@ export function GameCard({
         ) : null}
       </div>
 
-      <div className="flex min-h-[4.15rem] items-center gap-2 border-t border-ink/[0.06] px-3.5 py-2.5 sm:min-h-[4.5rem] sm:px-5 sm:py-3">
+      <div className="flex min-h-[4.4rem] items-center gap-1.5 border-t border-ink/[0.06] px-3 py-2.5 sm:min-h-[4.5rem] sm:gap-2 sm:px-5 sm:py-3">
         <span
           aria-hidden
           className="h-2 w-2 shrink-0 rounded-full bg-[var(--game-accent)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--game-accent)_14%,transparent)]"
         />
-        <h2 className="min-w-0 flex-1 overflow-hidden break-keep font-display text-[1.25rem] leading-[1.04] text-ink [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] sm:text-[1.6rem] lg:text-[1.7rem]">
+        <h2 className="min-w-0 flex-1 text-balance break-normal font-display text-[clamp(1.08rem,5.1vw,1.25rem)] leading-[1.12] text-ink sm:text-[1.6rem] lg:text-[1.7rem]">
           {title}
         </h2>
         {live ? (
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ink/[0.045] text-ink/40 transition duration-300 group-hover/card:translate-x-0.5 group-hover/card:bg-[var(--game-accent)] group-hover/card:text-ink sm:h-8 sm:w-8">
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ink/[0.045] text-ink/40 transition duration-300 group-hover/card:translate-x-0.5 group-hover/card:bg-[var(--game-accent)] group-hover/card:text-ink sm:h-8 sm:w-8">
             <ChevronRight aria-hidden className="h-4 w-4" strokeWidth={2.5} />
           </span>
         ) : null}

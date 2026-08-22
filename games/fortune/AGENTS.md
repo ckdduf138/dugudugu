@@ -46,8 +46,8 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
   Avoid antique parchment, floral corner ornaments, deep scroll curls, and a
   generic elevated result card; those visual languages clash with the modern
   toy UI and the clean image-authored cookie.
-- The shared locale footer follows the viewport and the inline result never
-  adds a lobby action. Keep the
+- The global KO/EN selector remains at the safe-area-aware upper right and the
+  inline result never adds a lobby action. There is no shared footer. Keep the
   finished Canvas active with `frameloop="demand"`; switching the WebGL surface
   to `active={false}` caused the frozen canvas compositing layer to cover those
   DOM elements on the tested browser.

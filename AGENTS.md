@@ -105,13 +105,15 @@ Techniques to reach for (use a subset per game, keep it snappy):
 - **SEO**: per-page absolute canonical/hreflang/OG/Twitter metadata + game
   JSON-LD (`lib/seo.ts`). Game routes do not append a visible SEO description
   or FAQ below the play surface. Every live route owns one server-rendered
-  screen-reader-only `h1`; the matching in-game `GameRouteTitle` remains the
+  screen-reader-only semantic title, tagline, and description block; the
+  matching in-game `GameRouteTitle` remains the
   visible label rather than a duplicate heading. Locked routes stay `noindex`
   and omit game JSON-LD.
-- **Shared route chrome**: live game routes have no persistent back, sound, or
-  locale controls. The shared footer follows the page and offers explicit
-  `한국어` / `English` selection while preserving the current path, query, and
-  hash. The lobby alone keeps the compact brand/home TopBar.
+- **Shared route chrome**: live game routes have no persistent back or sound
+  controls. A compact fixed `KO` / `EN` selector sits at the safe-area-aware
+  upper right on every localized page and preserves the current path, query,
+  and hash. There is no shared footer. The lobby alone also keeps the compact
+  brand/home TopBar at upper left.
 - **Monetization (later)**: Google AdSense. Never place ads over the interactive/cutscene area; reserve slot height to avoid CLS. Needs a privacy page.
 
 ## 5. Do / Don't
@@ -134,14 +136,14 @@ quality/WebGL fallback, accessible result dialog, haptics helpers, and a
 Blender→GLB build path.
 The v1.1 UI uses one shared larger left-aligned Jua route title with two
 restrained candy bulbs across all four games. Live game pages omit the old
-back/sound/locale utility bar; a shared footer owns explicit Korean/English
-selection. The product ships without runtime audio. Visible narration is removed when motion,
+back/sound utility bar; a compact fixed KO/EN selector lives at the upper right
+and the shared footer is removed. The product ships without runtime audio. Visible narration is removed when motion,
 position, rank, or completion state already communicates the same fact; action
 labels, result copy, semantic labels, and screen-reader announcements remain.
 Live experiences: a direct first-viewport lobby with Dugu, one original mint
 chameleon mascot with a coral spiral tail and lemon star. Its compact mark uses
-the same head-and-tail silhouette on a coral rounded square across the top bar,
-favicon, install icons, and social image; it stays readable without text or a
+the same enlarged head-and-tail silhouette on a coral rounded square across the top bar,
+one stable SVG search favicon, raster install fallbacks, and social image; it stays readable without text or a
 white plate at 16 px. A transparent full-body illustration peeks once into the
 quiet band below the choices as an accessible optional introduction; its small
 button and non-blocking bubble never intercept a game-card link. The lobby's
@@ -195,8 +197,8 @@ reveals every frozen assignment at once, tactile haptics, and
 in-board route inspection/results. Show all results opens one dismissible,
 focus-contained mapping popup with the animal portrait and name on the left and
 its frozen result on the right; Dugu presents that mapping from behind the
-result surface. Result popups contain focus while the game and shared footer
-are inert. The animal race is temporarily
+result surface. Result popups contain focus while the game and global locale
+selector are inert. The animal race is temporarily
 locked as a non-indexed coming-soon route and disabled lobby card while the
 following authored implementation remains in the repository for a later
 release. The seeded animal race uses
@@ -269,8 +271,9 @@ Meshy MCP remains optional;
 the product no longer depends on a paid generation/download path. Static
 sitemap, robots, manifest, and OG image assets ship with the export. The
 domain root carries the preferred WebSite/Organization name and logo signals,
-every layout declares one stable 192px brand favicon for search, and each live
-game ships translated metadata, game JSON-LD, and one screen-reader-only h1
+every layout declares one stable SVG brand favicon for search, and each live
+game ships translated metadata, game JSON-LD, and one server-rendered
+screen-reader-only semantic title/summary block
 without appending a visible SEO description or FAQ below the play surface. The
 production origin is `https://dugudugu-chameleon.vercel.app`; the next gates are
 final real-device a11y/performance QA and search-console indexing checks.

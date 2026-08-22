@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { SiteFooter } from "@/components/ui/SiteFooter";
+import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import {
   rootHtmlClassName,
   rootMetadata,
@@ -36,12 +36,6 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html lang={locale} className={rootHtmlClassName}>
       <head>
         <link
-          rel="icon"
-          href="/brand-icon-192.png"
-          type="image/png"
-          sizes="192x192"
-        />
-        <link
           rel="preconnect"
           href="https://cdn.jsdelivr.net"
           crossOrigin="anonymous"
@@ -54,7 +48,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <body className="min-h-full">
         <NextIntlClientProvider>
           {children}
-          <SiteFooter />
+          <LocaleSwitcher />
         </NextIntlClientProvider>
       </body>
     </html>

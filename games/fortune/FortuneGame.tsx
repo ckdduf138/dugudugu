@@ -406,8 +406,7 @@ export function FortuneGame() {
             initial={reduceMotion ? false : { opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-            className="pointer-events-auto absolute left-1/2 grid w-[min(92vw,29rem)] -translate-x-1/2 grid-cols-4 gap-1.5"
-            style={{ top: "calc(env(safe-area-inset-top) + 5.25rem)" }}
+            className="pointer-events-auto absolute left-1/2 top-[calc(env(safe-area-inset-top)+5.25rem)] grid w-[calc(100%-1rem)] max-w-[29rem] -translate-x-1/2 grid-cols-4 gap-1 max-[350px]:top-[calc(env(safe-area-inset-top)+6.25rem)] sm:gap-1.5"
           >
             {CATEGORY_VISUALS.map(
               ({ id, icon: CategoryIcon, activeClassName }) => {
@@ -419,7 +418,7 @@ export function FortuneGame() {
                     role="radio"
                     aria-checked={selected}
                     onClick={() => selectCategory(id)}
-                    className={`flex min-h-10 items-center justify-center gap-1 rounded-full border px-1.5 text-xs font-black shadow-sm outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink/25 sm:min-h-11 sm:gap-1.5 sm:text-sm ${
+                    className={`flex min-h-10 items-center justify-center gap-1 rounded-full border px-1 text-xs font-black shadow-sm outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink/25 max-[350px]:text-[0.68rem] sm:min-h-11 sm:gap-1.5 sm:px-1.5 sm:text-sm ${
                       selected
                         ? activeClassName
                         : "border-ink/[0.06] bg-surface/64 text-ink-soft hover:bg-surface hover:text-ink"
@@ -429,6 +428,7 @@ export function FortuneGame() {
                       aria-hidden
                       size={15}
                       strokeWidth={selected ? 2.8 : 2.3}
+                      className="max-[350px]:hidden"
                     />
                     <span>{t(`categories.${id}.label`)}</span>
                   </button>

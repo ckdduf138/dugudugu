@@ -153,7 +153,11 @@ export default async function GamePage({ params }: Props) {
 
   return (
     <>
-      <h1 className="sr-only">{gt("seo.heading")}</h1>
+      <section className="sr-only" aria-labelledby="game-page-title">
+        <h1 id="game-page-title">{gt("seo.heading")}</h1>
+        <p>{gt("tagline")}</p>
+        <p>{gt("description")}</p>
+      </section>
       <GamePlayer slug={slug} />
 
       <JsonLd

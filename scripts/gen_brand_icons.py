@@ -44,16 +44,19 @@ def draw_mark(size: int) -> Image.Image:
     s = lambda value: scale(value, canvas_size)
 
     draw.rounded_rectangle(
-        (s(2), s(2), s(46), s(46)),
-        radius=s(14),
+        (s(1), s(1), s(47), s(47)),
+        radius=s(14.5),
         fill=CORAL,
     )
 
+    content_scale = 1.1
+    c = lambda value: 24 + (value - 24) * content_scale
+
     spiral: list[tuple[int, int]] = []
-    center_x, center_y = 31.5, 28.6
+    center_x, center_y = c(31.5), c(28.6)
     for index in range(72):
         t = index / 71
-        radius = 13.2 * (1 - t) + 2.2
+        radius = (13.2 * (1 - t) + 2.2) * content_scale
         angle = math.pi * (0.96 + 2.18 * t)
         spiral.append(
             (
@@ -61,21 +64,24 @@ def draw_mark(size: int) -> Image.Image:
                 s(center_y + math.sin(angle) * radius * 0.76),
             )
         )
-    draw.line(spiral, fill=MINT, width=s(7), joint="curve")
+    draw.line(spiral, fill=MINT, width=s(7 * content_scale), joint="curve")
 
-    draw.ellipse((s(8.2), s(10.4), s(29.8), s(32.7)), fill=MINT)
-    draw.ellipse((s(12.1), s(14), s(22.3), s(24.2)), fill=SURFACE)
-    draw.ellipse((s(15.25), s(17.05), s(20.35), s(22.15)), fill=INK)
-    draw.ellipse((s(16.05), s(17.85), s(17.75), s(19.55)), fill=SURFACE)
+    draw.ellipse((s(c(8.2)), s(c(10.4)), s(c(29.8)), s(c(32.7))), fill=MINT)
+    draw.ellipse((s(c(12.1)), s(c(14)), s(c(22.3)), s(c(24.2))), fill=SURFACE)
+    draw.ellipse((s(c(15.25)), s(c(17.05)), s(c(20.35)), s(c(22.15))), fill=INK)
+    draw.ellipse((s(c(16.05)), s(c(17.85)), s(c(17.75)), s(c(19.55))), fill=SURFACE)
     draw.arc(
-        (s(7.6), s(17.7), s(15.4), s(25.2)),
+        (s(c(7.6)), s(c(17.7)), s(c(15.4)), s(c(25.2))),
         start=35,
         end=122,
         fill=INK,
-        width=s(1.55),
+        width=s(1.55 * content_scale),
     )
     draw.polygon(
-        [(s(x), s(y)) for x, y in star_points(22.8, 11.4, 3.5, 1.6)],
+        [
+            (s(c(x)), s(c(y)))
+            for x, y in star_points(22.8, 11.4, 3.5, 1.6)
+        ],
         fill=LEMON,
     )
 
@@ -86,14 +92,14 @@ def main() -> None:
     outputs = {
         ROOT / "public/brand-icon-192.png": 192,
         ROOT / "public/brand-icon-512.png": 512,
-        ROOT / "app/apple-icon.png": 180,
+        ROOT / "public/apple-touch-icon.png": 180,
     }
     for path, size in outputs.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         draw_mark(size).save(path, optimize=True)
 
     draw_mark(64).save(
-        ROOT / "app/favicon.ico",
+        ROOT / "public/favicon.ico",
         format="ICO",
         sizes=[(16, 16), (32, 32), (48, 48)],
     )

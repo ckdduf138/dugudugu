@@ -16,9 +16,10 @@ Read this file only when changing reusable controls under `components/ui/`.
   loads. Do not add `loading.tsx`: Next 16 does not support that convention for
   static export.
 - `TopBar` is a lobby-only brand/home mark with safe-area padding. Game routes
-  do not render a persistent back, sound, or locale utility bar. `SiteFooter`
-  owns the explicit 한국어/English choice after every locale page and preserves
-  the current path, query, and hash when switching.
+  do not render a persistent back or sound utility bar. `LocaleSwitcher` is a
+  compact fixed KO/EN control at the safe-area-aware upper right of every
+  localized page; it preserves the current path, query, and hash and stays
+  below result dialogs in the layer scale. There is no shared footer.
 - Every game route title uses `GameRouteTitle`: left-aligned Jua at the shared
   4xl/5xl scale with the same two restrained candy bulbs. Give it a dedicated
   row instead of squeezing controls beside it. Do not add a route-specific icon
@@ -26,6 +27,6 @@ Read this file only when changing reusable controls under `components/ui/`.
   is intentionally a visual text label rather than a heading: the live route's
   server-rendered screen-reader-only title owns the page's single `h1`, while
   IDs on `GameRouteTitle` remain valid accessible labels for in-game regions.
-- Lobby game titles may wrap to two lines at 390px; never replace most of an
-  English game name with an ellipsis just to preserve a one-line footer.
+- Lobby game titles may wrap naturally at 390px; never truncate an English
+  game name or replace most of it with an ellipsis.
 - Keep reusable UI free of game state, seeded logic, R3F, and route-specific copy.

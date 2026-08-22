@@ -5,6 +5,8 @@ import { absolutePageUrl } from "@/lib/site";
 
 export const dynamic = "force-static";
 
+const LAST_MEANINGFUL_UPDATE = new Date("2026-08-22T00:00:00+09:00");
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const localizedPages = [
     { path: "", priority: 1 },
@@ -28,7 +30,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     return routing.locales.map((locale) => ({
       url: absolutePageUrl(`/${locale}${path}`),
-      changeFrequency: "monthly" as const,
+      lastModified: LAST_MEANINGFUL_UPDATE,
+      changeFrequency: "weekly" as const,
       priority,
       alternates: { languages },
     }));

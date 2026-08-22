@@ -16,8 +16,8 @@ The first viewport is a game picker, not a marketing landing page. A user should
 - The lobby has no live WebGL Canvas. Use the code-native 2D vector art in
   `GameTileArtwork.tsx`; keep the background flat and do not restore blurred
   3D ambience behind the picker.
-- Keep the header compact and brand-only. Locale selection lives in the shared
-  footer; there is no sound control.
+- Keep the header compact and brand-only at upper left. The global compact
+  KO/EN selector occupies the upper right; there is no footer or sound control.
 - Card text cannot determine grid column width; every grid track and link needs `minmax(0, 1fr)` / `min-width: 0` behavior.
 - English card names wrap to at most two lines at 390px instead of truncating;
   portrait-tablet grids are vertically balanced within the first viewport.

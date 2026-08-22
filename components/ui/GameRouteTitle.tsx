@@ -13,10 +13,10 @@ export function GameRouteTitle({
   className = "",
 }: GameRouteTitleProps) {
   return (
-    <div className={`inline-flex min-w-0 items-end gap-2 ${className}`}>
+    <div className={`inline-flex min-w-0 max-w-full items-end gap-2 max-[350px]:max-w-[calc(100vw-7.75rem)] ${className}`}>
       <div
         id={id}
-        className="whitespace-nowrap font-display text-4xl leading-none text-ink sm:text-5xl"
+        className="min-w-0 text-balance break-normal font-display text-[clamp(2rem,9.2vw,2.25rem)] leading-[0.96] text-ink sm:text-5xl"
       >
         {children}
       </div>

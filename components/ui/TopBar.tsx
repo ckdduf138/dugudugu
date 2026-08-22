@@ -21,7 +21,7 @@ export function TopBar({ siteName }: Props) {
         className="group/brand pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full pr-1 font-display text-xl text-ink outline-none transition-transform hover:scale-[1.02] focus-visible:ring-4 focus-visible:ring-candy-pink/35 active:scale-[0.98] sm:gap-2.5 sm:pr-1.5 sm:text-2xl"
       >
         <BrandMark className="h-9 w-9 shrink-0 drop-shadow-[0_5px_7px_color-mix(in_srgb,var(--ink)_13%,transparent)] transition-transform duration-300 ease-[var(--ease-pop)] group-hover/brand:-rotate-3 group-hover/brand:scale-105" />
-        <span className="max-w-[7rem] truncate leading-none">{siteName}</span>
+        <span className="whitespace-nowrap leading-none">{siteName}</span>
       </Link>
     </header>
   );

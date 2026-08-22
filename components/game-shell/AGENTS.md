@@ -13,7 +13,8 @@ This module owns layout, immersion, result focus, announcements, skip, and WebGL
   later page sibling cannot paint over the fixed stage. Global result dialog
   remains above it at `z-30`.
 - ResultDialog traps/restores focus entirely within the modal and marks every
-  background branch, including the site footer, `inert` and `aria-hidden`.
+  background branch, including the global locale selector, `inert` and
+  `aria-hidden`.
   Keep `aria-modal` accurate and do not add a duplicate back action. The
   viewport shell and card never scroll or expose scrollbars; long content uses the focusable,
   vertically scrollable inner document with its visual scrollbar hidden. Keep

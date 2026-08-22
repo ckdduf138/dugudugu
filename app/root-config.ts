@@ -20,6 +20,22 @@ export const rootHtmlClassName =
 
 export const rootMetadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  icons: {
+    icon: [
+      {
+        url: "/brand-icon.svg",
+        type: "image/svg+xml",
+        sizes: "any",
+      },
+    ],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        type: "image/png",
+        sizes: "180x180",
+      },
+    ],
+  },
   verification: {
     google: "V0LWQEMkzQlQoG6mGSp1UFldKcpsvuxhbgMof6G0fUE",
   },
@@ -54,6 +70,17 @@ export const rootMetadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     images: ["/images/brand/social-card.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
