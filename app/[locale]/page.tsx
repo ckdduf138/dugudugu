@@ -14,7 +14,10 @@ type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "site" });
-  const title = `${t("name")} | ${t("tagline")}`;
+  const title =
+    locale === "ko"
+      ? `${t("tagline")} | ${t("name")}`
+      : `${t("name")} | ${t("tagline")}`;
   const description = t("description");
   const canonical = absolutePageUrl(`/${locale}`);
   const socialImage = {

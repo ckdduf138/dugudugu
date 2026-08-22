@@ -44,7 +44,7 @@ def draw_mark(size: int) -> Image.Image:
     s = lambda value: scale(value, canvas_size)
 
     draw.rounded_rectangle(
-        (s(1), s(1), s(47), s(47)),
+        (0, 0, canvas_size - 1, canvas_size - 1),
         radius=s(14.5),
         fill=CORAL,
     )

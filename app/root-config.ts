@@ -41,7 +41,7 @@ export const rootMetadata: Metadata = {
   },
   applicationName: "두구두구",
   title: {
-    default: "두구두구 | 귀여운 랜덤 결정 아케이드",
+    default: "사다리타기·랜덤 뽑기·포춘쿠키 | 두구두구",
     template: "%s | 두구두구",
   },
   description:
