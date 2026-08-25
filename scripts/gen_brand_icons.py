@@ -39,21 +39,18 @@ def star_points(
 def draw_mark(size: int) -> Image.Image:
     supersample = 4
     canvas_size = size * supersample
-    image = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    image = Image.new("RGB", (canvas_size, canvas_size), CORAL)
     draw = ImageDraw.Draw(image)
     s = lambda value: scale(value, canvas_size)
 
-    draw.rounded_rectangle(
-        (0, 0, canvas_size - 1, canvas_size - 1),
-        radius=s(14.5),
-        fill=CORAL,
-    )
-
     content_scale = 1.1
-    c = lambda value: 24 + (value - 24) * content_scale
+    content_offset_x = -2.5
+    content_offset_y = 1.7
+    cx = lambda value: 24 + (value - 24) * content_scale + content_offset_x
+    cy = lambda value: 24 + (value - 24) * content_scale + content_offset_y
 
     spiral: list[tuple[int, int]] = []
-    center_x, center_y = c(31.5), c(28.6)
+    center_x, center_y = cx(31.5), cy(28.6)
     for index in range(72):
         t = index / 71
         radius = (13.2 * (1 - t) + 2.2) * content_scale
@@ -66,12 +63,12 @@ def draw_mark(size: int) -> Image.Image:
         )
     draw.line(spiral, fill=MINT, width=s(7 * content_scale), joint="curve")
 
-    draw.ellipse((s(c(8.2)), s(c(10.4)), s(c(29.8)), s(c(32.7))), fill=MINT)
-    draw.ellipse((s(c(12.1)), s(c(14)), s(c(22.3)), s(c(24.2))), fill=SURFACE)
-    draw.ellipse((s(c(15.25)), s(c(17.05)), s(c(20.35)), s(c(22.15))), fill=INK)
-    draw.ellipse((s(c(16.05)), s(c(17.85)), s(c(17.75)), s(c(19.55))), fill=SURFACE)
+    draw.ellipse((s(cx(8.2)), s(cy(10.4)), s(cx(29.8)), s(cy(32.7))), fill=MINT)
+    draw.ellipse((s(cx(12.1)), s(cy(14)), s(cx(22.3)), s(cy(24.2))), fill=SURFACE)
+    draw.ellipse((s(cx(15.25)), s(cy(17.05)), s(cx(20.35)), s(cy(22.15))), fill=INK)
+    draw.ellipse((s(cx(16.05)), s(cy(17.85)), s(cx(17.75)), s(cy(19.55))), fill=SURFACE)
     draw.arc(
-        (s(c(7.6)), s(c(17.7)), s(c(15.4)), s(c(25.2))),
+        (s(cx(7.6)), s(cy(17.7)), s(cx(15.4)), s(cy(25.2))),
         start=35,
         end=122,
         fill=INK,
@@ -79,7 +76,7 @@ def draw_mark(size: int) -> Image.Image:
     )
     draw.polygon(
         [
-            (s(c(x)), s(c(y)))
+            (s(cx(x)), s(cy(y)))
             for x, y in star_points(22.8, 11.4, 3.5, 1.6)
         ],
         fill=LEMON,

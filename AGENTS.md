@@ -143,8 +143,10 @@ labels, result copy, semantic labels, and screen-reader announcements remain.
 Live experiences: a direct first-viewport lobby with Dugu, one original mint
 chameleon mascot with a coral spiral tail and lemon star. Its compact mark uses
 the same enlarged head-and-tail silhouette on a coral rounded square across the top bar,
-one stable SVG search favicon, raster install fallbacks, and social image; it stays readable without text or a
-white plate at 16 px. A transparent full-body illustration peeks once into the
+one fully opaque coral full-bleed SVG search favicon, matching raster install
+fallbacks, and social image. The favicon silhouette is geometrically centered
+at every generated size and stays readable without text or a white plate at 16
+px. A transparent full-body illustration peeks once into the
 quiet band below the choices as an accessible optional introduction; its small
 button and non-blocking bubble never intercept a game-card link. The lobby's
 clean code-native 2D game art stays 2×2 on mobile/tablet and four-up on desktop,
@@ -271,7 +273,8 @@ Meshy MCP remains optional;
 the product no longer depends on a paid generation/download path. Static
 sitemap, robots, manifest, and OG image assets ship with the export. The
 domain root carries the preferred WebSite/Organization name and logo signals,
-every layout declares one stable SVG brand favicon for search, and each live
+including a lowercase hostname fallback, every layout declares one stable SVG
+brand favicon for search, and each live
 game ships translated metadata, game JSON-LD, and one server-rendered
 screen-reader-only semantic title/summary block
 without appending a visible SEO description or FAQ below the play surface. The

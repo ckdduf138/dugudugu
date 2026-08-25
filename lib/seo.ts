@@ -5,6 +5,7 @@ import { absolutePageUrl, absoluteUrl } from "@/lib/site";
 
 export function websiteJsonLd() {
   const url = absolutePageUrl("/");
+  const hostname = new URL(url).hostname;
   const organizationId = `${url}#organization`;
 
   return {
@@ -14,7 +15,11 @@ export function websiteJsonLd() {
         "@type": "WebSite",
         "@id": `${url}#website`,
         name: "두구두구",
-        alternateName: ["Dugudugu", "두구두구 랜덤 아케이드"],
+        alternateName: [
+          "Dugudugu",
+          "두구두구 랜덤 아케이드",
+          hostname,
+        ],
         url,
         inLanguage: ["ko", "en"],
         publisher: { "@id": organizationId },
