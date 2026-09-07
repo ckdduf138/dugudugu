@@ -187,13 +187,21 @@ markings, head tilts, large double eye highlights, and cheeks. Player profiles
 exist only at the rail starts—there is no duplicate row above the board—and
 become the route-selection buttons after Start. Five- and six-player boards
 compact without overlap. Route strokes stay behind the start faces; completed
-start faces return checked at reduced opacity. The mobile board uses a taller
+start faces return checked at reduced opacity. The ladder fills the available viewport without nested card frames; its SVG
+height adapts across mobile, tablet, and desktop while portraits retain their
+proportions. Setup inputs use 16px text and a borderless focus indicator. Setup
+keeps Shuffle beside the player-count control; it regenerates the visible ladder,
+and Start freezes that exact seeded round. After Start, Shuffle can replace the
+seeded round only before any animal departs.
+The mobile board uses a taller
 route area, and outcome-only fields sit directly at the rail bottoms with no
-separate endpoint dots; a completed face lands as a prominent upper-left badge in
-its frozen outcome field with larger readable type and clear field separation.
+separate endpoint dots; a completed face lands without a circular plate, centered
+on its rail directly above the borderless frozen outcome field, whose readable
+type stays vertically centered with clear field separation.
 Player count stays on 44px `−`/`+` controls, alongside
 seeded uniform assignments, exactly one colored paired edge portal,
-an in-board start action, animated animal-face route tokens whose colored path
+a wide text-only start action floating at the track center, animated animal-face route tokens that
+retain their start size and whose colored path
 grows only behind the moving face, an always-available all-results action that
 reveals every frozen assignment at once, tactile haptics, and
 in-board route inspection/results. Show all results opens one dismissible,
@@ -265,7 +273,8 @@ target. The retained race implementation docks its sole Start action inside the
 arena and leaves only the count/portrait deck below. The ladder keeps editing, play,
 and results inside one SVG board. Setup UX keeps one primary action per screen:
 draw uses one-result rounds, ladder player count uses direct
-`−`/`+` controls, and race defaults to a legible three-animal cast with no
+`−`/`+` controls and permits Start with blank outcome fields by freezing their
+localized numbered placeholders, and race defaults to a legible three-animal cast with no
 naming step. Reproducible Blender scripts create the race and fortune delivery
 GLBs without redistributing the licensed race source
 `.blend`; the fortune source and CC-BY attribution are preserved locally.

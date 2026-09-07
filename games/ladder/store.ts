@@ -26,7 +26,10 @@ interface LadderStore {
   setPlayerCount: (count: number) => void;
   setSetup: (players: readonly string[], outcomes: readonly string[]) => void;
   hydrateFromShare: (shared: SharedLadder) => void;
-  beginRound: () => LadderRound | null;
+  beginRound: (
+    seed?: number,
+    fallback?: { players: readonly string[]; outcomes: readonly string[] },
+  ) => LadderRound | null;
   finishRound: () => void;
   resetRound: () => void;
   clear: () => void;
@@ -117,15 +120,32 @@ export const useLadderStore = create<LadderStore>((set, get) => ({
       round: null,
     }),
 
-  beginRound: () => {
+  beginRound: (seed, fallback) => {
     const { players, outcomes, forcedSeed, phase } = get();
-    if (phase === "running" || !isValidLadderSetup(players, outcomes)) return null;
+    const resolvedPlayers = players.map(
+      (player, index) => player.trim() || fallback?.players[index]?.trim() || "",
+    );
+    const resolvedOutcomes = outcomes.map(
+      (outcome, index) => outcome.trim() || fallback?.outcomes[index]?.trim() || "",
+    );
+    if (
+      phase === "running" ||
+      !isValidLadderSetup(resolvedPlayers, resolvedOutcomes)
+    ) {
+      return null;
+    }
     const round = createLadderRound({
-      players,
-      outcomes,
-      seed: forcedSeed ?? randomSeed(),
+      players: resolvedPlayers,
+      outcomes: resolvedOutcomes,
+      seed: forcedSeed ?? seed ?? randomSeed(),
     });
-    set({ round, phase: "running", forcedSeed: null });
+    set({
+      players: round.players,
+      outcomes: round.outcomes,
+      round,
+      phase: "running",
+      forcedSeed: null,
+    });
     return round;
   },
 

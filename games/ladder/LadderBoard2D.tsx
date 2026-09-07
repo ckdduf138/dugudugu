@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -18,10 +19,11 @@ import type { LadderPhase } from "./store";
 import { LadderAnimalFace } from "./LadderAnimalPortrait";
 import { LADDER_RUN_DURATION_MS, TOKEN_CSS_VARS } from "./visual";
 
+import styles from "./ladder.module.css";
+
 const VIEWBOX_WIDTH = 720;
 const VIEWBOX_HEIGHT = 820;
-const TRACK_TOP = 42;
-const TRACK_BOTTOM = 812;
+const TRACK_TOP = 76;
 const PORTAL_LEFT = 34;
 const PORTAL_RIGHT = 686;
 const RUN_DURATION_SECONDS = LADDER_RUN_DURATION_MS / 1_000;
@@ -70,12 +72,16 @@ type RouteMotion = {
 const columnX = (column: number, playerCount: number) =>
   ((column + 0.5) / playerCount) * VIEWBOX_WIDTH;
 
-const progressY = (progress: number) =>
-  TRACK_TOP + progress * (TRACK_BOTTOM - TRACK_TOP);
+// Reserve a clear band for names before the first bridge.
+const progressY = (progress: number, bottom: number) =>
+  progress === 0
+    ? TRACK_TOP
+    : TRACK_TOP + 80 + progress * (bottom - TRACK_TOP - 80);
 
 function routeMotion(
   assignment: LadderAssignment,
   playerCount: number,
+  bottom: number,
 ): RouteMotion {
   const path: readonly LadderPathPoint[] = assignment.path;
   const frames: Array<{
@@ -86,7 +92,7 @@ function routeMotion(
   }> = [
     {
       x: columnX(path[0].column, playerCount),
-      y: progressY(path[0].progress),
+      y: progressY(path[0].progress, bottom),
       opacity: 1,
       distance: 0,
     },
@@ -118,8 +124,8 @@ function routeMotion(
   for (let index = 1; index < path.length; index++) {
     const previous = path[index - 1];
     const current = path[index];
-    const y1 = progressY(previous.progress);
-    const y2 = progressY(current.progress);
+    const y1 = progressY(previous.progress, bottom);
+    const y2 = progressY(current.progress, bottom);
     const x1 = columnX(previous.column, playerCount);
     const x2 = columnX(current.column, playerCount);
 
@@ -187,18 +193,20 @@ function EdgeGate({
   y,
   side,
   active,
+  size,
 }: {
   x: number;
   y: number;
   side: "left" | "right";
   active: boolean;
+  size: number;
 }) {
   const direction = side === "left" ? -1 : 1;
   return (
     <motion.g
       aria-hidden
       initial={false}
-      animate={{ scale: active ? 1.14 : 1, opacity: active ? 1 : 0.78 }}
+      animate={{ scale: size * (active ? 1.14 : 1), opacity: active ? 1 : 0.78 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
       style={{ transformOrigin: `${x}px ${y}px` }}
     >
@@ -265,37 +273,15 @@ function AnimalTokenArtwork({
     <g aria-hidden style={style}>
       <circle cx="0" cy="0" r="37" fill="transparent" />
       {selected ? (
-        <circle
-          cx="0"
-          cy="0"
-          r="34"
-          fill="none"
-          stroke={`var(${TOKEN_CSS_VARS[index]})`}
-          strokeWidth="4"
-          opacity=".3"
-        />
+        <path d="M-12 34Q0 38 12 34" fill="none" stroke={`var(${TOKEN_CSS_VARS[index]})`} strokeWidth="3" strokeLinecap="round" />
       ) : null}
-      <circle
-        cx="0"
-        cy="0"
-        r="29"
-        fill="var(--surface)"
-        stroke={`var(${TOKEN_CSS_VARS[index]})`}
-        strokeWidth="5"
-      />
-      <circle
-        cx="0"
-        cy="0"
-        r="24"
-        fill={`color-mix(in srgb, var(${TOKEN_CSS_VARS[index]}) 13%, var(--surface))`}
-      />
-      <g transform="scale(.72)">
+      <g transform="scale(.86)">
         <g transform="translate(-40 -40)">
           <LadderAnimalFace index={index} />
         </g>
       </g>
       {completed ? (
-        <g transform="translate(20 -20)">
+        <g transform="translate(24 18)">
           <circle
             r="9"
             fill={`var(${TOKEN_CSS_VARS[index]})`}
@@ -330,6 +316,27 @@ export const LadderBoard2D = memo(function LadderBoard2D({
   outcomeSlots,
   reducedMotion = false,
 }: Props) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [height, setHeight] = useState(VIEWBOX_HEIGHT);
+  const [artScale, setArtScale] = useState(1);
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (width > 0 && height > 0) {
+        setHeight(height * VIEWBOX_WIDTH / width);
+        setArtScale(Math.min(1, VIEWBOX_WIDTH / width));
+      }
+    });
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, []);
+  const bottom = height - 8;
+  const portalYs = round.rungs.filter((rung) => rung.kind === "portal")
+    .map((rung) => progressY(rung.progress, bottom)).sort((a, b) => a - b);
+  const portalGap = Math.min(...portalYs.slice(1).map((y, index) => y - portalYs[index]));
+  const gateScale = Math.min(artScale, portalGap / 56);
   const completionKeyRef = useRef<string | null>(null);
   const playerCount = round.players.length;
   const selectedAssignment =
@@ -337,18 +344,18 @@ export const LadderBoard2D = memo(function LadderBoard2D({
   const selectedSegments = useMemo(
     () =>
       selectedAssignment
-        ? routeMotion(selectedAssignment, playerCount).segments
+        ? routeMotion(selectedAssignment, playerCount, bottom).segments
         : [],
-    [playerCount, selectedAssignment],
+    [playerCount, selectedAssignment, bottom],
   );
   const animatedAssignment =
     animatingPlayer == null ? null : round.assignments[animatingPlayer];
   const animatedMotion = useMemo(
     () =>
       animatedAssignment
-        ? routeMotion(animatedAssignment, playerCount)
+        ? routeMotion(animatedAssignment, playerCount, bottom)
         : null,
-    [animatedAssignment, playerCount],
+    [animatedAssignment, playerCount, bottom],
   );
 
   useEffect(() => {
@@ -364,13 +371,15 @@ export const LadderBoard2D = memo(function LadderBoard2D({
 
   return (
     <div
-      className="relative min-h-0 w-full overflow-hidden rounded-[var(--radius-lg)] border border-ink/8 bg-[color-mix(in_srgb,var(--candy-lemon)_7%,var(--surface))]"
-      style={{ touchAction: "pan-y" }}
+      className={styles.board}
+      style={{ touchAction: "pan-y pinch-zoom" }}
     >
       <svg
-        viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
-        className="block h-auto w-full"
-        role="img"
+        ref={svgRef}
+        data-ladder-seed={round.seed}
+        viewBox={`0 0 ${VIEWBOX_WIDTH} ${height}`}
+        className={styles.tracks}
+        role="group"
         aria-label={label}
       >
         <defs>
@@ -409,20 +418,9 @@ export const LadderBoard2D = memo(function LadderBoard2D({
           x="0"
           y="0"
           width={VIEWBOX_WIDTH}
-          height={VIEWBOX_HEIGHT}
+          height={height}
           fill="url(#ladder-grid)"
         />
-        <rect
-          x="18"
-          y="18"
-          width={VIEWBOX_WIDTH - 36}
-          height={VIEWBOX_HEIGHT - 36}
-          rx="34"
-          fill="color-mix(in srgb, var(--candy-lemon) 9%, var(--surface))"
-          stroke="color-mix(in srgb, var(--ink) 7%, transparent)"
-          strokeWidth="2"
-        />
-
         {Array.from({ length: playerCount }, (_, column) => {
           const x = columnX(column, playerCount);
           return (
@@ -431,7 +429,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                 x1={x}
                 x2={x}
                 y1={TRACK_TOP}
-                y2={TRACK_BOTTOM}
+                y2={bottom}
                 stroke="color-mix(in srgb, var(--ink) 18%, var(--surface))"
                 strokeWidth="11"
                 strokeLinecap="round"
@@ -440,7 +438,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                 x1={x}
                 x2={x}
                 y1={TRACK_TOP}
-                y2={TRACK_BOTTOM}
+                y2={bottom}
                 stroke="color-mix(in srgb, var(--candy-lemon) 8%, var(--surface))"
                 strokeWidth="3"
                 strokeLinecap="round"
@@ -450,13 +448,13 @@ export const LadderBoard2D = memo(function LadderBoard2D({
         })}
 
         {round.rungs.map((rung) => {
-          const y = progressY(rung.progress);
+          const y = progressY(rung.progress, bottom);
           if (rung.kind === "portal") {
             return (
               <g key={rung.id}>
                 <line
                   x1={columnX(0, playerCount)}
-                  x2={PORTAL_LEFT + 13}
+                  x2={PORTAL_LEFT + 13 * gateScale}
                   y1={y}
                   y2={y}
                   stroke="color-mix(in srgb, var(--candy-grape) 72%, var(--ink))"
@@ -466,7 +464,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                 />
                 <line
                   x1={columnX(playerCount - 1, playerCount)}
-                  x2={PORTAL_RIGHT - 13}
+                  x2={PORTAL_RIGHT - 13 * gateScale}
                   y1={y}
                   y2={y}
                   stroke="color-mix(in srgb, var(--candy-grape) 72%, var(--ink))"
@@ -475,6 +473,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                   opacity="0.78"
                 />
                 <EdgeGate
+                  size={gateScale}
                   x={PORTAL_LEFT}
                   y={y}
                   side="left"
@@ -486,6 +485,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                     )}
                 />
                 <EdgeGate
+                  size={gateScale}
                   x={PORTAL_RIGHT}
                   y={y}
                   side="right"
@@ -524,26 +524,6 @@ export const LadderBoard2D = memo(function LadderBoard2D({
           );
         })}
 
-        {selectedAssignment ? (
-          <g key={`selected-${round.seed}-${selectedAssignment.playerIndex}`}>
-            {selectedSegments.map((segment, index) => (
-              <motion.line
-                key={segment.key}
-                x1={segment.x1}
-                y1={segment.y1}
-                x2={segment.x2}
-                y2={segment.y2}
-                stroke={`var(${TOKEN_CSS_VARS[selectedAssignment.playerIndex]})`}
-                strokeWidth="13"
-                strokeLinecap="round"
-                initial={reducedMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 0.94 }}
-                transition={{ duration: 0.18, delay: index * 0.025 }}
-              />
-            ))}
-          </g>
-        ) : null}
-
         {animatedAssignment && animatedMotion ? (
           <g
             key={`${round.seed}-trail-${animatedAssignment.playerIndex}-${animationKey}`}
@@ -580,9 +560,9 @@ export const LadderBoard2D = memo(function LadderBoard2D({
         ) : null}
 
         {Array.from({ length: playerCount }, (_, column) => {
-          if (animatingPlayer === column) return null;
           const x = columnX(column, playerCount);
           const revealed = revealedPlayers.includes(column);
+          const departed = revealed || animatingPlayer === column;
           const selectable =
             phase !== "idle" &&
             animatingPlayer == null &&
@@ -594,6 +574,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
             >
               <motion.g
                 data-ladder-start-token={column}
+                data-departed={departed}
                 role={phase === "idle" ? undefined : "button"}
                 tabIndex={selectable ? 0 : -1}
                 aria-label={
@@ -615,10 +596,10 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                     onSelectPlayer(column);
                   }
                 }}
-                className={selectable ? "cursor-pointer outline-none" : ""}
+                className={`${styles.startToken} ${selectable ? "cursor-pointer" : ""}`}
                 initial={false}
                 animate={{
-                  opacity: revealed ? 0.38 : 1,
+                  opacity: departed ? 0.38 : 1,
                   scale: highlightedPlayer === column ? 1.08 : 1,
                 }}
                 whileHover={selectable ? { scale: 1.08 } : undefined}
@@ -626,14 +607,33 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                 transition={{ type: "spring", stiffness: 360, damping: 23 }}
                 style={{
                   filter: "url(#ladder-token-shadow)",
+                  outline: "none",
                   transformOrigin: "0px 0px",
                 }}
               >
-                <AnimalTokenArtwork
-                  index={column}
-                  completed={revealed}
-                  selected={highlightedPlayer === column}
-                />
+                <rect x="-56" y="-56" width="112" height="140" fill="transparent" aria-hidden />
+                <g
+                  className={styles.startTokenArt}
+                  transform={`scale(${1.4 * artScale})`}
+                >
+                  <AnimalTokenArtwork
+                    index={column}
+                    completed={departed}
+                    selected={highlightedPlayer === column}
+                  />
+                </g>
+                <text
+                  y={72 * artScale}
+                  textAnchor="middle"
+                  fill="var(--ink)"
+                  stroke="var(--surface)"
+                  strokeWidth="7"
+                  paintOrder="stroke"
+                  className="font-display"
+                  fontSize={27 * artScale}
+                >
+                  {round.players[column]}
+                </text>
               </motion.g>
             </g>
           );
@@ -642,6 +642,7 @@ export const LadderBoard2D = memo(function LadderBoard2D({
         {animatedAssignment && animatedMotion ? (
                 <motion.g
                   key={`${round.seed}-token-${animatedAssignment.playerIndex}-${animationKey}`}
+                  data-ladder-moving-token={animatedAssignment.playerIndex}
                   initial={{
                     x: animatedMotion.frames.x[0],
                     y: animatedMotion.frames.y[0],
@@ -660,24 +661,26 @@ export const LadderBoard2D = memo(function LadderBoard2D({
                   }}
                   onAnimationComplete={completeOnce}
                 >
-                  <motion.g
-                    animate={
-                      reducedMotion
-                        ? undefined
-                        : { rotate: [-3.5, 3.5, -3.5], scale: [1, 1.045, 1] }
-                    }
-                    transition={{ duration: 0.42, repeat: Infinity, ease: "easeInOut" }}
-                    style={{ transformOrigin: "0px 0px" }}
-                  >
-                    <AnimalTokenArtwork index={animatedAssignment.playerIndex} />
-                  </motion.g>
+                  <g transform={`scale(${1.4 * artScale})`}>
+                    <motion.g
+                      animate={
+                        reducedMotion
+                          ? undefined
+                          : { rotate: [-3.5, 3.5, -3.5], scale: [1, 1.045, 1] }
+                      }
+                      transition={{ duration: 0.42, repeat: Infinity, ease: "easeInOut" }}
+                      style={{ transformOrigin: "0px 0px" }}
+                    >
+                      <AnimalTokenArtwork index={animatedAssignment.playerIndex} />
+                    </motion.g>
+                  </g>
                 </motion.g>
         ) : null}
 
       </svg>
 
       <div
-        className="grid items-center gap-0 border-t border-ink/8 bg-surface/72 pb-3 pt-4 sm:pb-4 sm:pt-5"
+        className={styles.outcomes}
         style={{
           gridTemplateColumns: `repeat(${playerCount}, minmax(0, 1fr))`,
         }}

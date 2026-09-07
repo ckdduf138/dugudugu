@@ -40,6 +40,85 @@ describe("LadderGame all-results dialog", () => {
     document.body.style.overflow = "";
   });
 
+  it("keeps a departed animal at its start while preserving the frozen round", () => {
+    const { container } = render(
+      <NextIntlClientProvider locale="ko" messages={koMessages}>
+        <LadderGame />
+      </NextIntlClientProvider>,
+    );
+    expect(container.querySelector('[data-ladder-start-token="0"]')?.textContent).toBe("고양이");
+    fireEvent.click(screen.getByRole("button", { name: "시작" }));
+    const round = useLadderStore.getState().round;
+    fireEvent.click(screen.getByRole("button", { name: "고양이의 경로 보기" }));
+    const departed = container.querySelector('[data-ladder-start-token="0"]');
+    expect(departed?.getAttribute("data-departed")).toBe("true");
+    expect(departed?.getAttribute("aria-disabled")).toBe("true");
+    expect(container.querySelector('[data-ladder-start-token="1"]')?.getAttribute("data-departed")).toBe("false");
+    expect(container.querySelectorAll("[data-ladder-outcome-avatar]")).toHaveLength(0);
+    expect(useLadderStore.getState().round).toBe(round);
+  });
+
+  it("allows shuffle before the first route and locks it after departure", () => {
+    const { container } = render(
+      <NextIntlClientProvider locale="ko" messages={koMessages}>
+        <LadderGame />
+      </NextIntlClientProvider>,
+    );
+    const shuffle = screen.getByRole("button", { name: "셔플" }) as HTMLButtonElement;
+    const preview = container.querySelector("[data-ladder-seed]");
+    const firstPreviewSeed = preview?.getAttribute("data-ladder-seed");
+    fireEvent.click(shuffle);
+    const shuffledPreviewSeed = preview?.getAttribute("data-ladder-seed");
+    expect(shuffledPreviewSeed).not.toBe(firstPreviewSeed);
+    expect(useLadderStore.getState().round).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "시작" }));
+    const first = useLadderStore.getState().round;
+    expect(String(first?.seed)).toBe(shuffledPreviewSeed);
+    fireEvent.click(shuffle);
+    const second = useLadderStore.getState().round;
+    expect(second).not.toBe(first);
+    expect(second?.players).toEqual(first?.players);
+    expect(second?.outcomes).toEqual(first?.outcomes);
+    fireEvent.click(screen.getByRole("button", { name: "고양이의 경로 보기" }));
+    expect(shuffle.disabled).toBe(true);
+    fireEvent.click(shuffle);
+    expect(useLadderStore.getState().round).toBe(second);
+  });
+
+  it("advances inputs with Enter without submitting during Korean composition", () => {
+    render(
+      <NextIntlClientProvider locale="ko" messages={koMessages}>
+        <LadderGame />
+      </NextIntlClientProvider>,
+    );
+    const fields = screen.getAllByRole("textbox");
+    fields[0].focus();
+    fireEvent.keyDown(fields[0], { key: "Enter", isComposing: true });
+    expect(document.activeElement).toBe(fields[0]);
+    fireEvent.keyDown(fields[0], { key: "Enter" });
+    expect(document.activeElement).toBe(fields[1]);
+    fireEvent.keyDown(fields[1], { key: "Enter" });
+    expect(document.activeElement).not.toBe(fields[1]);
+    expect(useLadderStore.getState().phase).toBe("idle");
+  });
+
+  it("starts with localized fallback outcomes when fields are blank", () => {
+    useLadderStore.getState().setSetup(["고양이", "강아지"], ["", ""]);
+    render(
+      <NextIntlClientProvider locale="ko" messages={koMessages}>
+        <LadderGame />
+      </NextIntlClientProvider>,
+    );
+
+    const start = screen.getByRole("button", { name: "시작" }) as HTMLButtonElement;
+    expect(start.disabled).toBe(false);
+    expect(start.querySelector("svg")).toBeNull();
+    fireEvent.click(start);
+
+    expect(useLadderStore.getState().phase).toBe("running");
+    expect(useLadderStore.getState().outcomes).toEqual(["결과 1", "결과 2"]);
+  });
+
   it("maps every animal profile and name to its frozen result, then reopens", async () => {
     const { container } = render(
       <NextIntlClientProvider locale="ko" messages={koMessages}>
@@ -51,7 +130,7 @@ describe("LadderGame all-results dialog", () => {
       container.querySelectorAll("[data-ladder-start-token]"),
     ).toHaveLength(2);
 
-    fireEvent.click(screen.getByRole("button", { name: "사다리 출발" }));
+    fireEvent.click(screen.getByRole("button", { name: "시작" }));
     const round = useLadderStore.getState().round;
     expect(round).not.toBeNull();
     const catRouteButton = screen.getByRole("button", {

@@ -113,6 +113,7 @@
       "outcomeFallback": "결과 {number}",
       "running": "동물 친구가 내려가는 중",
       "runningPlayer": "{player} 출발",
+      "shuffle": "셔플",
       "tapAnimal": "위 동물 얼굴을 눌러 한 명씩 출발하세요",
       "skip": "전체 결과 보기",
         "routeHint": "이름을 누르면 해당 경로를 다시 확인할 수 있어요.",
@@ -135,9 +136,7 @@
         "outcomePlaceholder": "결과 {number}",
         "range": "{min}–{max}명까지 가능",
         "ready": "출발 준비 완료",
-        "fillAll": "빈칸을 모두 채워주세요",
-        "start": "사다리 출발",
-        "startDisabled": "결과를 먼저 입력해 주세요",
+        "start": "시작",
         "editHint": "동물 수를 고르고 아래 결과만 입력하세요",
         "portalHint": "양끝 레인마다 포털이 있어요"
       },

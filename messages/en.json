@@ -113,6 +113,7 @@
       "outcomeFallback": "Result {number}",
       "running": "An animal friend is heading down",
       "runningPlayer": "{player} is off",
+      "shuffle": "Shuffle",
       "tapAnimal": "Tap an animal above to send them down one at a time",
       "skip": "Show all results",
         "routeHint": "Tap a name to trace that route again.",
@@ -135,9 +136,7 @@
         "outcomePlaceholder": "Outcome {number}",
         "range": "Choose {min}–{max} players",
         "ready": "Ready to start",
-        "fillAll": "Fill every field",
-        "start": "Start ladder",
-        "startDisabled": "Enter the outcomes first",
+        "start": "Start",
         "editHint": "Choose the field and edit only the outcomes below",
         "portalHint": "Each edge lane has seeded portals"
       },

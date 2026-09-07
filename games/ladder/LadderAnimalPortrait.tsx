@@ -97,7 +97,7 @@ function Cat() {
     <g transform="rotate(-2 40 42)">
       <path d="M16 31 15 7l19 15m30 9L65 7 46 22" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" strokeLinejoin="round" />
       <path d="m20 19-1.2-7.2 9 9.5m31.2-2.3 1.2-7.2-9 9.5" fill="var(--candy-pink)" opacity=".72" />
-      <path d="M13 42c0-18 11.4-29.3 27-29.3S67 24 67 42c0 17.4-10.6 28-27 28S13 59.4 13 42Z" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" />
+      <path d="M14 39c0-16 10-26.3 26-26.3S66 23 66 39l5 7-7 1 5 8-9-1C56 65 49 70 40 70s-16-5-20-16l-9 1 5-8-7-1Z" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" />
       <FaceFinish />
       <path d="m33.7 17.8 6.3 8.4 6.3-8.4-1.8 10.8H35.5Z" fill="var(--surface)" opacity=".52" />
       <Eyes y={39.5} wide />
@@ -110,9 +110,9 @@ function Cat() {
 
 function Dog() {
   return (
-    <g transform="rotate(2 40 42)">
-      <path d="M26 23C12 10 6.5 22 14 44l16-7m24-14c14-13 19.5-1 12 21l-16-7" fill="var(--candy-coral)" stroke="var(--surface)" strokeWidth="3.5" strokeLinejoin="round" />
-      <path d="M13 42c0-18 11.4-29.3 27-29.3S67 24 67 42c0 17.4-10.6 28-27 28S13 59.4 13 42Z" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" />
+    <g transform="rotate(2 40 42)" style={{ "--portrait-accent": "var(--candy-lemon)" } as CSSProperties}>
+      <path d="M25 22C10 9 2 23 9 52c2 7 10 5 14-3l8-14m24-13c15-13 23 1 16 30-2 7-10 5-14-3l-8-14" fill="var(--candy-coral)" stroke="var(--surface)" strokeWidth="3.5" strokeLinejoin="round" />
+      <path d="M18 36c0-15 9-23.3 22-23.3S62 21 62 36l4 13c2 14-11 22-26 22S12 63 14 49Z" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" />
       <FaceFinish />
       <path d="M24.2 20.5c5.2-4.8 12-6.5 18.5-4.9-6.1 3.6-8.5 9.3-7.9 16.1-5.5-.9-8.9-4.6-10.6-11.2Z" fill="var(--surface)" opacity=".68" />
       <path d="M52 19.4c3.4 2 5.6 5 6.4 9.1-2.7-2.4-5.6-3.8-8.9-4.1Z" fill="color-mix(in srgb,var(--candy-coral) 58%,var(--ink))" opacity=".26" />
@@ -130,7 +130,7 @@ function Rabbit() {
   return (
     <g transform="rotate(-1.5 40 42)">
       <ellipse cx="27" cy="18" rx="9.2" ry="20.5" transform="rotate(-8 27 18)" fill="var(--surface)" stroke="var(--portrait-accent)" strokeWidth="6" />
-      <ellipse cx="53" cy="18" rx="9.2" ry="20.5" transform="rotate(8 53 18)" fill="var(--surface)" stroke="var(--portrait-accent)" strokeWidth="6" />
+      <ellipse cx="53" cy="20" rx="9.2" ry="18.5" transform="rotate(19 53 20)" fill="var(--surface)" stroke="var(--portrait-accent)" strokeWidth="6" />
       <path d="M27 4.5v19m26-19v19" stroke="var(--candy-pink)" strokeWidth="4.3" strokeLinecap="round" opacity=".58" />
       <ellipse cx="40" cy="44" rx="26" ry="27" fill="var(--surface)" stroke="var(--portrait-accent)" strokeWidth="4.7" />
       <FaceFinish />
@@ -146,12 +146,12 @@ function Rabbit() {
 
 function Tiger() {
   return (
-    <g transform="rotate(1.5 40 42)">
+    <g transform="rotate(1.5 40 42)" style={{ "--portrait-accent": "var(--candy-coral)" } as CSSProperties}>
       <circle cx="18.5" cy="23.5" r="11.5" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" />
       <circle cx="61.5" cy="23.5" r="11.5" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" />
       <circle cx="18.5" cy="23.5" r="4.2" fill="var(--surface)" opacity=".45" />
       <circle cx="61.5" cy="23.5" r="4.2" fill="var(--surface)" opacity=".45" />
-      <circle cx="40" cy="42" r="28" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" />
+      <path d="M13 38c0-16 12-25 27-25s27 9 27 25l5 8-7 2 3 8-9-1c-4 10-12 15-19 15s-15-5-19-15l-9 1 3-8-7-2Z" fill="var(--portrait-accent)" stroke="var(--surface)" strokeWidth="3.5" strokeLinejoin="round" />
       <FaceFinish />
       <path d="m32.8 15.5 3.6 11.3m10.8-11.3-3.6 11.3M17 34l10.5 4.8m35.5-4.8-10.5 4.8" stroke="var(--ink)" strokeWidth="3.7" strokeLinecap="round" opacity=".6" />
       <path d="m36.5 15 3.5 9 3.5-9" fill="var(--ink)" opacity=".58" />
@@ -219,7 +219,7 @@ export function LadderAnimalPortrait({ index, className = "" }: Props) {
   } as CSSProperties;
 
   return (
-    <svg viewBox="0 0 80 80" aria-hidden className={className} style={style}>
+    <svg viewBox="0 -7 80 87" aria-hidden className={className} style={style}>
       <LadderAnimalFace index={index} />
     </svg>
   );

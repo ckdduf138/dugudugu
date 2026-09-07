@@ -15,9 +15,9 @@ import {
   ArrowRight,
   ListChecks,
   Minus,
-  Play,
   Plus,
   RotateCcw,
+  Shuffle,
 } from "lucide-react";
 import {
   LiveAnnouncer,
@@ -27,16 +27,17 @@ import {
 import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
 import { vibrate } from "@/lib/haptics";
 import { pressable, spring } from "@/lib/motion";
+import { randomSeed } from "@/lib/random";
 import {
   MAX_LADDER_PLAYERS,
   MIN_LADDER_PLAYERS,
   createLadderRound,
-  isValidLadderSetup,
 } from "./logic";
 import { decodeLadderParams } from "./share";
 import { useLadderStore, type LadderPhase } from "./store";
 import { LadderAnimalPortrait } from "./LadderAnimalPortrait";
 import { LadderBoard2D } from "./LadderBoard2D";
+import styles from "./ladder.module.css";
 import { LADDER_RUN_DURATION_MS, TOKEN_CSS_VARS } from "./visual";
 
 type OutcomeLabelProps = {
@@ -76,51 +77,46 @@ function OutcomeLabel({
     return (
       <motion.div
         aria-label={ariaLabel}
-        className="relative mx-1 flex min-h-14 min-w-0 items-center justify-center rounded-[1rem] border-2 border-[color-mix(in_srgb,var(--label-color)_22%,transparent)] px-0.5 py-1 text-center font-black text-ink shadow-[0_4px_0_color-mix(in_srgb,var(--label-color)_15%,transparent)] sm:mx-1.5"
+        className="relative mx-1 grid min-h-14 min-w-0 place-items-center rounded-[1rem] px-1.5 py-2 text-center font-black text-ink sm:mx-1.5 sm:px-2"
         style={colorStyle}
         initial={false}
         animate={{ scale: highlighted ? 1.035 : 1 }}
         transition={{ type: "spring", stiffness: 360, damping: 24 }}
       >
         {arrivedPlayerIndex != null ? (
-          <motion.span
+          <span
             key={`arrival-${arrivedPlayerIndex}`}
             data-ladder-outcome-avatar={arrivedPlayerIndex}
             aria-hidden
-            className={`absolute left-1 top-0 z-10 grid place-items-center rounded-full border-2 border-surface bg-[color-mix(in_srgb,var(--arrival-color)_16%,var(--surface))] shadow-[0_3px_8px_color-mix(in_srgb,var(--ink)_18%,transparent)] ${compact ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"}`}
-            style={
-              {
-                "--arrival-color": `var(${TOKEN_CSS_VARS[arrivedPlayerIndex]})`,
-              } as CSSProperties
-            }
-            initial={
-              reducedMotion
-                ? false
-                : { y: -24, scale: 0.55, opacity: 0 }
-            }
-            animate={{ y: compact ? -12 : -14, scale: 1, opacity: 1 }}
-            transition={
-              reducedMotion
-                ? { duration: 0 }
-                : {
-                    type: "spring",
-                    stiffness: 430,
-                    damping: 22,
-                    delay: revealDelay,
-                  }
-            }
+            className="pointer-events-none absolute left-1/2 top-0 z-10 grid -translate-x-1/2 place-items-center"
           >
-            <LadderAnimalPortrait
-              index={arrivedPlayerIndex}
-              className={
-                compact
-                  ? "h-7 w-7 sm:h-8 sm:w-8"
-                  : "h-8 w-8 sm:h-9 sm:w-9"
+            <motion.span
+              className="block"
+              initial={
+                reducedMotion
+                  ? false
+                  : { y: compact ? -18 : -22, scale: 0.55, opacity: 0 }
               }
-            />
-          </motion.span>
+              animate={{ y: compact ? -32 : -40, scale: 1, opacity: 1 }}
+              transition={
+                reducedMotion
+                  ? { duration: 0 }
+                  : {
+                      type: "spring",
+                      stiffness: 430,
+                      damping: 22,
+                      delay: revealDelay,
+                    }
+              }
+            >
+              <LadderAnimalPortrait
+                index={arrivedPlayerIndex}
+                className={compact ? "h-11 w-11" : "h-14 w-14"}
+              />
+            </motion.span>
+          </span>
         ) : null}
-        <span className={`line-clamp-2 break-all leading-tight sm:text-sm ${compact ? "text-[11px]" : "text-[13px]"}`}>
+        <span className="break-words text-sm leading-snug">
           {value}
         </span>
       </motion.div>
@@ -128,19 +124,28 @@ function OutcomeLabel({
   }
 
   return (
-    <div className="relative mx-1 min-w-0 sm:mx-1.5" style={colorStyle}>
+    <div className="relative mx-1 min-w-0 sm:mx-1.5">
       <input
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onFocus={(event) => event.currentTarget.select()}
+        enterKeyHint="next"
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+          event.preventDefault();
+          const fields = Array.from(event.currentTarget.closest("main")!.querySelectorAll("input"));
+          const next = fields[fields.indexOf(event.currentTarget) + 1];
+          if (next) next.focus();
+          else event.currentTarget.blur();
+        }}
         maxLength={24}
         autoComplete="off"
         autoCapitalize="off"
         spellCheck={false}
         aria-label={ariaLabel}
-        placeholder={placeholder}
-        className={`h-12 min-w-0 w-full rounded-[1rem] border-2 border-[color-mix(in_srgb,var(--label-color)_22%,transparent)] px-1 text-center font-black leading-none text-ink shadow-[0_4px_0_color-mix(in_srgb,var(--label-color)_15%,transparent)] outline-none transition placeholder:text-ink-soft/48 hover:border-[color-mix(in_srgb,var(--label-color)_40%,transparent)] focus:border-[var(--label-color)] focus:bg-surface focus:ring-4 focus:ring-[color-mix(in_srgb,var(--label-color)_18%,transparent)] sm:px-1.5 sm:text-sm ${compact ? "text-[11px]" : "text-[13px]"}`}
+        placeholder={compact ? String(index + 1) : placeholder}
+        className={`${styles.outcomeInput} h-12 min-w-0 w-full rounded-[1rem] border-0 px-1 text-center text-base font-black leading-normal text-ink outline-none transition-shadow placeholder:text-ink-soft sm:px-1.5`}
         style={colorStyle}
       />
     </div>
@@ -155,6 +160,7 @@ export function LadderGame() {
   const outcomes = useLadderStore((state) => state.outcomes);
   const phase = useLadderStore((state) => state.phase);
   const round = useLadderStore((state) => state.round);
+  const forcedSeed = useLadderStore((state) => state.forcedSeed);
   const setOutcome = useLadderStore((state) => state.setOutcome);
   const setPlayerLabels = useLadderStore((state) => state.setPlayerLabels);
   const setPlayerCount = useLadderStore((state) => state.setPlayerCount);
@@ -172,9 +178,9 @@ export function LadderGame() {
   const [revealedPlayers, setRevealedPlayers] = useState<number[]>([]);
   const [revealAllStagger, setRevealAllStagger] = useState(false);
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
+  const [previewSeed, setPreviewSeed] = useState(() => randomSeed());
   const boardTitleId = useId();
   const resultsTriggerRef = useRef<HTMLButtonElement>(null);
-  const valid = isValidLadderSetup(players, outcomes);
   const animalNames = useMemo(() => {
     const values = t.raw("stage.animalNames");
     return Array.isArray(values)
@@ -217,8 +223,7 @@ export function LadderGame() {
     vibrate("win");
   }, [phase, round]);
 
-  const previewRound = useMemo(() => {
-    if (round) return round;
+  const fallbackSetup = useMemo(() => {
     const safePlayers = players.map(
       (player, index) =>
         player.trim() || t("stage.playerFallback", { number: index + 1 }),
@@ -227,12 +232,17 @@ export function LadderGame() {
       (outcome, index) =>
         outcome.trim() || t("stage.outcomeFallback", { number: index + 1 }),
     );
+    return { players: safePlayers, outcomes: safeOutcomes };
+  }, [outcomes, players, t]);
+
+  const previewRound = useMemo(() => {
+    if (round) return round;
     return createLadderRound({
-      players: safePlayers,
-      outcomes: safeOutcomes,
-      seed: 0x2d67d6 + players.length,
+      players: fallbackSetup.players,
+      outcomes: fallbackSetup.outcomes,
+      seed: forcedSeed ?? previewSeed,
     });
-  }, [outcomes, players, round, t]);
+  }, [fallbackSetup, forcedSeed, previewSeed, round]);
 
   const completeRound = useCallback(() => {
     if (animatingPlayer == null || !round) return;
@@ -275,7 +285,7 @@ export function LadderGame() {
   }, []);
 
   const start = useCallback(() => {
-    const generated = beginRound();
+    const generated = beginRound(previewSeed, fallbackSetup);
     if (!generated) return;
     window.scrollTo({
       top: 0,
@@ -287,7 +297,21 @@ export function LadderGame() {
     setRevealAllStagger(false);
     setResultsDialogOpen(false);
     vibrate("pop");
-  }, [beginRound, shouldReduceMotion]);
+  }, [beginRound, fallbackSetup, previewSeed, shouldReduceMotion]);
+
+  const shuffleRound = useCallback(() => {
+    if (
+      phase === "done" ||
+      animatingPlayer != null ||
+      revealedPlayers.length > 0
+    ) return;
+    const nextSeed = randomSeed();
+    setPreviewSeed(nextSeed);
+    resetRound();
+    if (phase === "running") beginRound(nextSeed);
+    setAnimationKey((current) => current + 1);
+    vibrate("pop");
+  }, [phase, animatingPlayer, revealedPlayers.length, resetRound, beginRound]);
 
   const editSetup = useCallback(() => {
     setHighlightedPlayer(null);
@@ -347,7 +371,7 @@ export function LadderGame() {
 
   return (
     <>
-      <main className="relative min-h-[100svh] overflow-x-hidden bg-[radial-gradient(circle_at_12%_18%,color-mix(in_srgb,var(--candy-sky)_12%,transparent),transparent_27%),radial-gradient(circle_at_88%_74%,color-mix(in_srgb,var(--candy-mint)_11%,transparent),transparent_25%),linear-gradient(180deg,var(--bg),color-mix(in_srgb,var(--candy-lemon)_9%,var(--bg))_58%,color-mix(in_srgb,var(--candy-mint)_7%,var(--bg)))] pb-5 pt-[calc(env(safe-area-inset-top)+1rem)] [--primary:var(--candy-sky)] sm:px-6 sm:pb-8 sm:pt-[calc(env(safe-area-inset-top)+1.5rem)]">
+      <main className={styles.surface}>
         <LiveAnnouncer
           message={announcement}
           announcementKey={`${phase}:${round?.seed ?? "setup"}:${highlightedPlayer ?? "none"}:${animatingPlayer ?? "none"}:${revealedPlayers.length}`}
@@ -357,20 +381,27 @@ export function LadderGame() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={spring.gentle}
-          className="relative mx-auto w-[calc(100%-0.75rem)] max-w-[42rem] overflow-hidden rounded-[var(--radius-lg)] border border-ink/8 bg-[linear-gradient(150deg,color-mix(in_srgb,var(--surface)_96%,var(--candy-sky)),color-mix(in_srgb,var(--surface)_94%,var(--candy-lemon)))] p-3 shadow-[0_7px_0_color-mix(in_srgb,var(--candy-sky)_10%,transparent),0_22px_50px_color-mix(in_srgb,var(--ink)_8%,transparent)] sm:p-5"
+          className={styles.layout}
           aria-labelledby={boardTitleId}
         >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full border-[18px] border-candy-lemon/[0.08]"
-        />
-        <header className="flex flex-col items-stretch gap-3 px-1 pb-3 sm:gap-4 sm:pb-4">
+        <header className={styles.header}>
           <GameRouteTitle id={boardTitleId}>{t("title")}</GameRouteTitle>
 
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex min-h-16 items-center justify-end gap-2 pt-2">
+            {phase !== "done" ? (
+              <button
+                type="button"
+                onClick={shuffleRound}
+                disabled={animatingPlayer != null || revealedPlayers.length > 0}
+                className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-toy border border-ink/15 bg-surface px-3 text-sm font-black text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:opacity-35"
+              >
+                <Shuffle aria-hidden size={17} />
+                {t("stage.shuffle")}
+              </button>
+            ) : null}
             {phase === "idle" ? (
               <div
-                className="inline-grid shrink-0 grid-cols-[2.75rem_3.45rem_2.75rem] items-center rounded-[1.15rem] border-2 border-candy-sky/20 bg-surface p-1 shadow-[0_5px_0_color-mix(in_srgb,var(--candy-sky)_18%,transparent),0_9px_18px_color-mix(in_srgb,var(--ink)_7%,transparent)]"
+                className="inline-grid shrink-0 grid-cols-[2.75rem_4.5rem_2.75rem] items-center rounded-[1.15rem] border-2 border-candy-sky/20 bg-surface p-1 shadow-[0_5px_0_color-mix(in_srgb,var(--candy-sky)_18%,transparent),0_9px_18px_color-mix(in_srgb,var(--ink)_7%,transparent)]"
                 role="group"
                 aria-label={t("setup.countAria", { count: players.length })}
               >
@@ -415,7 +446,7 @@ export function LadderGame() {
           </div>
         </header>
 
-        <div className="relative mt-1 sm:mt-2">
+        <div className={styles.stage}>
           <LadderBoard2D
             round={previewRound}
             phase={phase}
@@ -466,21 +497,14 @@ export function LadderGame() {
             })}
           />
           {phase === "idle" ? (
-            <div className="pointer-events-none absolute inset-0 grid place-items-center">
+            <div className={styles.startAction}>
               <motion.button
                 type="button"
                 onClick={start}
-                disabled={!valid}
-                className="dugu-action-btn pointer-events-auto inline-flex min-h-[3.5rem] items-center justify-center gap-2 px-5 py-2 text-ink [--dugu-action:var(--candy-sky)] sm:min-h-[3.75rem] sm:px-6"
+                className={`dugu-action-btn ${styles.startButton} pointer-events-auto inline-flex min-h-[3.5rem] items-center justify-center px-8 py-2 text-ink [--dugu-action:var(--candy-sky)] sm:min-h-[3.75rem]`}
                 {...pressable}
               >
-                <span
-                  aria-hidden
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-ink/8 bg-surface/78 shadow-sm"
-                >
-                  <Play size={14} fill="currentColor" />
-                </span>
-                <span className="font-display text-base leading-none sm:text-lg">
+                <span className="font-display text-2xl leading-none sm:text-3xl">
                   {t("setup.start")}
                 </span>
               </motion.button>
@@ -489,7 +513,7 @@ export function LadderGame() {
         </div>
 
         {phase === "done" && animatingPlayer == null ? (
-          <footer className="mt-3 border-t border-ink/[0.07] pt-3 sm:mt-4 sm:pt-4">
+          <footer className={styles.actions}>
             <div className="outline-none">
               <ul className="sr-only">
                 {round?.assignments.map((assignment) => (
