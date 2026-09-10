@@ -151,6 +151,11 @@ export default async function GamePage({ params }: Props) {
     );
   }
 
+  const structuredSeo = {
+    alternateName: gt.raw("seo.alternateNames") as string[],
+    featureList: gt.raw("seo.features") as string[],
+  };
+
   return (
     <>
       <section className="sr-only" aria-labelledby="game-page-title">
@@ -166,6 +171,7 @@ export default async function GamePage({ params }: Props) {
           description: gt("description"),
           url: absolutePageUrl(`/${locale}/games/${slug}`),
           locale,
+          ...structuredSeo,
         })}
       />
     </>

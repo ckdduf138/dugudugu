@@ -287,5 +287,9 @@ brand favicon for search, and each live
 game ships translated metadata, game JSON-LD, and one server-rendered
 screen-reader-only semantic title/summary block
 without appending a visible SEO description or FAQ below the play surface. The
+live draw, ladder, and fortune routes target their primary generic search
+intents with concise free-online-game titles, natural use-case copy, branded
+alternate names, and structured feature data while keeping the play surfaces
+unchanged. The
 production origin is `https://dugudugu-chameleon.vercel.app`; the next gates are
 final real-device a11y/performance QA and search-console indexing checks.

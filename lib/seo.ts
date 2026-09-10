@@ -47,6 +47,8 @@ export function gameJsonLd(opts: {
   description: string;
   url: string;
   locale: string;
+  alternateName?: string[];
+  featureList?: string[];
 }) {
   const url = absolutePageUrl(opts.url);
 
@@ -56,10 +58,14 @@ export function gameJsonLd(opts: {
     "@id": `${url}#web-application`,
     applicationCategory: "GameApplication",
     name: opts.name,
+    ...(opts.alternateName?.length
+      ? { alternateName: opts.alternateName }
+      : {}),
     description: opts.description,
     url,
     inLanguage: opts.locale,
     operatingSystem: "Web",
+    ...(opts.featureList?.length ? { featureList: opts.featureList } : {}),
     isAccessibleForFree: true,
     isPartOf: { "@id": `${absolutePageUrl("/")}#website` },
     offers: { "@type": "Offer", price: 0 },

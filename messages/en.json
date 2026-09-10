@@ -52,12 +52,19 @@
   "games": {
     "draw": {
       "title": "Capsule Draw",
-      "short": "Spin a capsule and reveal the pick",
-      "tagline": "Tap the crank and roll out one random capsule",
-      "description": "Add names or items, tap the crank, and the machine rolls out one capsule with one result. Seeded randomness keeps every pick fair for bets, chores, or choosing what to eat.",
+      "short": "Pick a name or option at random",
+      "tagline": "A free random picker game for names and options",
+      "description": "Use this free online random picker to choose one name, number, lunch option, or other entry. Add the candidates and tap the machine crank to roll out one result. It works for giveaways, friendly bets, chores, presentation order, and quick decisions with no sign-up or installation.",
       "seo": {
-        "title": "Free Random Capsule Draw",
-        "heading": "A free random capsule draw"
+        "title": "Free Online Random Picker",
+        "heading": "Dugudugu Free Online Random Picker",
+        "alternateNames": ["Dugudugu Draw", "Random Picker", "Online Draw Game"],
+        "features": [
+          "Pick one name or option at random",
+          "Animated capsule draw reveal",
+          "Keep entries and draw again",
+          "No sign-up or installation"
+        ]
       },
       "state": {
         "ready": "ready",
@@ -100,12 +107,19 @@
     },
     "ladder": {
       "title": "Ladder Game",
-      "short": "Watch the animal friends race down",
-      "tagline": "A cute 2D ladder traced by the animals themselves",
-      "description": "Choose a fixed cast of cute animals, edit only the outcomes below, and watch their faces follow a crisp 2D ladder through seeded edge portals sized to the field. A seeded uniform permutation freezes the fair result first.",
+      "short": "A free online ladder game",
+      "tagline": "A free online ladder game for 2–6 players",
+      "description": "Play a free online ladder game for 2–6 players. Add the outcomes, then tap each animal to trace its route and reveal the result. Use it for chores, presentation order, friendly bets, or assigning turns—no sign-up or installation required on mobile or desktop.",
       "seo": {
         "title": "Free Online Ladder Game",
-        "heading": "A ladder game with animal friends"
+        "heading": "Dugudugu Free Online Ladder Game",
+        "alternateNames": ["Dugudugu Ladder Game", "Online Ladder Game"],
+        "features": [
+          "Ladder game for 2–6 players",
+          "Trace each player's route",
+          "Reveal all results at once",
+          "No sign-up or installation"
+        ]
       },
       "stage": {
         "aria": "2D ladder board with animal faces and multiple paired edge portals",
@@ -209,12 +223,19 @@
     },
     "fortune": {
       "title": "Fortune Cookie",
-      "short": "Pick a mood, then tap once",
-      "tagline": "Choose luck, courage, connection, or comfort—then tap once",
-      "description": "Choose the kind of message you need—luck, courage, connection, or comfort—then tap the fortune cookie. It presses and cracks in stages before revealing one seeded message on a thin paper slip.",
+      "short": "Crack open today's message",
+      "tagline": "A free online fortune cookie for luck, courage, connection, or comfort",
+      "description": "Open a free online fortune cookie and reveal a random message for today. Choose luck, courage, connection, or comfort, then tap the cookie once to crack it open. Get a new fortune on mobile or desktop with no sign-up or installation.",
       "seo": {
-        "title": "Random Fortune Cookie",
-        "heading": "Tap open a random fortune cookie"
+        "title": "Free Online Fortune Cookie",
+        "heading": "Dugudugu Free Online Fortune Cookie",
+        "alternateNames": ["Dugudugu Fortune Cookie", "Online Fortune Cookie", "Random Fortune Cookie"],
+        "features": [
+          "Luck, courage, connection, and comfort categories",
+          "A new random message with each cookie",
+          "Korean and English support",
+          "No sign-up or installation"
+        ]
       },
       "state": {
         "opening": "The cookie is cracking open",
