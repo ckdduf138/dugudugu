@@ -6,7 +6,8 @@
   },
   "nav": {
     "home": "홈",
-    "games": "게임"
+    "games": "게임",
+    "language": "언어"
   },
   "common": {
     "play": "플레이",

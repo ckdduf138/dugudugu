@@ -46,11 +46,11 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
   Avoid antique parchment, floral corner ornaments, deep scroll curls, and a
   generic elevated result card; those visual languages clash with the modern
   toy UI and the clean image-authored cookie.
-- The inline result never adds a lobby action, and there is no language
-  selector or shared footer. Keep the finished Canvas active with
-  `frameloop="demand"`; switching the WebGL surface to `active={false}` caused
-  the frozen canvas compositing layer to cover overlaid DOM such as the inline
-  result on the tested browser.
+- The global KO/EN selector remains at the safe-area-aware upper right and the
+  inline result never adds a lobby action. There is no shared footer. Keep the
+  finished Canvas active with `frameloop="demand"`; switching the WebGL surface
+  to `active={false}` caused the frozen canvas compositing layer to cover those
+  DOM elements on the tested browser.
 - The final render already contains a center gap, so the hidden fracture halves
   begin shifted inward and meet at the visibility switch. They separate only
   through the continuous clip; never expose the baked final gap in one frame.

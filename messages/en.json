@@ -6,7 +6,8 @@
   },
   "nav": {
     "home": "Home",
-    "games": "Games"
+    "games": "Games",
+    "language": "Language"
   },
   "common": {
     "play": "Play",

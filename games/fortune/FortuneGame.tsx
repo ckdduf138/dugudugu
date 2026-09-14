@@ -406,7 +406,7 @@ export function FortuneGame() {
             initial={reduceMotion ? false : { opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-            className="pointer-events-auto absolute left-1/2 top-[calc(env(safe-area-inset-top)+5.25rem)] grid w-[calc(100%-1rem)] max-w-[29rem] -translate-x-1/2 grid-cols-4 gap-1 sm:gap-1.5"
+            className="pointer-events-auto absolute left-1/2 top-[calc(env(safe-area-inset-top)+5.25rem)] grid w-[calc(100%-1rem)] max-w-[29rem] -translate-x-1/2 grid-cols-4 gap-1 max-[350px]:top-[calc(env(safe-area-inset-top)+6.25rem)] sm:gap-1.5"
           >
             {CATEGORY_VISUALS.map(
               ({ id, icon: CategoryIcon, activeClassName }) => {

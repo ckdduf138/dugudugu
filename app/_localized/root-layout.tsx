@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
+import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import { rootHtmlClassName } from "@/app/root-config";
 import type { Locale } from "@/i18n/routing";
 import "../globals.css";
@@ -28,7 +29,10 @@ export function LocaleRootLayout({ locale, children }: Props) {
         />
       </head>
       <body className="min-h-full">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          {children}
+          <LocaleSwitcher />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

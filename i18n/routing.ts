@@ -17,9 +17,9 @@ export type Locale = (typeof routing.locales)[number];
  * Public pathname of a page in one locale, matching `trailingSlash: true`:
  * `("ko", "/ladder")` → `/ladder/`, `("en", "/ladder")` → `/en/ladder/`.
  *
- * next-intl's navigation APIs force a locale prefix whenever a `locale`
- * option is passed, which only works when middleware can strip it again.
- * Cross-locale and SEO URLs use this instead.
+ * next-intl's navigation APIs force a locale prefix whenever the locale
+ * changes, which only works when middleware can strip it again. Language
+ * links and SEO URLs use this instead.
  */
 export function localizedPathname(locale: Locale, pathname = "/") {
   const path = `/${pathname.replace(/^\/+|\/+$/g, "")}`;
