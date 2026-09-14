@@ -5,31 +5,27 @@ import { GameCard } from "@/components/ui/GameCard";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { TopBar } from "@/components/ui/TopBar";
 import { games } from "@/games/registry";
-import { routing } from "@/i18n/routing";
+import type { Locale } from "@/i18n/routing";
 import { websiteJsonLd } from "@/lib/seo";
-import { absolutePageUrl, absoluteUrl } from "@/lib/site";
+import {
+  absoluteUrl,
+  languageAlternates,
+  localizedPageUrl,
+} from "@/lib/site";
 
-type Props = { params: Promise<{ locale: string }> };
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { locale } = await params;
+export async function lobbyMetadata(locale: Locale): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "site" });
   const title =
     locale === "ko"
       ? `${t("tagline")} | ${t("name")}`
       : `${t("name")} | ${t("tagline")}`;
   const description = t("description");
-  const canonical = absolutePageUrl(`/${locale}`);
+  const canonical = localizedPageUrl(locale);
   const socialImage = {
     url: absoluteUrl("/images/brand/social-card.png"),
     width: 1200,
     height: 630,
     alt: title,
-  };
-  const languageUrls = {
-    ko: absolutePageUrl("/ko"),
-    en: absolutePageUrl("/en"),
-    "x-default": absolutePageUrl(`/${routing.defaultLocale}`),
   };
 
   return {
@@ -37,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: {
       canonical,
-      languages: languageUrls,
+      languages: languageAlternates(),
     },
     openGraph: {
       type: "website",
@@ -58,8 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function LobbyPage({ params }: Props) {
-  const { locale } = await params;
+export async function LobbyPage({ locale }: { locale: Locale }) {
   setRequestLocale(locale);
   const t = await getTranslations();
 

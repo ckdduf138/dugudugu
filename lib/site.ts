@@ -1,4 +1,6 @@
-const FALLBACK_SITE_URL = "https://dugudugu-chameleon.vercel.app";
+import { localizedPathname, routing, type Locale } from "@/i18n/routing";
+
+const FALLBACK_SITE_URL = "https://dugupop.com";
 const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
 
 export const SITE_URL = (configuredSiteUrl || FALLBACK_SITE_URL).replace(
@@ -22,4 +24,22 @@ export function absolutePageUrl(path = "/") {
   }
 
   return url.toString();
+}
+
+/** Canonical absolute URL of a page in one locale. */
+export function localizedPageUrl(locale: Locale, pathname = "/") {
+  return absolutePageUrl(localizedPathname(locale, pathname));
+}
+
+/** hreflang map for one page; x-default is the root-served Korean page. */
+export function languageAlternates(pathname = "/") {
+  const languages: Record<string, string> = Object.fromEntries(
+    routing.locales.map((locale) => [
+      locale,
+      localizedPageUrl(locale, pathname),
+    ]),
+  );
+  languages["x-default"] = localizedPageUrl(routing.defaultLocale, pathname);
+
+  return languages;
 }

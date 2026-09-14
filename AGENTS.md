@@ -6,7 +6,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-# 두구두구 (Dugudugu) — Agent Guide
+# 두구팝 (Dugupop) — Agent Guide
+
+> Brand: the product is **두구팝 / Dugupop** (formerly 두구두구 / Dugudugu) at
+> `https://dugupop.com`. The chameleon mascot keeps its name **두구 / Dugu**.
+> Historical asset provenance and build-script notes may still say Dugudugu.
 
 > Single source of truth for **both Claude Code and Codex**. Read this before any change. `CLAUDE.md` imports this file, so Claude and Codex share these rules. Keep this file updated when a decision changes.
 
@@ -32,7 +36,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## 2. Tech stack (DECIDED — do not swap without updating this file)
 - **Next.js 16** App Router, `output: 'export'` (100% static). React 19, TypeScript.
 - **Tailwind v4** (tokens in `app/globals.css` `@theme`). Design tokens below — never hardcode palette/radius.
-- **next-intl** i18n (`/ko`, `/en`). **Zustand** state. **Vitest** for pure logic.
+- **next-intl** i18n (Korean at `/`, English at `/en`). **Zustand** state. **Vitest** for pure logic.
 - **3D runtime = R3F/three + authored GLB.** Blender 5.x is the source-of-truth DCC; glTF/GLB is the web delivery format. Framer Motion is for DOM UI orchestration, while restrained device haptics reinforce a few physical beats. The product ships without runtime audio.
 
 ### Engine decision: R3F is the product surface
@@ -76,11 +80,24 @@ Techniques to reach for (use a subset per game, keep it snappy):
 ## 4. Architecture & conventions
 - **Context routing:** after this root guide, read only the nearest nested `AGENTS.md` for the module being changed. Do not load another game's model contract, source script, or UI notes unless the task crosses that boundary. Nested guides contain only local deltas and must not duplicate this file.
 - **Static export gotchas**: no middleware and no top-level `app/layout.tsx`.
-  `(root)` owns the static `/` meta-refresh page, while `[locale]/layout.tsx`
-  is the locale-aware root layout and writes the build-time locale directly to
-  `<html lang>`. No server-only runtime APIs.
-- **i18n**: `[locale]` segment; every page calls `setRequestLocale(locale)`;
-  the locale root `generateStaticParams` returns KO/EN. All copy in
+  Two prerendered root layouts write the build-time locale directly to
+  `<html lang>`: `app/(ko)` serves Korean at `/` and `/<slug>/`, and `app/en`
+  serves `/en/` and `/en/<slug>/`. Their thin route files call the shared
+  implementations in `app/_localized/`. No server-only runtime APIs.
+- **URL scheme**: canonical pages are `/`, `/<slug>/`, `/en/`, and
+  `/en/<slug>/`. Build page paths, canonicals, hreflang, and sitemap entries
+  only with `localizedPathname` (`i18n/routing.ts`) and
+  `localizedPageUrl`/`languageAlternates` (`lib/site.ts`). next-intl's
+  `Link`/`useRouter` with a `locale` option force a `/ko` prefix, which only
+  middleware could remove, so language links never use them. Former
+  `/ko/…` and `/<locale>/games/<slug>/` URLs 301 to the new paths through
+  `vercel.json`, preserving legacy share queries. The canonical host is
+  `dugupop.com` (`SITE_URL` fallback in `lib/site.ts`); `vercel.json` first
+  301s the former `dugudugu-chameleon.vercel.app` host and `www.dugupop.com`
+  to it with the path kept. `lib/site.test.ts` checks the host redirects and
+  that every registry game keeps its legacy redirect.
+- **i18n**: every layout and page calls `setRequestLocale(locale)` with its
+  fixed tree locale. All copy in
   `messages/{ko,en}.json`; game copy lives under `games.<id>.*`
   (title/short/tagline/description/seo/intro/faq). Keep KO & EN in sync.
 - **Game registry (add a game = a few known edits):**
@@ -110,7 +127,8 @@ Techniques to reach for (use a subset per game, keep it snappy):
   visible label rather than a duplicate heading. Locked routes stay `noindex`
   and omit game JSON-LD.
 - **Shared route chrome**: live game routes have no persistent back or sound
-  controls. A compact fixed `KO` / `EN` selector sits at the safe-area-aware
+  controls. A compact fixed `KO` / `EN` selector of crawlable `hreflang`
+  links sits at the safe-area-aware
   upper right on every localized page and preserves the current path, query,
   and hash. There is no shared footer. The lobby alone also keeps the compact
   brand/home TopBar at upper left.
@@ -280,8 +298,10 @@ GLBs without redistributing the licensed race source
 `.blend`; the fortune source and CC-BY attribution are preserved locally.
 Meshy MCP remains optional;
 the product no longer depends on a paid generation/download path. Static
-sitemap, robots, manifest, and OG image assets ship with the export. The
-domain root carries the preferred WebSite/Organization name and logo signals,
+sitemap, robots, manifest, and OG image assets ship with the export; the
+brand social card is regenerated with `node scripts/gen-social-card.mjs`. The
+domain root is the Korean lobby itself, not a redirect stub, and carries the
+preferred WebSite/Organization name and logo signals,
 including a lowercase hostname fallback, every layout declares one stable SVG
 brand favicon for search, and each live
 game ships translated metadata, game JSON-LD, and one server-rendered
@@ -290,6 +310,8 @@ without appending a visible SEO description or FAQ below the play surface. The
 live draw, ladder, and fortune routes target their primary generic search
 intents with concise free-online-game titles, natural use-case copy, branded
 alternate names, and structured feature data while keeping the play surfaces
-unchanged. The
-production origin is `https://dugudugu-chameleon.vercel.app`; the next gates are
+unchanged; the Korean lobby title adds the broad 미니게임 intent. Game URLs
+are short root slugs such as `/ladder/`. The
+production origin is `https://dugupop.com`; the former
+`https://dugudugu-chameleon.vercel.app` host redirects to it. The next gates are
 final real-device a11y/performance QA and search-console indexing checks.

@@ -2,7 +2,8 @@
 
 - Asset: `dugu-mascot-640.webp`
 - Created: 2026-08-10 with OpenAI ImageGen from an original text prompt
-- Intended use: Dugudugu product mascot and decorative brand artwork
+- Intended use: Dugupop (formerly Dugudugu) product mascot and decorative brand
+  artwork
 - Editing: magenta-key background removal, transparent-edge cleanup, and
   optimized transparent 640 px WebP export; no third-party reference image was
   supplied
@@ -14,9 +15,10 @@ eyes, clean rounded silhouette, and no text, watermark, clothing, or props.
 The favicon/install mark is separately code-native (`public/brand-icon.svg` and
 `scripts/gen_brand_icons.py`) so it stays legible at very small sizes.
 
-`social-card.png` is the 1200×630 static social lockup exported from the same
-code-native chameleon mark. Keeping it as a stable public asset avoids dynamic
-metadata-route hashes in the fully static build.
+`social-card.png` is the 1200×630 static social lockup rendered from the same
+code-native chameleon mark by `node scripts/gen-social-card.mjs`. Keeping it as
+a stable public asset avoids dynamic metadata-route hashes in the fully static
+build.
 
 ## Result peeker
 

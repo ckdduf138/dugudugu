@@ -93,7 +93,7 @@ export function GameCard({
 
   return (
     <Link
-      href={`/games/${slug}`}
+      href={`/${slug}`}
       aria-label={`${title} — ${enterLabel}`}
       style={style}
       className="lobby-card-link block h-full min-h-0 min-w-0 rounded-[var(--radius-lg)] outline-none transition duration-300 hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:ring-[var(--game-accent)]/35 active:scale-[0.985]"

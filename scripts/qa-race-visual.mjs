@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer-core";
 
 const chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const url = process.argv[2] ?? "http://localhost:3001/ko/games/race/";
+const url = process.argv[2] ?? "http://localhost:3001/race/";
 const requestedViewport = process.argv[3];
 const requestedCount = Number(process.argv[4] ?? 3);
 if (!Number.isInteger(requestedCount) || requestedCount < 2 || requestedCount > 7) {

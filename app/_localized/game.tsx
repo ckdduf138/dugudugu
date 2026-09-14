@@ -8,11 +8,13 @@ import { GamePlayer } from "@/components/game/GamePlayer";
 import { GameTileArtwork } from "@/components/lobby/GameTileArtwork";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Link } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
+import type { Locale } from "@/i18n/routing";
 import { gameJsonLd } from "@/lib/seo";
-import { absolutePageUrl, absoluteUrl } from "@/lib/site";
-
-type Props = { params: Promise<{ locale: string; slug: string }> };
+import {
+  absoluteUrl,
+  languageAlternates,
+  localizedPageUrl,
+} from "@/lib/site";
 
 const SOCIAL_IMAGES: Record<
   string,
@@ -28,16 +30,15 @@ const SOCIAL_IMAGES: Record<
   },
 };
 
-export const dynamicParams = false;
-
-// Pre-render every known game, including temporarily locked routes, for each
-// locale supplied by the parent segment.
-export function generateStaticParams() {
+/** Every known game, including temporarily locked routes, lives at /<slug>. */
+export function gameStaticParams() {
   return games.map((game) => ({ slug: game.slug }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { locale, slug } = await params;
+export async function gameMetadata(
+  locale: Locale,
+  slug: string,
+): Promise<Metadata> {
   const game = getGame(slug);
   if (!game) return {};
   const t = await getTranslations({ locale, namespace: `games.${game.id}` });
@@ -46,23 +47,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tagline = t("tagline");
   const description = t("description");
   const socialTitle = `${t("seo.title")} | ${site("name")}`;
-  const canonical = absolutePageUrl(`/${locale}/games/${slug}`);
-  const languages = Object.fromEntries(
-    routing.locales.map((candidateLocale) => [
-      candidateLocale,
-      absolutePageUrl(`/${candidateLocale}/games/${slug}`),
-    ]),
-  );
-  languages["x-default"] = absolutePageUrl(
-    `/${routing.defaultLocale}/games/${slug}`,
-  );
+  const canonical = localizedPageUrl(locale, `/${slug}`);
 
   const metadata: Metadata = {
     title: { absolute: socialTitle },
     description,
     alternates: {
       canonical,
-      languages,
+      languages: languageAlternates(`/${slug}`),
     },
   };
 
@@ -106,8 +98,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return metadata;
 }
 
-export default async function GamePage({ params }: Props) {
-  const { locale, slug } = await params;
+export async function GamePage({
+  locale,
+  slug,
+}: {
+  locale: Locale;
+  slug: string;
+}) {
   setRequestLocale(locale);
 
   const game = getGame(slug);
@@ -169,7 +166,7 @@ export default async function GamePage({ params }: Props) {
         data={gameJsonLd({
           name: gt("title"),
           description: gt("description"),
-          url: absolutePageUrl(`/${locale}/games/${slug}`),
+          url: localizedPageUrl(locale, `/${slug}`),
           locale,
           ...structuredSeo,
         })}

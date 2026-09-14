@@ -3,9 +3,30 @@ import { defineRouting } from "next-intl/routing";
 export const routing = defineRouting({
   locales: ["ko", "en"],
   defaultLocale: "ko",
-  // Static export has no middleware to negotiate locale, so every page lives
-  // under an explicit prefix (/ko, /en) and the root path redirects.
-  localePrefix: "always",
+  // Korean is served from the root and English from /en. Static export has no
+  // middleware, so app/(ko) and app/en are separate prerendered trees rather
+  // than one rewritten [locale] segment.
+  localePrefix: "as-needed",
+  // Nothing reads a locale cookie without middleware.
+  localeCookie: false,
 });
 
 export type Locale = (typeof routing.locales)[number];
+
+/**
+ * Public pathname of a page in one locale, matching `trailingSlash: true`:
+ * `("ko", "/ladder")` → `/ladder/`, `("en", "/ladder")` → `/en/ladder/`.
+ *
+ * next-intl's navigation APIs force a locale prefix whenever the locale
+ * changes, which only works when middleware can strip it again. Language
+ * links and SEO URLs use this instead.
+ */
+export function localizedPathname(locale: Locale, pathname = "/") {
+  const path = `/${pathname.replace(/^\/+|\/+$/g, "")}`;
+  const prefixed =
+    locale === routing.defaultLocale
+      ? path
+      : `/${locale}${path === "/" ? "" : path}`;
+
+  return prefixed.endsWith("/") ? prefixed : `${prefixed}/`;
+}

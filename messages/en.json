@@ -1,8 +1,8 @@
 {
   "site": {
-    "name": "Dugudugu",
-    "tagline": "Make every choice a little adventure",
-    "description": "Dugudugu is a free random picker arcade for capsule draws, ladder games, and fortune cookies, with fair seeded results and playful polished reveals."
+    "name": "Dugupop",
+    "tagline": "Free Ladder Game, Random Picker & Fortune Cookie",
+    "description": "Dugupop is a free random picker arcade for capsule draws, ladder games, and fortune cookies, with fair seeded results and playful polished reveals."
   },
   "nav": {
     "home": "Home",
@@ -57,8 +57,8 @@
       "description": "Use this free online random picker to choose one name, number, lunch option, or other entry. Add the candidates and tap the machine crank to roll out one result. It works for giveaways, friendly bets, chores, presentation order, and quick decisions with no sign-up or installation.",
       "seo": {
         "title": "Free Online Random Picker",
-        "heading": "Dugudugu Free Online Random Picker",
-        "alternateNames": ["Dugudugu Draw", "Random Picker", "Online Draw Game"],
+        "heading": "Dugupop Free Online Random Picker",
+        "alternateNames": ["Dugupop Draw", "Random Picker", "Online Draw Game"],
         "features": [
           "Pick one name or option at random",
           "Animated capsule draw reveal",
@@ -112,8 +112,8 @@
       "description": "Play a free online ladder game for 2–6 players. Add the outcomes, then tap each animal to trace its route and reveal the result. Use it for chores, presentation order, friendly bets, or assigning turns—no sign-up or installation required on mobile or desktop.",
       "seo": {
         "title": "Free Online Ladder Game",
-        "heading": "Dugudugu Free Online Ladder Game",
-        "alternateNames": ["Dugudugu Ladder Game", "Online Ladder Game"],
+        "heading": "Dugupop Free Online Ladder Game",
+        "alternateNames": ["Dugupop Ladder Game", "Online Ladder Game"],
         "features": [
           "Ladder game for 2–6 players",
           "Trace each player's route",
@@ -184,7 +184,7 @@
         "racing": "Race in progress",
         "finished": "Race finished",
         "live": "LIVE RACE",
-        "track": "Dugudugu Park",
+        "track": "Dugupop Park",
         "go": "GO!",
         "skip": "Show result",
         "leader": "1st · {name}",
@@ -197,7 +197,7 @@
         "finalSprint": "Final sprint!"
       },
       "intro": {
-        "kicker": "DUGUDUGU DERBY",
+        "kicker": "DUGUPOP DERBY",
         "setupKicker": "race setup",
         "panelTitle": "How big is the field?",
       "countLabel": "Animals racing",
@@ -228,8 +228,8 @@
       "description": "Open a free online fortune cookie and reveal a random message for today. Choose luck, courage, connection, or comfort, then tap the cookie once to crack it open. Get a new fortune on mobile or desktop with no sign-up or installation.",
       "seo": {
         "title": "Free Online Fortune Cookie",
-        "heading": "Dugudugu Free Online Fortune Cookie",
-        "alternateNames": ["Dugudugu Fortune Cookie", "Online Fortune Cookie", "Random Fortune Cookie"],
+        "heading": "Dugupop Free Online Fortune Cookie",
+        "alternateNames": ["Dugupop Fortune Cookie", "Online Fortune Cookie", "Random Fortune Cookie"],
         "features": [
           "Luck, courage, connection, and comfort categories",
           "A new random message with each cookie",

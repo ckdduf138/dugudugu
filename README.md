@@ -1,4 +1,6 @@
-# 두구두구 (Dugudugu)
+# 두구팝 (Dugupop)
+
+https://dugupop.com · 이전 이름: 두구두구 (Dugudugu). 카멜레온 마스코트 이름은 "두구"입니다.
 
 간단한 항목이나 인원만 고르면 뽑기, 사다리타기, 경주를 짧은 게임 연출로 즐길 수 있는 랜덤 결정 아케이드입니다. 결과는 시드 기반으로 먼저 확정되고, 3D 또는 2D 애니메이션은 그 결과를 재생합니다. 예전 결과 URL은 계속 재현되지만, 의미 없는 URL 복사만 제공하던 공통 공유 버튼은 결과 화면에서 노출하지 않습니다.
 
@@ -25,12 +27,13 @@ pnpm test
 pnpm build
 ```
 
-`pnpm build` 결과는 `out/`에 생성됩니다. 배포 시 `NEXT_PUBLIC_SITE_URL`을 실제 도메인으로 설정해야 canonical/JSON-LD URL이 정확해집니다.
+`pnpm build` 결과는 `out/`에 생성됩니다. canonical/JSON-LD/sitemap URL은 기본값 `https://dugupop.com`을 쓰며, 다른 도메인에 배포할 때만 `NEXT_PUBLIC_SITE_URL`로 덮어씁니다. 소셜 카드 이미지는 `node scripts/gen-social-card.mjs`로 다시 만듭니다.
 
 ## 구조
 
 ```text
-app/[locale]/            정적 페이지와 메타데이터
+app/(ko)/, app/en/       한국어(/ 루트)·영어(/en) 정적 라우트
+app/_localized/          두 언어 라우트가 공유하는 페이지와 메타데이터
 components/game-shell/   모바일 bottom sheet, 결과 dialog, skip, live region
 components/scene/        공통 R3F Canvas와 adaptive DPR/WebGL fallback
 games/<id>/              순수 로직, Zustand 상태, 레거시 URL 인코딩, 3D 화면

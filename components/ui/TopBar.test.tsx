@@ -26,10 +26,10 @@ afterEach(cleanup);
 
 describe("TopBar lobby brand", () => {
   it("keeps one clear home destination without utility controls", () => {
-    const view = render(<TopBar siteName="Dugudugu" />);
+    const view = render(<TopBar siteName="Dugupop" />);
 
     const header = view.getByRole("banner");
-    const home = view.getByRole("link", { name: "Dugudugu" });
+    const home = view.getByRole("link", { name: "Dugupop" });
 
     expect(header.className).toContain("z-40");
     expect(home.getAttribute("href")).toBe("/");
