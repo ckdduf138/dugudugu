@@ -16,12 +16,8 @@ Read this file only when changing reusable controls under `components/ui/`.
   loads. Do not add `loading.tsx`: Next 16 does not support that convention for
   static export.
 - `TopBar` is a lobby-only brand/home mark with safe-area padding. Game routes
-  do not render a persistent back or sound utility bar. `LocaleSwitcher` is a
-  compact fixed KO/EN control at the safe-area-aware upper right of every
-  localized page; its crawlable `hreflang` links come from
-  `localizedPathname`, a click preserves the current path, query, and hash,
-  and it stays below result dialogs in the layer scale. There is no shared
-  footer.
+  do not render a persistent back, sound, or language utility bar. There is no
+  language switcher and no shared footer.
 - Every game route title uses `GameRouteTitle`: left-aligned Jua at the shared
   4xl/5xl scale with the same two restrained candy bulbs. Give it a dedicated
   row instead of squeezing controls beside it. Do not add a route-specific icon
