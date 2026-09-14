@@ -30,7 +30,8 @@ pnpm build
 ## 구조
 
 ```text
-app/[locale]/            정적 페이지와 메타데이터
+app/(ko)/, app/en/       한국어(/ 루트)·영어(/en) 정적 라우트
+app/_localized/          두 언어 라우트가 공유하는 페이지와 메타데이터
 components/game-shell/   모바일 bottom sheet, 결과 dialog, skip, live region
 components/scene/        공통 R3F Canvas와 adaptive DPR/WebGL fallback
 games/<id>/              순수 로직, Zustand 상태, 레거시 URL 인코딩, 3D 화면

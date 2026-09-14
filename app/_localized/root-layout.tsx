@@ -1,34 +1,17 @@
-import { notFound } from "next/navigation";
-import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
-import { routing } from "@/i18n/routing";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
-import {
-  rootHtmlClassName,
-  rootMetadata,
-  rootViewport,
-} from "@/app/root-config";
+import { rootHtmlClassName } from "@/app/root-config";
+import type { Locale } from "@/i18n/routing";
 import "../globals.css";
 
-type Props = {
+type Props = Readonly<{
+  locale: Locale;
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
-};
+}>;
 
-export const metadata = rootMetadata;
-export const viewport = rootViewport;
-
-// Pre-render one static tree per locale (/ko, /en).
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
-
-export default async function LocaleLayout({ children, params }: Props) {
-  const { locale } = await params;
-  if (!hasLocale(routing.locales, locale)) {
-    notFound();
-  }
-
+/** Shared document shell for the Korean root tree and the /en tree. */
+export function LocaleRootLayout({ locale, children }: Props) {
   // Opt into static rendering for this locale.
   setRequestLocale(locale);
 

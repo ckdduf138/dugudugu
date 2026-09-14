@@ -1,4 +1,28 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/ko/games/:slug/",
+      "destination": "/:slug/",
+      "statusCode": 301
+    },
+    {
+      "source": "/ko/games/:slug",
+      "destination": "/:slug/",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/games/:slug/",
+      "destination": "/en/:slug/",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/games/:slug",
+      "destination": "/en/:slug/",
+      "statusCode": 301
+    },
+    { "source": "/ko/", "destination": "/", "statusCode": 301 },
+    { "source": "/ko", "destination": "/", "statusCode": 301 }
+  ]
 }

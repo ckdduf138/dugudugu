@@ -9,7 +9,7 @@ export type GameCategory = "random" | "race" | "fortune";
 export interface GameMeta {
   /** Stable id; also the i18n key under `games.<id>`. */
   id: string;
-  /** URL segment: /games/<slug>. */
+  /** URL segment: /<slug>/ (Korean) and /en/<slug>/. */
   slug: string;
   category: GameCategory;
   /** Candy accent color (hex) used to theme the card and scene. */

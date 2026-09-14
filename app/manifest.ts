@@ -9,7 +9,9 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "두구두구",
     description:
       "캡슐 뽑기, 사다리타기, 포춘쿠키로 공정하고 귀엽게 결정해요.",
-    start_url: "/ko/",
+    // Installed apps are identified by the former start URL; keep that id.
+    id: "/ko/",
+    start_url: "/",
     display: "standalone",
     background_color: "#fff8f2",
     theme_color: CANDY_HEX.coral,

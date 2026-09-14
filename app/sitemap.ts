@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { liveGames } from "@/games/registry";
 import { routing } from "@/i18n/routing";
-import { absolutePageUrl } from "@/lib/site";
+import { languageAlternates, localizedPageUrl } from "@/lib/site";
 
 export const dynamic = "force-static";
 
@@ -13,10 +13,10 @@ const GAME_LAST_MEANINGFUL_UPDATE: Partial<Record<string, Date>> = {
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const localizedPages = [
-    { path: "", priority: 1, lastModified: DEFAULT_LAST_MEANINGFUL_UPDATE },
+  const pages = [
+    { path: "/", priority: 1, lastModified: DEFAULT_LAST_MEANINGFUL_UPDATE },
     ...liveGames.map((game) => ({
-      path: `/games/${game.slug}`,
+      path: `/${game.slug}`,
       priority: 0.9,
       lastModified:
         GAME_LAST_MEANINGFUL_UPDATE[game.id] ??
@@ -24,20 +24,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
-  return localizedPages.flatMap(({ path, priority, lastModified }) => {
-    const languages = Object.fromEntries(
-      routing.locales.map((locale) => [
-        locale,
-        absolutePageUrl(`/${locale}${path}`),
-      ]),
-    );
-
-    languages["x-default"] = absolutePageUrl(
-      `/${routing.defaultLocale}${path}`,
-    );
+  return pages.flatMap(({ path, priority, lastModified }) => {
+    const languages = languageAlternates(path);
 
     return routing.locales.map((locale) => ({
-      url: absolutePageUrl(`/${locale}${path}`),
+      url: localizedPageUrl(locale, path),
       lastModified,
       changeFrequency: "weekly" as const,
       priority,

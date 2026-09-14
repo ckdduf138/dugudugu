@@ -41,11 +41,11 @@ export const rootMetadata: Metadata = {
   },
   applicationName: "두구두구",
   title: {
-    default: "사다리타기·랜덤 뽑기·포춘쿠키 | 두구두구",
+    default: "사다리타기·랜덤 뽑기·포춘쿠키 미니게임 | 두구두구",
     template: "%s | 두구두구",
   },
   description:
-    "무료 사다리타기 게임, 캡슐 뽑기, 복불복 랜덤 선택, 포춘쿠키를 공정하고 귀엽게 즐기는 두구두구.",
+    "무료 사다리타기 게임, 캡슐 뽑기, 복불복 랜덤 선택, 포춘쿠키를 공정하고 귀엽게 즐기는 미니게임 두구두구.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

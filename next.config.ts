@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   output: "export",
   // next/image optimization requires a server; disable for static export.
   images: { unoptimized: true },
-  // Emit /games/draw/index.html etc. so static hosts resolve clean URLs.
+  // Emit /draw/index.html etc. so static hosts resolve clean URLs.
   trailingSlash: true,
 };
 
