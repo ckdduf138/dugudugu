@@ -1,6 +1,6 @@
 import { localizedPathname, routing, type Locale } from "@/i18n/routing";
 
-const FALLBACK_SITE_URL = "https://dugudugu-chameleon.vercel.app";
+const FALLBACK_SITE_URL = "https://dugupop.com";
 const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
 
 export const SITE_URL = (configuredSiteUrl || FALLBACK_SITE_URL).replace(

@@ -6,7 +6,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-# 두구두구 (Dugudugu) — Agent Guide
+# 두구팝 (Dugupop) — Agent Guide
+
+> Brand: the product is **두구팝 / Dugupop** (formerly 두구두구 / Dugudugu) at
+> `https://dugupop.com`. The chameleon mascot keeps its name **두구 / Dugu**.
+> Historical asset provenance and build-script notes may still say Dugudugu.
 
 > Single source of truth for **both Claude Code and Codex**. Read this before any change. `CLAUDE.md` imports this file, so Claude and Codex share these rules. Keep this file updated when a decision changes.
 
@@ -87,8 +91,11 @@ Techniques to reach for (use a subset per game, keep it snappy):
   `Link`/`useRouter` with a `locale` option force a `/ko` prefix, which only
   middleware could remove, so never pass that option. Former
   `/ko/…` and `/<locale>/games/<slug>/` URLs 301 to the new paths through
-  `vercel.json`, preserving legacy share queries; `lib/site.test.ts` checks
-  that every registry game keeps a redirect.
+  `vercel.json`, preserving legacy share queries. The canonical host is
+  `dugupop.com` (`SITE_URL` fallback in `lib/site.ts`); `vercel.json` first
+  301s the former `dugudugu-chameleon.vercel.app` host and `www.dugupop.com`
+  to it with the path kept. `lib/site.test.ts` checks the host redirects and
+  that every registry game keeps its legacy redirect.
 - **i18n**: every layout and page calls `setRequestLocale(locale)` with its
   fixed tree locale. All copy in
   `messages/{ko,en}.json`; game copy lives under `games.<id>.*`
@@ -289,7 +296,8 @@ GLBs without redistributing the licensed race source
 `.blend`; the fortune source and CC-BY attribution are preserved locally.
 Meshy MCP remains optional;
 the product no longer depends on a paid generation/download path. Static
-sitemap, robots, manifest, and OG image assets ship with the export. The
+sitemap, robots, manifest, and OG image assets ship with the export; the
+brand social card is regenerated with `node scripts/gen-social-card.mjs`. The
 domain root is the Korean lobby itself, not a redirect stub, and carries the
 preferred WebSite/Organization name and logo signals,
 including a lowercase hostname fallback, every layout declares one stable SVG
@@ -302,5 +310,6 @@ intents with concise free-online-game titles, natural use-case copy, branded
 alternate names, and structured feature data while keeping the play surfaces
 unchanged; the Korean lobby title adds the broad 미니게임 intent. Game URLs
 are short root slugs such as `/ladder/`. The
-production origin is `https://dugudugu-chameleon.vercel.app`; the next gates are
+production origin is `https://dugupop.com`; the former
+`https://dugudugu-chameleon.vercel.app` host redirects to it. The next gates are
 final real-device a11y/performance QA and search-console indexing checks.

@@ -5,12 +5,9 @@ import { languageAlternates, localizedPageUrl } from "@/lib/site";
 
 export const dynamic = "force-static";
 
-const DEFAULT_LAST_MEANINGFUL_UPDATE = new Date("2026-08-22T00:00:00+09:00");
-const GAME_LAST_MEANINGFUL_UPDATE: Partial<Record<string, Date>> = {
-  draw: new Date("2026-09-11T00:00:00+09:00"),
-  ladder: new Date("2026-09-11T00:00:00+09:00"),
-  fortune: new Date("2026-09-11T00:00:00+09:00"),
-};
+// The 두구팝 rebrand and dugupop.com move changed every page's title and URL.
+const DEFAULT_LAST_MEANINGFUL_UPDATE = new Date("2026-09-15T00:00:00+09:00");
+const GAME_LAST_MEANINGFUL_UPDATE: Partial<Record<string, Date>> = {};
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = [

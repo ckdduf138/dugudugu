@@ -3,6 +3,18 @@
   "framework": "nextjs",
   "redirects": [
     {
+      "source": "/:path(.*)",
+      "has": [{ "type": "host", "value": "dugudugu-chameleon.vercel.app" }],
+      "destination": "https://dugupop.com/:path",
+      "statusCode": 301
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "host", "value": "www.dugupop.com" }],
+      "destination": "https://dugupop.com/:path",
+      "statusCode": 301
+    },
+    {
       "source": "/ko/games/:slug/",
       "destination": "/:slug/",
       "statusCode": 301

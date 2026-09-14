@@ -8,14 +8,14 @@ describe("gameJsonLd", () => {
       description: "무료 온라인 사다리타기 게임",
       url: "/ladder",
       locale: "ko",
-      alternateName: ["두구두구 사다리타기", "온라인 사다리 게임"],
+      alternateName: ["두구팝 사다리타기", "온라인 사다리 게임"],
       featureList: ["2–6명 사다리타기", "회원가입과 설치 없이 바로 이용"],
     });
 
     expect(data).toMatchObject({
       "@type": "WebApplication",
       name: "사다리타기",
-      alternateName: ["두구두구 사다리타기", "온라인 사다리 게임"],
+      alternateName: ["두구팝 사다리타기", "온라인 사다리 게임"],
       featureList: ["2–6명 사다리타기", "회원가입과 설치 없이 바로 이용"],
       inLanguage: "ko",
       isAccessibleForFree: true,

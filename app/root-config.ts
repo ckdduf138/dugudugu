@@ -39,23 +39,23 @@ export const rootMetadata: Metadata = {
   verification: {
     google: "V0LWQEMkzQlQoG6mGSp1UFldKcpsvuxhbgMof6G0fUE",
   },
-  applicationName: "두구두구",
+  applicationName: "두구팝",
   title: {
-    default: "사다리타기·랜덤 뽑기·포춘쿠키 미니게임 | 두구두구",
-    template: "%s | 두구두구",
+    default: "사다리타기·랜덤 뽑기·포춘쿠키 미니게임 | 두구팝",
+    template: "%s | 두구팝",
   },
   description:
-    "무료 사다리타기 게임, 캡슐 뽑기, 복불복 랜덤 선택, 포춘쿠키를 공정하고 귀엽게 즐기는 미니게임 두구두구.",
+    "무료 사다리타기 게임, 캡슐 뽑기, 복불복 랜덤 선택, 포춘쿠키를 공정하고 귀엽게 즐기는 미니게임 두구팝.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "두구두구",
+    title: "두구팝",
     statusBarStyle: "default",
   },
   openGraph: {
     type: "website",
-    siteName: "두구두구",
-    title: "두구두구 — 귀여운 랜덤 결정 아케이드",
+    siteName: "두구팝",
+    title: "두구팝 — 귀여운 랜덤 결정 아케이드",
     description:
       "캡슐 뽑기, 사다리타기, 포춘쿠키로 공정하고 귀엽게 결정해요.",
     images: [
@@ -63,7 +63,7 @@ export const rootMetadata: Metadata = {
         url: "/images/brand/social-card.png",
         width: 1200,
         height: 630,
-        alt: "두구두구 — 뽑기, 사다리타기, 포춘쿠키",
+        alt: "두구팝 — 뽑기, 사다리타기, 포춘쿠키",
       },
     ],
   },

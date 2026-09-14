@@ -14,12 +14,8 @@ export function websiteJsonLd() {
       {
         "@type": "WebSite",
         "@id": `${url}#website`,
-        name: "두구두구",
-        alternateName: [
-          "Dugudugu",
-          "두구두구 랜덤 아케이드",
-          hostname,
-        ],
+        name: "두구팝",
+        alternateName: ["Dugupop", "두구팝 미니게임", hostname],
         url,
         inLanguage: ["ko", "en"],
         publisher: { "@id": organizationId },
@@ -27,8 +23,8 @@ export function websiteJsonLd() {
       {
         "@type": "Organization",
         "@id": organizationId,
-        name: "두구두구",
-        alternateName: "Dugudugu",
+        name: "두구팝",
+        alternateName: "Dugupop",
         url,
         logo: {
           "@type": "ImageObject",

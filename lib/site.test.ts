@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { games } from "@/games/registry";
 import { localizedPathname, routing } from "@/i18n/routing";
 import vercelConfig from "@/vercel.json";
-import { languageAlternates, localizedPageUrl } from "./site";
+import { SITE_URL, languageAlternates, localizedPageUrl } from "./site";
 
 const pathnameOf = (url: string) => new URL(url).pathname;
 
@@ -25,15 +25,31 @@ describe("localized URLs", () => {
   });
 });
 
-describe("legacy URL redirects", () => {
-  // Mirrors Vercel's strict source matching for the `:param` rules used here.
-  function redirect(pathname: string) {
-    for (const rule of vercelConfig.redirects) {
+describe("URL redirects", () => {
+  type Rule = {
+    source: string;
+    destination: string;
+    statusCode: number;
+    has?: { type: string; value: string }[];
+  };
+  const rules: Rule[] = vercelConfig.redirects;
+  const canonicalHost = new URL(SITE_URL).host;
+
+  // Mirrors Vercel's strict matching for the `:param`, `:param(regex)`, and
+  // `has` host conditions used in vercel.json.
+  function redirect(pathname: string, host = canonicalHost) {
+    for (const rule of rules) {
+      if (rule.has?.some((when) => when.type === "host" && when.value !== host)) {
+        continue;
+      }
       const names: string[] = [];
-      const pattern = rule.source.replace(/:(\w+)/g, (_, name: string) => {
-        names.push(name);
-        return "([^/]+)";
-      });
+      const pattern = rule.source.replace(
+        /:(\w+)(?:\(([^)]*)\))?/g,
+        (_, name: string, custom?: string) => {
+          names.push(name);
+          return `(${custom ?? "[^/]+"})`;
+        },
+      );
       const match = new RegExp(`^${pattern}$`).exec(pathname);
       if (!match) continue;
 
@@ -46,6 +62,19 @@ describe("legacy URL redirects", () => {
     }
     return null;
   }
+
+  it("sends the former Vercel host and www to the canonical domain", () => {
+    for (const host of ["dugudugu-chameleon.vercel.app", "www.dugupop.com"]) {
+      expect(redirect("/", host)).toBe(`${SITE_URL}/`);
+      expect(redirect("/en/ladder/", host)).toBe(`${SITE_URL}/en/ladder/`);
+    }
+    expect(redirect("/ladder/")).toBeNull();
+
+    // An old share link reaches its page in two hops: host, then legacy path.
+    const hop = redirect("/ko/games/ladder/", "dugudugu-chameleon.vercel.app");
+    expect(hop).toBe(`${SITE_URL}/ko/games/ladder/`);
+    expect(redirect(new URL(hop!).pathname)).toBe("/ladder/");
+  });
 
   it("moves every former /<locale>/games/<slug> page to its canonical URL", () => {
     expect(redirect("/ko/")).toBe("/");
