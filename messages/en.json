@@ -382,6 +382,45 @@
         "inlineLabel": "A LITTLE {category} FROM YOUR COOKIE",
         "replay": "One more"
       }
+    },
+    "blep": {
+      "title": "Blep!",
+      "short": "Dugu snaps up names one by one",
+      "tagline": "A free pinball-style name picker where the last one standing wins",
+      "description": "A free online pinball-style name picker. Add names and they bounce around the arena as candies while Dugu the chameleon flicks out its tongue and snaps them up one by one. The last name left is the result, and the catch order doubles as a turn order or seating order. Use it for penalties, presentation order, or classroom seats with no sign-up or install.",
+      "seo": {
+        "title": "Blep! – Pinball Name Picker & Turn Order",
+        "heading": "Dugupop Blep! pinball name picker",
+        "alternateNames": [
+          "Dugupop Blep",
+          "pinball name picker",
+          "random turn order"
+        ],
+        "features": [
+          "Up to 50 names",
+          "Tongue-catch elimination show",
+          "Last one standing plus full catch order",
+          "No sign-up or install"
+        ]
+      },
+      "stage": {
+        "aria": "Blep! game stage",
+        "playing": "Dugu is catching candies one by one",
+        "skip": "Skip"
+      },
+      "intro": {
+        "panelTitle": "Who will be left standing?",
+        "namesLabel": "Players",
+        "chipPlaceholder": "Add a name",
+        "entries": "{count}/{max}",
+        "start": "Start"
+      },
+      "result": {
+        "title": "Last one standing",
+        "orderLabel": "Catch order",
+        "announcement": "The last one standing is {name}",
+        "replay": "Play again"
+      }
     }
   }
 }

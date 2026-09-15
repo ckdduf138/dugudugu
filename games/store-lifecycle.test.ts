@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { useBlepStore } from "./blep/store";
 import { useDrawStore } from "./draw/store";
 import { useFortuneStore } from "./fortune/store";
 import { useLadderStore } from "./ladder/store";
@@ -10,6 +11,7 @@ describe("game route state lifecycle", () => {
     useLadderStore.getState().clear();
     useRaceStore.getState().clear();
     useFortuneStore.getState().clear();
+    useBlepStore.getState().clear();
   });
 
   it("clears draw entries when its route unmounts", () => {
@@ -69,6 +71,21 @@ describe("game route state lifecycle", () => {
       selectedCategory: "luck",
       phase: "idle",
       result: null,
+      forcedSeed: null,
+    });
+  });
+
+  it("clears Blep candies, round, and shared seed", () => {
+    useBlepStore.getState().hydrateFromShare({ labels: ["민지", "준호"], seed: 3 });
+    useBlepStore.getState().begin();
+
+    useBlepStore.getState().clear();
+
+    expect(useBlepStore.getState()).toMatchObject({
+      entries: [],
+      nextSerial: 0,
+      phase: "idle",
+      round: null,
       forcedSeed: null,
     });
   });

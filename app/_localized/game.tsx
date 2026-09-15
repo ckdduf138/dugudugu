@@ -113,7 +113,7 @@ export async function GamePage({
   const t = await getTranslations();
   const gt = await getTranslations(`games.${game.id}`);
 
-  if (game.status !== "live") {
+  if (game.status === "soon") {
     return (
       <>
         <main className="grid min-h-[100svh] place-items-center overflow-hidden bg-[radial-gradient(circle_at_50%_30%,var(--surface),color-mix(in_srgb,var(--candy-coral)_10%,var(--bg))_58%,var(--bg))] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+1.5rem)]">
@@ -162,15 +162,17 @@ export async function GamePage({
       </section>
       <GamePlayer slug={slug} />
 
-      <JsonLd
-        data={gameJsonLd({
-          name: gt("title"),
-          description: gt("description"),
-          url: localizedPageUrl(locale, `/${slug}`),
-          locale,
-          ...structuredSeo,
-        })}
-      />
+      {game.status === "live" ? (
+        <JsonLd
+          data={gameJsonLd({
+            name: gt("title"),
+            description: gt("description"),
+            url: localizedPageUrl(locale, `/${slug}`),
+            locale,
+            ...structuredSeo,
+          })}
+        />
+      ) : null}
     </>
   );
 }

@@ -16,7 +16,13 @@ export interface GameMeta {
   accent: string;
   /** Emoji used as a lightweight icon until 3D thumbnails ship. */
   icon: string;
-  status: "live" | "soon";
+  /**
+   * live    – in the lobby, sitemap, and search index.
+   * soon    – disabled lobby card and a noindex coming-soon route.
+   * preview – playable at its URL only; absent from the lobby and sitemap,
+   *           noindex. Used to test a game with real users before launch.
+   */
+  status: "live" | "soon" | "preview";
   minPlayers: number;
   maxPlayers: number;
   /** Lazy-load Rapier only for games that need physics. */
