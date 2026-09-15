@@ -20,8 +20,11 @@ Read this file only when changing reusable controls under `components/ui/`.
   compact fixed KO/EN control at the safe-area-aware upper right of every
   localized page; its crawlable `hreflang` links come from
   `localizedPathname`, a click preserves the current path, query, and hash,
-  and it stays below result dialogs in the layer scale. There is no shared
-  footer.
+  and it stays below result dialogs in the layer scale. While a `GameShell`
+  is immersive in its `playing` phase, a `body:has(...)` rule on
+  `.locale-switcher` (`app/globals.css`) hides it (`visibility: hidden`) so the
+  shell's upper-right Skip control is never covered; it returns for results.
+  There is no shared footer.
 - Every game route title uses `GameRouteTitle`: left-aligned Jua at the shared
   4xl/5xl scale with the same two restrained candy bulbs. Give it a dedicated
   row instead of squeezing controls beside it. Do not add a route-specific icon

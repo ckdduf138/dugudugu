@@ -387,6 +387,25 @@ a {
   opacity: 0.45;
 }
 
+/* The global locale selector recedes while a shell cutscene owns the
+   viewport, so the stage's upper-right Skip control stays fully tappable.
+   `visibility` also removes the hidden links from focus and the a11y tree. */
+.locale-switcher {
+  transition:
+    opacity 160ms ease,
+    visibility 0s linear 0s;
+}
+
+body:has([data-game-immersive="true"][data-game-phase="playing"])
+  .locale-switcher {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease,
+    visibility 0s linear 160ms;
+}
+
 :where(a, button, input, textarea, select):focus-visible {
   outline: 3px solid var(--primary);
   outline-offset: 3px;
