@@ -22,7 +22,10 @@ This module owns layout, immersion, result focus, announcements, skip, and WebGL
   content. Stage-presentation backdrops may stay clear across the upper
   authored scene but become opaque toward the bottom so scrolled setup content
   never shows through; do not use backdrop blur. Skip supports tap and
-  Escape.
+  Escape. The shell's Skip sits at the upper right where the global locale
+  selector lives; keep `data-game-immersive`/`data-game-phase` on the section,
+  because the selector hides itself from those attributes during immersive
+  play instead of the Skip moving.
 - ResultDialog defaults to one quiet Dugu watermark. A result callsite may wrap
   its real result surface with `DuguResultHandoff` instead: the transparent
   `dugu-result-peeker.png` artwork leans naturally over its top edge with paws

@@ -40,7 +40,7 @@ export function LocaleSwitcher() {
 
   return (
     <nav
-      className="fixed right-3 top-3 z-20 sm:right-4 sm:top-4"
+      className="locale-switcher fixed right-3 top-3 z-20 sm:right-4 sm:top-4"
       style={{
         top: "calc(env(safe-area-inset-top) + 0.75rem)",
         right: "calc(env(safe-area-inset-right) + 0.75rem)",
