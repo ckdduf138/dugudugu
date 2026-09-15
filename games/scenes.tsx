@@ -33,11 +33,17 @@ const FortuneGameScene = dynamic(
   { ssr: false, loading: () => <GameLoading slug="fortune" /> },
 );
 
+const BlepGameScene = dynamic(
+  () => import("./blep/BlepGame").then((module) => module.BlepGame),
+  { ssr: false, loading: () => <GameLoading slug="blep" /> },
+);
+
 const GAMES: Record<string, ComponentType> = {
   draw: DrawGameScene,
   ladder: LadderGameScene,
   race: RaceGameScene,
   fortune: FortuneGameScene,
+  blep: BlepGameScene,
 };
 
 export function GameScene({ slug }: { slug: string }) {

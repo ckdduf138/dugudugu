@@ -4,7 +4,7 @@ import { MascotPeek } from "@/components/lobby/MascotPeek";
 import { GameCard } from "@/components/ui/GameCard";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { TopBar } from "@/components/ui/TopBar";
-import { games } from "@/games/registry";
+import { lobbyGames } from "@/games/registry";
 import type { Locale } from "@/i18n/routing";
 import { websiteJsonLd } from "@/lib/seo";
 import {
@@ -73,7 +73,7 @@ export async function LobbyPage({ locale }: { locale: Locale }) {
         <section className="relative mx-auto flex min-h-[100svh] w-full max-w-[84rem] items-start px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 sm:pb-6 sm:pt-[calc(env(safe-area-inset-top)+5.75rem)] md:items-center lg:px-8 lg:pb-8 lg:pt-[calc(env(safe-area-inset-top)+5.75rem)]">
           <h1 className="sr-only">{t("site.name")}</h1>
           <div className="grid w-full grid-cols-[repeat(2,minmax(0,1fr))] auto-rows-[clamp(14.5rem,31svh,17rem)] gap-3 sm:auto-rows-[18rem] sm:gap-4 md:-translate-y-8 lg:translate-y-0 lg:grid-cols-[repeat(4,minmax(0,1fr))] lg:auto-rows-[clamp(22rem,58svh,29rem)] lg:gap-5">
-            {games.map((game, index) => (
+            {lobbyGames.map((game, index) => (
               <GameCard
                 key={game.id}
                 index={index}

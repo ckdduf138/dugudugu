@@ -7,7 +7,7 @@ import { DuguLinkStatus } from "./DuguLinkStatus";
 type Props = {
   slug: string;
   accent: string;
-  status: "live" | "soon";
+  status: "live" | "soon" | "preview";
   title: string;
   enterLabel: string;
   loadingLabel: string;

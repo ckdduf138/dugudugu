@@ -49,9 +49,22 @@ export const games: GameMeta[] = [
     maxPlayers: 12,
     needsPhysics: false,
   },
+  {
+    id: "blep",
+    slug: "blep",
+    category: "random",
+    accent: CANDY_HEX.mint,
+    icon: "👅",
+    status: "preview",
+    minPlayers: 2,
+    maxPlayers: 50,
+  },
 ];
 
 export const liveGames = games.filter((g) => g.status === "live");
+
+/** Lobby cards: live and coming-soon games, never URL-only previews. */
+export const lobbyGames = games.filter((g) => g.status !== "preview");
 
 export function getGame(slug: string): GameMeta | undefined {
   return games.find((g) => g.slug === slug);

@@ -40,7 +40,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **3D runtime = R3F/three + authored GLB.** Blender 5.x is the source-of-truth DCC; glTF/GLB is the web delivery format. Framer Motion is for DOM UI orchestration, while restrained device haptics reinforce a few physical beats. The product ships without runtime audio.
 
 ### Engine decision: R3F is the product surface
-- **Default = authored 3D in live character games.** The lobby and ladder are deliberate exceptions: the lobby is a fast static 2×2/4-up game picker, while the ladder is a crisp code-native SVG board because route verification matters more than depth. Neither uses a Canvas. 2D DOM stays responsible for readable Korean/English text, inputs, accessibility, and fallback content.
+- **Default = authored 3D in live character games.** Blep (`games/blep/`) is a third exception: a code-native 2D canvas signature game (see its AGENTS.md). The lobby and ladder are deliberate exceptions: the lobby is a fast static 2×2/4-up game picker, while the ladder is a crisp code-native SVG board because route verification matters more than depth. Neither uses a Canvas. 2D DOM stays responsible for readable Korean/English text, inputs, accessibility, and fallback content.
 - **R3F (@react-three/fiber)** is the only sanctioned runtime. It gives React-native state integration, static-export compatibility, asset caching, animation mixers, instancing, and adaptive performance.
 - **three.js raw** = ❌ imperative boilerplate in a React app, no upside over R3F.
 - **Babylon.js** = ❌ full game engine; heavy bundle, non-React-idiomatic, overkill for cute mini-games, hurts mobile/SEO. Do not add.
@@ -105,6 +105,8 @@ Techniques to reach for (use a subset per game, keep it snappy):
   - `games/scenes.tsx` — `'use client'`, `dynamic(() => import(...), { ssr:false })` per game + one `GAMES` record.
   - `games/<id>/` — `logic.ts` (pure, no React), `logic.test.ts`, `store.ts`, `scene/`, `<Game>.tsx` (client shell + cutscene), `share.ts`.
   - Then add `messages.games.<id>` (KO+EN) and flip `status` to `live`.
+  - `status: "preview"` makes a game playable at its URL for play tests while
+    keeping it noindex, without JSON-LD, and out of the lobby and sitemap.
 - **Fairness + reproducible results (no server)**: use `lib/random.ts` seeded PRNG (mulberry32). Results must be reproducible from a seed. Existing URL-param decoders (`?names=&n=&seed=`) stay backward compatible, but result surfaces do not show a generic share button until the product has a meaningful social card/message experience. Cover logic with Vitest (determinism + distribution).
 - **State lifecycle:** game Zustand stores are memory-only. Do not persist setup,
   choices, or results to local/session storage. Every game route clears its full
