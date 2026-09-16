@@ -40,7 +40,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **3D runtime = R3F/three + authored GLB.** Blender 5.x is the source-of-truth DCC; glTF/GLB is the web delivery format. Framer Motion is for DOM UI orchestration, while restrained device haptics reinforce a few physical beats. The product ships without runtime audio.
 
 ### Engine decision: R3F is the product surface
-- **Default = authored 3D in live character games.** Blep (`games/blep/`) is a third exception: a code-native 2D canvas signature game (see its AGENTS.md). The lobby and ladder are deliberate exceptions: the lobby is a fast static 2×2/4-up game picker, while the ladder is a crisp code-native SVG board because route verification matters more than depth. Neither uses a Canvas. 2D DOM stays responsible for readable Korean/English text, inputs, accessibility, and fallback content.
+- **Default = authored 3D in live character games.** Blep (`games/blep/`) is a third exception: a code-native 2D canvas signature game (see its AGENTS.md). The lobby and ladder are deliberate exceptions: the lobby is a fast static two-column/five-up game picker, while the ladder is a crisp code-native SVG board because route verification matters more than depth. Neither uses a Canvas. 2D DOM stays responsible for readable Korean/English text, inputs, accessibility, and fallback content.
 - **R3F (@react-three/fiber)** is the only sanctioned runtime. It gives React-native state integration, static-export compatibility, asset caching, animation mixers, instancing, and adaptive performance.
 - **three.js raw** = ❌ imperative boilerplate in a React app, no upside over R3F.
 - **Babylon.js** = ❌ full game engine; heavy bundle, non-React-idiomatic, overkill for cute mini-games, hurts mobile/SEO. Do not add.
@@ -169,7 +169,11 @@ at every generated size and stays readable without text or a white plate at 16
 px. A transparent full-body illustration peeks once into the
 quiet band below the choices as an accessible optional introduction; its small
 button and non-blocking bubble never intercept a game-card link. The lobby's
-clean code-native 2D game art stays 2×2 on mobile/tablet and four-up on desktop,
+clean code-native 2D game art uses two columns on mobile/tablet and five-up on desktop,
+including the live Blep Dugu-and-cartoon-fly card. All five lobby illustrations share
+a flat, rounded candy-color vector style; the Blep tile uses its own simplified
+eyebrow-free seated Dugu with a tongue and fly. Blep uses an identity-preserving front-facing Dugu sprite and big-eye cartoon flies,
+readable name tags, and tongue-catch elimination;
 with one finite staggered power-on, restrained sheen, accent lamps/underlights,
 and a subtle static arcade-floor grid instead of new lobby copy or looping
 decoration. It keeps complete two-line English

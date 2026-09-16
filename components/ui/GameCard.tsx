@@ -47,7 +47,7 @@ export function GameCard({
         />
         <GameTileArtwork
           slug={slug}
-          className="lobby-card-art h-[82%] w-[90%] max-h-[15rem] max-w-[19rem] transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/card:-translate-y-1 group-hover/card:scale-[1.02]"
+          className="lobby-card-art absolute inset-x-0 top-[10%] mx-auto h-[80%] w-[90%] max-w-[19rem] transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/card:-translate-y-1 group-hover/card:scale-[1.02]"
         />
 
         {!live ? (

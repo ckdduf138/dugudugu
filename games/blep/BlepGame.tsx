@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
-import { RotateCcw } from "lucide-react";
+import { Play, RotateCcw } from "lucide-react";
 import { GameShell, ResultDialog } from "@/components/game-shell";
 import { ChipsInput, type ChipsInputChange } from "@/components/ui/ChipsInput";
 import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
+import { spring } from "@/lib/motion";
 import { vibrate } from "@/lib/haptics";
 import { BlepArena, type BlepDuguLayout } from "./BlepArena";
 import {
@@ -16,21 +17,16 @@ import {
   buildBlepSchedule,
   type BlepColorKey,
 } from "./logic";
+import { FlyArtwork } from "./FlyArtwork";
 import { decodeBlepParams } from "./share";
 import { useBlepStore } from "./store";
 
-function CandyMark({ color, large = false }: { color: BlepColorKey; large?: boolean }) {
-  const fill = BLEP_COLOR_CSS[color];
+function FlyMark({ color, large = false }: { color: BlepColorKey; large?: boolean }) {
   return (
-    <span
-      aria-hidden
-      className={`relative block shrink-0 rounded-full border border-ink/10 ${
-        large ? "h-14 w-14" : "h-4 w-4"
-      }`}
-      style={{
-        background: `radial-gradient(circle at 34% 30%, color-mix(in srgb, ${fill} 45%, var(--surface)), ${fill} 70%)`,
-      }}
-    />
+    <svg aria-hidden viewBox="-48 -56 96 108" className={large ? "h-16 w-14 shrink-0" : "h-6 w-5 shrink-0"}>
+      <FlyArtwork />
+      <circle cx="34" cy="38" r="7" fill={BLEP_COLOR_CSS[color]} stroke="var(--surface)" strokeWidth="2" />
+    </svg>
   );
 }
 
@@ -50,9 +46,11 @@ export function BlepGame() {
   const clear = useBlepStore((state) => state.clear);
   const hydrateFromShare = useBlepStore((state) => state.hydrateFromShare);
 
+  const [artStatus, setArtStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [caught, setCaught] = useState(0);
   const [dugu, setDugu] = useState<BlepDuguLayout | null>(null);
   const replayButtonRef = useRef<HTMLButtonElement>(null);
-  const valid = entries.length >= MIN_BLEP_PLAYERS;
+  const valid = entries.length >= MIN_BLEP_PLAYERS && artStatus === "ready";
   const schedule = useMemo(
     () => (round ? buildBlepSchedule(round.entries.length) : null),
     [round],
@@ -63,6 +61,10 @@ export function BlepGame() {
     if (shared) hydrateFromShare(shared);
     return clear;
   }, [clear, hydrateFromShare]);
+
+  useEffect(() => {
+    if (reduceMotion && phase === "playing") reveal();
+  }, [phase, reduceMotion, reveal]);
 
   const handleNamesChange = useCallback(
     (_values: string[], change: ChipsInputChange) => {
@@ -78,12 +80,14 @@ export function BlepGame() {
 
   const start = useCallback(() => {
     if (!begin()) return;
+    setCaught(0);
     vibrate("tap");
     // Reduced motion lands directly on the same frozen survivor.
     if (reduceMotion) reveal();
   }, [begin, reduceMotion, reveal]);
 
-  const handleCatch = useCallback((_index: number, dramatic: boolean) => {
+  const handleCatch = useCallback((index: number, dramatic: boolean) => {
+    setCaught(index + 1);
     vibrate(dramatic ? "pop" : "tick");
   }, []);
 
@@ -103,10 +107,11 @@ export function BlepGame() {
         schedule={schedule}
         phase={phase}
         reducedMotion={reduceMotion}
-        topInset={phase === "playing" ? 64 : 92}
+        topInset={phase === "playing" ? 76 : 92}
         onCatch={handleCatch}
         onComplete={handleComplete}
         onLayout={setDugu}
+        onArtStatus={setArtStatus}
       />
     </div>
   );
@@ -122,36 +127,50 @@ export function BlepGame() {
         </div>
       ) : null}
 
+      {phase === "playing" && round ? (
+        <div className="absolute left-5 top-5 flex h-11 items-center gap-2.5 rounded-full bg-surface px-4 text-ink shadow-sm sm:left-7"
+          role="status" aria-label={t("intro.entries", { count: round.entries.length - caught, max: round.entries.length })}>
+          <span aria-hidden className="flex items-baseline gap-1">
+            <motion.span key={caught} initial={reduceMotion ? false : { scale: 1.25 }} animate={{ scale: 1 }} transition={spring.snappy}
+              className="inline-block font-display text-2xl tabular-nums">{round.entries.length - caught}</motion.span>
+            <span className="text-xs font-bold text-ink-soft">/ {round.entries.length}</span>
+          </span>
+          <span aria-hidden className="h-2 w-2 rounded-full bg-candy-mint" />
+        </div>
+      ) : null}
+
+      {artStatus === "error" ? (
+        <div role="alert" className="pointer-events-auto absolute inset-x-6 bottom-16 rounded-2xl bg-surface p-4 text-center text-sm font-bold text-ink">
+          <p>{t("stage.artError")}</p>
+          <button type="button" onClick={() => window.location.reload()} className="dugu-action-btn mt-3 min-h-11 px-5">{t("stage.retry")}</button>
+        </div>
+      ) : null}
       {phase === "idle" && dugu ? (
         <motion.button
           type="button"
-          tabIndex={-1}
-          aria-hidden
           disabled={!valid}
           onClick={start}
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           whileTap={valid && !reduceMotion ? { scale: 0.95 } : undefined}
-          className="group pointer-events-auto absolute flex -translate-x-1/2 flex-col items-center outline-none disabled:pointer-events-none"
+          transition={spring.snappy}
+          className="dugu-action-btn pointer-events-auto absolute flex min-h-12 -translate-x-1/2 items-center justify-center gap-2 px-6 text-base font-black outline-none focus-visible:ring-4 focus-visible:ring-candy-sky/50"
           style={{
             left: dugu.cx,
-            top: dugu.top - 56,
-            width: dugu.size * 1.2,
-            height: dugu.size + 56,
+            top: dugu.buttonTop,
           }}
         >
-          <span className="inline-flex min-h-11 w-max items-center rounded-full border border-ink/8 bg-surface/95 px-5 text-sm font-black text-ink shadow-[0_8px_22px_rgba(67,42,31,0.16)] transition group-disabled:bg-surface/80 group-disabled:text-ink-soft/55 group-disabled:shadow-sm">
-            {t("intro.start")}
-          </span>
+          <Play aria-hidden size={16} fill="currentColor" strokeWidth={0} />
+          {artStatus === "loading" ? tc("loading") : t("intro.start")}
         </motion.button>
       ) : null}
     </>
   );
 
   const setup = (
-    <div className="rounded-[var(--radius-toy)] border border-ink/8 bg-surface/64 p-3 shadow-sm">
+    <div className="px-1 [&_input]:placeholder:text-ink-soft [&>div:last-of-type]:bg-surface [&>div:last-of-type]:shadow-none">
       <div className="flex items-center justify-between gap-3">
-        <label className="block text-sm font-black text-ink">{t("intro.namesLabel")}</label>
+        <span className="block text-sm font-black text-ink">{t("intro.namesLabel")}</span>
         <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-black text-ink-soft shadow-sm">
           {t("intro.entries", { count: entries.length, max: MAX_BLEP_PLAYERS })}
         </span>
@@ -166,14 +185,6 @@ export function BlepGame() {
         removeLabel={tc("remove")}
         compact
       />
-      <button
-        type="button"
-        onClick={start}
-        disabled={!valid || phase !== "idle"}
-        className="sr-only focus:not-sr-only focus:mt-3 focus:inline-flex focus:min-h-11 focus:items-center focus:justify-center focus:rounded-full focus:bg-ink focus:px-4 focus:text-sm focus:font-black focus:text-surface focus:outline-none focus:ring-4 focus:ring-candy-sky/45"
-      >
-        {t("intro.start")}
-      </button>
     </div>
   );
 
@@ -187,7 +198,7 @@ export function BlepGame() {
         announcementKey={round.seed}
         initialFocusRef={replayButtonRef}
         mascot="peeker"
-        className="place-self-center max-w-sm border border-ink/10 bg-surface [&>img]:hidden"
+        className="place-self-center !max-h-[calc(100svh-10rem)] max-w-sm border border-ink/10 bg-surface [&>img]:hidden"
         actions={
           <button
             ref={replayButtonRef}
@@ -203,13 +214,13 @@ export function BlepGame() {
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, scale: 0.86, y: 7 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 360, damping: 24, delay: 0.06 }}
+          transition={{ ...spring.snappy, delay: 0.06 }}
           className="flex min-h-20 items-center gap-3 rounded-2xl px-3 py-2 text-left font-display text-[clamp(2.15rem,10vw,2.9rem)] leading-tight text-ink"
           style={{
             background: `color-mix(in srgb, ${BLEP_COLOR_CSS[round.survivor.color]} 12%, var(--surface))`,
           }}
         >
-          <CandyMark color={round.survivor.color} large />
+          <FlyMark color={round.survivor.color} large />
           <span className="min-w-0 flex-1 break-words">{round.survivor.label}</span>
         </motion.div>
 
@@ -221,7 +232,7 @@ export function BlepGame() {
                 <span className="w-5 shrink-0 text-right text-xs font-black tabular-nums text-ink-soft">
                   {index + 1}
                 </span>
-                <CandyMark color={item.target.color} />
+                <FlyMark color={item.target.color} />
                 <span className="min-w-0 truncate">{item.target.label}</span>
               </li>
             ))}
@@ -236,6 +247,7 @@ export function BlepGame() {
         stage={stage}
         stageOverlay={stageOverlay}
         setup={phase === "done" ? undefined : setup}
+        stageClassName={phase === "idle" ? "!h-[clamp(26rem,calc(100svh-15rem),48rem)]" : ""}
         stageLabel={t("stage.aria")}
         stageSizing={phase === "done" ? "viewport" : "fill"}
         setupTitle={t("intro.panelTitle")}

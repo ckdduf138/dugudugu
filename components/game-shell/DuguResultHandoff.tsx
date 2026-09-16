@@ -54,7 +54,7 @@ export function DuguResultHandoff({
         } ${mascotClassName}`}
       >
         <Image
-          src="/images/brand/dugu-result-peeker.png"
+          src="/images/brand/dugu-result-peeker-no-brows.png"
           alt=""
           width={1536}
           height={1024}

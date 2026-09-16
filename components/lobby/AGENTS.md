@@ -6,8 +6,8 @@ Read the repository `AGENTS.md` first. This file records the intentionally simpl
 
 The first viewport is a game picker, not a marketing landing page. A user should recognize the available games and enter one without reading instructions or scrolling.
 
-- Mobile and portrait tablet: four choices in a 2×2 grid inside the first viewport.
-- Wide desktop: four choices in one row.
+- Mobile and portrait tablet: five choices in a compact two-column grid inside the first viewport.
+- Wide desktop: five choices in one row.
 - The whole live card is the link. Upcoming games remain visible but disabled and clearly labelled.
 - Do not reintroduce hero copy, CTA duplication, step indicators, section headings, badges, or explanatory sections above the choices.
 
@@ -38,6 +38,15 @@ The first viewport is a game picker, not a marketing landing page. A user should
   motion shows the final state immediately.
 - Lobby artwork is intentionally independent of in-game 3D hero assets so a
   model change does not churn the fast, stable picker UI.
+- All five game tiles use one code-native flat illustration family: rounded
+  candy-color shapes, restrained highlights, matching visual size and a shared
+  ground shadow. No raster mascot or shaded game sprite inside a game tile.
+- Blep keeps Dugu's scalloped crest, cream belly/eyes, lemon cheek star and coral
+  spiral tail as a flat seated character, without eyebrows. A short tongue and
+  small cartoon fly identify its action. In-game Dugu remains independently authored.
+- The ladder tile has three amida rails and one connected route; the fortune
+  cookie has two folded lobes and a paper slip. Animal faces remain readable
+  even in the muted coming-soon card.
 - Independence does not mean generic symbols: the draw tile keeps the same
   two-mass coral machine grammar, and the race tile uses visibly different
   tiger, penguin, and chicken silhouettes instead of recoloring one repeated

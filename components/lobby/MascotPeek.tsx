@@ -81,7 +81,7 @@ export function MascotPeek({
           ···
         </span>
         <Image
-          src="/images/brand/dugu-mascot-640.webp"
+          src="/images/brand/dugu-mascot-no-brows.png"
           alt=""
           width={640}
           height={640}

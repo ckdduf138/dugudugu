@@ -55,7 +55,7 @@ export const games: GameMeta[] = [
     category: "random",
     accent: CANDY_HEX.mint,
     icon: "👅",
-    status: "preview",
+    status: "live",
     minPlayers: 2,
     maxPlayers: 50,
   },

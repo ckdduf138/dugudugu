@@ -2,66 +2,68 @@
 
 Read this file only for changes under `games/blep/`.
 
-Blep is the candidate signature game: a mechanic that only Dugu can perform.
-Name candies bounce in a pinball-like arena and Dugu catches them one by one
-with its tongue. The last candy left is the result; the catch order doubles as
-a turn order.
+## Product and publication
 
-## Status
+Blep is Dugu's tongue-catch name picker. Little cartoon flies carry names;
+Dugu catches them one by one, and the last fly left is the result. The
+catch order also serves as a turn order. Registry status is `live`, with
+KO/EN lobby cards, metadata, and sitemap entries.
 
-- Registry status is `preview`: playable at `/blep/` and `/en/blep/`, noindex,
-  no game JSON-LD, and absent from the lobby and sitemap. Flip to `live` only
-  after the prototype passes real-user play tests.
+## Fairness and lifecycle
 
-## Fairness
+- `createBlepRound` freezes one uniform seeded shuffle. Its last entry survives.
+- Decoys use an independent salted stream and never change the catch order.
+- Cosmetic physics, frame rate, skip, and reduced motion never choose a target.
+- Up to 50 names keep their stable colors through removal and replay.
+- The authored show takes 5–22 seconds for 2–50 names. Quick catches clear the
+  crowd; the last three slow down. Skip is always available; reduced motion
+  reveals the same frozen result immediately.
+- Stores remain memory-only and clear on route exit. Replay keeps the names.
 
-- `createBlepRound` freezes one uniform `shuffle` of entry objects from the
-  seed. Its last element survives; the prefix is the catch order.
-- Decoys (the candy Dugu's second eye watches) come from an independent salted
-  stream and never change the order. The final catch's decoy is always the
-  survivor.
-- Physics, bumpers, frame rate, skip, and reduced motion never choose a
-  target. The tongue homes onto the frozen target wherever it is.
+## Visual authority — clarified by the user, 2026-09-16
 
-## Surface exceptions to the root guide
+- The original brand mascot is the **identity reference**, not the in-game pose.
+  Blep uses a newly authored front-facing Dugu (`public/images/blep/dugu-front-seated.png`)
+  with both eyes visible and the tongue extending from the central mouth.
+- Preserve the soft 2.5D mint body, rounded scalloped crest, warm cream eyes,
+  cream belly, lemon cheek star and coral spiral tail. No pointed crest,
+  procedural frog approximation, or side-facing original sprite in this game.
+- The user supplied a big-eye cartoon fly reference. Use original code-native
+  soft cartoon flies with huge white eyes, small dark bodies, short antennae and
+  plump grey wings. No compound-eye texture, red eyes, wing veins, or realism.
+  The interim smiling winged jelly direction is replaced by cartoon flies.
+- `blepArtwork.ts` owns shared fly paths for Canvas, result rows, and the lobby,
+  plus the new mascot URL and measured central-mouth coordinates.
+- Keep the mint coat through every phase. The user prefers a compact, low seated
+  silhouette: short folded haunches, tiny tucked toes, relaxed paws and a low
+  coral tail. No elongated standing legs, separate dark eyebrows or heavy eye
+  outlines. Soft mint upper eyelids carry the expression. A soft contact shadow
+  grounds the seated body; no idle whole-body rocking. Restrained anticipation,
+  recoil and gulp squash share the same seated-base transform as the central tongue.
+- Flies share rounded shapes across Canvas and `FlyArtwork.tsx` (result rows):
+  large warm eyes and pupils, short antennae, softly shaded grey wings, light
+  contour lines and small cheek accents. Omit scratchy legs and anatomical detail.
+  The lobby uses the same fly paths with flat fills to match the other game cards.
+- Start stays below Dugu with clear room around the silhouette. Image load gates
+  Start; an accessible localized error and reload action handle failed loads.
+- Provenance and the ImageGen reference/prompt are in `public/images/blep/README.md`.
 
-- Code-native 2D `<canvas>` (`BlepArena.tsx`) owns candies, bumpers, Dugu, and
-  the tongue. No R3F/WebGL on this route. DOM keeps the title, inputs, start,
-  skip, and result.
-- The show intentionally runs longer than the default 3–6 s: 5–22 s across
-  2–50 names (`buildBlepSchedule`, covered by tests). Quick catches accelerate
-  the crowd out; only the final three catches are dramatic and slow. Always
-  skippable; reduced motion lands on the result immediately.
+## Runtime and motion
 
-## Dugu's tells (the reason this game exists)
-
-- Scan: the two turret eyes watch target and decoy independently while the
-  body flickers between their colors, slowing toward the decision.
-- Lock: both eyes converge, the body commits to the target color, a short
-  crouch anticipates the snap; dramatic catches add slow-mo and a ring.
-- Snap → contact freeze → retract → gulp with cheek puff and a small burst.
-- Body color blends along the hue path (`mixHue`) so it never passes through
-  grey/brown. Mint is Dugu's resting color and is excluded from candy colors;
-  the coral spiral tail stays coral.
-
-## Setup and result
-
-- Up to 50 names in one `ChipsInput` tray; each entry keeps a stable color
-  (`blepColorForSerial`), so neighbours never match and removal never recolors.
-- Start is the pill above Dugu; an equivalent screen-reader Start follows the
-  input. Enter only adds names.
-- Result uses the shared `ResultDialog` with the survivor row and a compact
-  numbered catch-order grid. `Play again` returns to idle with names kept.
-
-## Open questions for the play test
-
-- Does the final three produce a reaction? If not, change the mechanic, not
-  the polish.
-- "Eaten" tone for classroom penalty use; jar/catch alternative if needed.
-- Two remaining candies can share a color; the eyes and lock ring must carry
-  that case.
+- One 2D Canvas owns flies, court, Dugu, and the tongue; no WebGL or new runtime
+  dependency. DOM owns title, input, Start, Skip, and result accessibility.
+- The mint court is capped at 760px, with soft cream inlay and three bumpers.
+- Cartoon flies have gentle wing flutter and upright colored name tags.
+  They fold their wings and shrink into the mouth when caught.
+- Final locks use four converging arcs; contact holds for 70ms of elapsed time.
+- Canvas DPR is capped at 1.5. Hidden/offscreen loops pause without advancing
+  the timeline; reduced-motion idle is static, and settled results stop drawing.
+- Cached Path2D shapes and the loaded image are reused, not rebuilt per frame.
+- Remaining count updates on catch events only. Long results scroll inside the
+  dialog while Replay stays visible.
 
 ## Verification
 
-- `pnpm vitest run games/blep`, TypeScript, ESLint, static build, and 390px
-  checks of idle, mid-flurry (50 names), final scan, reveal, and result.
+TypeScript, ESLint, `pnpm vitest run games/blep --exclude '**/.claude/**'`,
+static build, and browser checks for 390px setup, 50-name action, final catch,
+result/replay, failed image load, reduced motion, and tablet/desktop framing.

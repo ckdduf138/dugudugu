@@ -385,9 +385,9 @@
     },
     "blep": {
       "title": "Blep!",
-      "short": "Dugu snaps up names one by one",
+      "short": "Dugu snaps up little cartoon flies with name tags",
       "tagline": "A free pinball-style name picker where the last one standing wins",
-      "description": "A free online pinball-style name picker. Add names and they bounce around the arena as candies while Dugu the chameleon flicks out its tongue and snaps them up one by one. The last name left is the result, and the catch order doubles as a turn order or seating order. Use it for penalties, presentation order, or classroom seats with no sign-up or install.",
+      "description": "A free online pinball-style name picker. Add names and little cartoon flies with name tags flit around the arena while Dugu the chameleon flicks out its tongue and snaps them up one by one. The last name left is the result, and the catch order doubles as a turn order or seating order. Use it for penalties, presentation order, or classroom seats with no sign-up or install.",
       "seo": {
         "title": "Blep! – Pinball Name Picker & Turn Order",
         "heading": "Dugupop Blep! pinball name picker",
@@ -405,7 +405,9 @@
       },
       "stage": {
         "aria": "Blep! game stage",
-        "playing": "Dugu is catching candies one by one",
+        "artError": "Dugu could not load.",
+        "retry": "Try again",
+        "playing": "Dugu is catching named cartoon flies one by one",
         "skip": "Skip"
       },
       "intro": {

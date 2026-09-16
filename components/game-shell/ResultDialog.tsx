@@ -268,7 +268,7 @@ export function ResultDialog({
       >
         <Image
           aria-hidden="true"
-          src="/images/brand/dugu-mascot-640.webp"
+          src="/images/brand/dugu-mascot-no-brows.png"
           alt=""
           width={640}
           height={640}
@@ -292,7 +292,7 @@ export function ResultDialog({
             className="pointer-events-none absolute -left-6 -top-[4.4rem] z-20 w-36 origin-bottom-left select-none sm:-top-[4.9rem] sm:w-40"
           >
             <Image
-              src="/images/brand/dugu-result-peeker.png"
+              src="/images/brand/dugu-result-peeker-no-brows.png"
               alt=""
               width={1536}
               height={1024}

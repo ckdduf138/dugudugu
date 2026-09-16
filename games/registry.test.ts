@@ -8,9 +8,9 @@ describe("game publication registry", () => {
     expect(liveGames.map((game) => game.slug)).not.toContain("race");
   });
 
-  it("keeps the Blep preview playable by URL but out of the lobby and sitemap", () => {
-    expect(getGame("blep")?.status).toBe("preview");
-    expect(lobbyGames.map((game) => game.slug)).not.toContain("blep");
-    expect(liveGames.map((game) => game.slug)).not.toContain("blep");
+  it("publishes Blep in the lobby and sitemap", () => {
+    expect(getGame("blep")?.status).toBe("live");
+    expect(lobbyGames.map((game) => game.slug)).toContain("blep");
+    expect(liveGames.map((game) => game.slug)).toContain("blep");
   });
 });

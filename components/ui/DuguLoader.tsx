@@ -32,7 +32,7 @@ export function DuguLoader({
             className="absolute inset-x-3 bottom-1 h-6 rounded-[50%] bg-ink/[0.08] blur-[5px]"
           />
           <Image
-            src="/images/brand/dugu-mascot-640.webp"
+            src="/images/brand/dugu-mascot-no-brows.png"
             alt=""
             width={640}
             height={640}

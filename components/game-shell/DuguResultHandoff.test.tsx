@@ -19,7 +19,7 @@ describe("DuguResultHandoff", () => {
     expect(handoff).not.toBeNull();
     expect(mascot?.getAttribute("alt")).toBe("");
     expect(mascot?.getAttribute("src")).toContain(
-      "dugu-result-peeker.png",
+      "dugu-result-peeker-no-brows.png",
     );
     expect(mascot?.closest('[aria-hidden="true"]')).not.toBeNull();
     expect(view.getByText("Mint capsule").textContent).toBe("Mint capsule");
