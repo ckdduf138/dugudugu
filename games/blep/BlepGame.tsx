@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
-import { Play, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { GameShell, ResultDialog } from "@/components/game-shell";
 import { ChipsInput, type ChipsInputChange } from "@/components/ui/ChipsInput";
 import { GameRouteTitle } from "@/components/ui/GameRouteTitle";
@@ -154,14 +154,18 @@ export function BlepGame() {
           animate={{ opacity: 1, y: 0 }}
           whileTap={valid && !reduceMotion ? { scale: 0.95 } : undefined}
           transition={spring.snappy}
-          className="dugu-action-btn pointer-events-auto absolute flex min-h-12 -translate-x-1/2 items-center justify-center gap-2 px-6 text-base font-black outline-none focus-visible:ring-4 focus-visible:ring-candy-sky/50"
+          className="dugu-action-btn pointer-events-auto inline-flex min-h-[3.5rem] min-w-[10rem] -translate-x-1/2 -translate-y-1/2 items-center justify-center px-8 py-2 text-ink outline-none focus-visible:ring-4 focus-visible:ring-candy-sky/50 sm:min-h-[3.75rem]"
           style={{
-            left: dugu.cx,
-            top: dugu.buttonTop,
+            position: "absolute",
+            borderRadius: "var(--radius)",
+            ["--dugu-action" as string]: "var(--candy-sky)",
+            left: dugu.startCx,
+            top: dugu.startCy,
           }}
         >
-          <Play aria-hidden size={16} fill="currentColor" strokeWidth={0} />
-          {artStatus === "loading" ? tc("loading") : t("intro.start")}
+          <span className="font-display text-2xl leading-none sm:text-3xl">
+            {artStatus === "loading" ? tc("loading") : t("intro.start")}
+          </span>
         </motion.button>
       ) : null}
     </>

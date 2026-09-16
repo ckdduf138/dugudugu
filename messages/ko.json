@@ -418,7 +418,7 @@
         "namesLabel": "참가자 입력",
         "chipPlaceholder": "이름 입력",
         "entries": "{count}/{max}명",
-        "start": "날름 시작"
+        "start": "시작"
       },
       "result": {
         "title": "끝까지 남았어요",

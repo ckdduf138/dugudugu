@@ -11,11 +11,11 @@ import {
 import { FLY_ART, DUGU_ART } from "./blepArtwork";
 import type { BlepPhase } from "./store";
 
-// One 2D canvas owns every per-frame pixel: flies, bumpers,
+// One 2D canvas owns every per-frame pixel: court, flies,
 // Dugu, and the tongue. The frozen round decides who is caught; the arena only
 // chooses where the flies happen to be when the tongue arrives.
 
-export type BlepDuguLayout = { cx: number; top: number; size: number; buttonTop: number };
+export type BlepDuguLayout = { cx: number; top: number; size: number; startCx: number; startCy: number };
 
 type Props = {
   entries: readonly BlepEntry[];
@@ -49,8 +49,6 @@ type Fly = {
   attached: boolean;
 };
 
-type Bumper = { fx: number; fy: number; flash: number };
-
 type Particle = {
   x: number;
   y: number;
@@ -73,7 +71,8 @@ type World = {
   font: string;
   mascot: HTMLImageElement | null;
   flies: Map<string, Fly>;
-  bumpers: Bumper[];
+  /** Pre-rendered static court bed; rebuilt only when the size changes. */
+  bed: { key: string; canvas: HTMLCanvasElement } | null;
   particles: Particle[];
   eyes: [Eye, Eye];
   squash: number;
@@ -108,14 +107,31 @@ const MINT: Rgb = hexToRgb(CANDY_HEX.mint);
 const CORAL: Rgb = hexToRgb(CANDY_HEX.coral);
 const PINK: Rgb = hexToRgb(CANDY_HEX.pink);
 const LEMON: Rgb = hexToRgb(CANDY_HEX.lemon);
+const SKY: Rgb = hexToRgb(CANDY_HEX.sky);
 const INK: Rgb = hexToRgb(NEUTRAL_HEX.ink);
 const CREAM: Rgb = hexToRgb(NEUTRAL_HEX.cream);
 const WHITE: Rgb = hexToRgb(NEUTRAL_HEX.surface);
 
-const BUMPERS: readonly Bumper[] = [
-  { fx: 0.22, fy: 0.4, flash: 0 },
-  { fx: 0.78, fy: 0.4, flash: 0 },
-  { fx: 0.5, fy: 0.68, flash: 0 },
+/** Court focal height: idle Start and the survivor reveal share it. */
+const COURT_CENTER_FY = 0.46;
+
+type DecorKind = "flower" | "mushroom" | "pond" | "grass";
+
+/**
+ * Static garden decoration hugging the court edges. Purely background: flies
+ * pass over it, and the center stays clear for Start and the survivor reveal.
+ */
+const GARDEN_DECOR: readonly { fx: number; fy: number; kind: DecorKind; scale: number }[] = [
+  { fx: 0.1, fy: 0.1, kind: "flower", scale: 0.8 },
+  { fx: 0.22, fy: 0.05, kind: "grass", scale: 0.7 },
+  { fx: 0.8, fy: 0.07, kind: "flower", scale: 0.55 },
+  { fx: 0.9, fy: 0.19, kind: "mushroom", scale: 0.95 },
+  { fx: 0.06, fy: 0.46, kind: "grass", scale: 0.65 },
+  { fx: 0.95, fy: 0.52, kind: "grass", scale: 0.6 },
+  { fx: 0.14, fy: 0.8, kind: "pond", scale: 1.15 },
+  { fx: 0.2, fy: 0.95, kind: "mushroom", scale: 0.6 },
+  { fx: 0.88, fy: 0.84, kind: "flower", scale: 0.8 },
+  { fx: 0.76, fy: 0.94, kind: "grass", scale: 0.75 },
 ];
 
 function hexToRgb(hex: string): Rgb {
@@ -142,18 +158,16 @@ const easeOutBack = (t: number) => {
 const progress = (now: number, from: number, to: number) =>
   clamp((now - from) / Math.max(1, to - from), 0, 1);
 
-function layoutFor(w: number, h: number, topInset: number, controls = false) {
-  const controlInset = controls ? 62 : 0;
+function layoutFor(w: number, h: number, topInset: number) {
   const size = clamp(Math.min(w * 0.41, h * 0.27), 128, 210);
   const arena = {
     x: Math.max(24, (w - 760) / 2),
     y: topInset + 16,
     w: Math.min(w - 48, 760),
-    h: Math.max(100, h - topInset - 16 - size * 1.02 - controlInset),
+    h: Math.max(100, h - topInset - 16 - size * 1.02),
   };
-  const dugu = { cx: w / 2, cy: h - size * 0.82 - controlInset, size };
-  const bumperR = clamp(arena.w * 0.042, 9, 20);
-  return { arena, dugu, bumperR };
+  const dugu = { cx: w / 2, cy: h - size * 0.82, size };
+  return { arena, dugu };
 }
 
 function targetRadius(alive: number, arena: { w: number; h: number }) {
@@ -201,7 +215,7 @@ export function BlepArena(props: Props) {
       font: getComputedStyle(canvas).fontFamily || "sans-serif",
       mascot: null,
       flies: new Map(),
-      bumpers: BUMPERS.map((bumper) => ({ ...bumper })),
+      bed: null,
       particles: [],
       eyes: [
         { dx: 0, dy: -1, watch: null, switchAt: 0 },
@@ -236,12 +250,13 @@ export function BlepArena(props: Props) {
       world.h = rect.height;
       canvas.width = Math.round(rect.width * world.dpr);
       canvas.height = Math.round(rect.height * world.dpr);
-      const { dugu } = layoutFor(world.w, world.h, propsRef.current.topInset, propsRef.current.phase === "idle");
+      const { arena, dugu } = layoutFor(world.w, world.h, propsRef.current.topInset);
       propsRef.current.onLayout?.({
         cx: dugu.cx,
         top: dugu.cy - dugu.size * 0.5,
         size: dugu.size,
-        buttonTop: world.h - 52,
+        startCx: arena.x + arena.w / 2,
+        startCy: arena.y + arena.h * COURT_CENTER_FY,
       });
       wake();
     };
@@ -359,7 +374,7 @@ function onPhaseChange(world: World, previous: BlepPhase, props: Props) {
     world.contacted = 0;
     world.completed = false;
     world.heroFrom = null;
-    const { arena } = layoutFor(world.w, world.h, props.topInset, true);
+    const { arena } = layoutFor(world.w, world.h, props.topInset);
     for (const [index, fly] of [...world.flies.values()].entries()) {
       fly.alive = true;
       fly.attached = false;
@@ -369,28 +384,41 @@ function onPhaseChange(world: World, previous: BlepPhase, props: Props) {
   }
 }
 
+/** Unlabeled flies that keep an empty idle court alive; real names replace them. */
+const AMBIENT_FLIES = 3;
+const AMBIENT_PREFIX = "ambient:";
+
 function syncFlies(world: World, props: Props) {
-  const { arena } = layoutFor(world.w, world.h, props.topInset, props.phase === "idle");
-  const entries: readonly BlepEntry[] = props.round?.entries ?? props.entries;
+  const { arena } = layoutFor(world.w, world.h, props.topInset);
+  const named: readonly BlepEntry[] = props.round?.entries ?? props.entries;
+  const ambient = props.phase === "idle" && named.length === 0;
+  const entries = ambient
+    ? Array.from({ length: AMBIENT_FLIES }, (_, index) => ({ id: `${AMBIENT_PREFIX}${index}`, label: "", color: null }))
+    : named;
   const wanted = new Set(entries.map((entry) => entry.id));
   const swallowedIds = new Set(
     props.round?.catches.slice(0, world.swallowed).map((item) => item.target.id),
   );
-  for (const id of world.flies.keys()) {
-    if (!wanted.has(id)) world.flies.delete(id);
+  // A fly leaving the ambient set hands its position to the first new names.
+  const handoff: Fly[] = [];
+  for (const [id, fly] of world.flies) {
+    if (wanted.has(id)) continue;
+    if (id.startsWith(AMBIENT_PREFIX)) handoff.push(fly);
+    world.flies.delete(id);
   }
   for (const [index, entry] of entries.entries()) {
     if (world.flies.has(entry.id)) continue;
+    const from = handoff.shift();
     world.flies.set(entry.id, {
       id: entry.id,
       label: entry.label,
-      rgb: hexToRgb(BLEP_COLOR_HEX[entry.color]),
-      ...flightSlot(index, entries.length, arena),
-      vx: (Math.random() - 0.5) * 160,
-      vy: 120 + Math.random() * 80,
-      r: 16,
-      grow: 0,
-      flutter: Math.random() * Math.PI * 2,
+      rgb: entry.color ? hexToRgb(BLEP_COLOR_HEX[entry.color]) : WHITE,
+      ...(from ? { x: from.x, y: from.y } : flightSlot(index, entries.length, arena)),
+      vx: from ? from.vx : (Math.random() - 0.5) * 160,
+      vy: from ? from.vy : 120 + Math.random() * 80,
+      r: from ? from.r : 16,
+      grow: from ? from.grow : 0,
+      flutter: from ? from.flutter : Math.random() * Math.PI * 2,
       alive: !swallowedIds.has(entry.id),
       attached: false,
     });
@@ -401,7 +429,7 @@ function syncFlies(world: World, props: Props) {
 
 /** Returns true when nothing is left to animate. */
 function step(world: World, props: Props, dtMs: number): boolean {
-  const { arena, dugu, bumperR } = layoutFor(world.w, world.h, props.topInset, props.phase === "idle");
+  const { arena, dugu } = layoutFor(world.w, world.h, props.topInset);
   const { round, schedule, phase } = props;
   // Hold the complete contact pose for elapsed milliseconds, independent of FPS.
   if (world.freezeMs > 0 && phase === "playing" && !props.reducedMotion) {
@@ -510,7 +538,7 @@ function step(world: World, props: Props, dtMs: number): boolean {
     } else if (clock >= schedule.revealMs) {
       const survivor = world.flies.get(round.survivor.id);
       if (survivor) {
-        const center = { x: arena.x + arena.w / 2, y: arena.y + arena.h * 0.46 };
+        const center = { x: arena.x + arena.w / 2, y: arena.y + arena.h * COURT_CENTER_FY };
         const heroR = clamp(Math.min(arena.w, arena.h) * 0.2, 44, 84);
         if (!world.heroFrom) world.heroFrom = { x: survivor.x, y: survivor.y, r: survivor.r };
         const p = props.reducedMotion ? 1 : progress(clock, schedule.revealMs, schedule.revealMs + 750);
@@ -557,26 +585,6 @@ function step(world: World, props: Props, dtMs: number): boolean {
       if (fly.y - r < arena.y) { fly.y = arena.y + r; fly.vy = Math.abs(fly.vy); }
       if (fly.y + r > arena.y + arena.h) { fly.y = arena.y + arena.h - r; fly.vy = -Math.abs(fly.vy); }
 
-      if (arena.h > 220) {
-        for (const bumper of world.bumpers) {
-          const bx = arena.x + arena.w * bumper.fx;
-          const by = arena.y + arena.h * bumper.fy;
-          const dx = fly.x - bx;
-          const dy = fly.y - by;
-          const distance = Math.hypot(dx, dy) || 1;
-          const minimum = r + bumperR;
-          if (distance < minimum) {
-            const nx = dx / distance;
-            const ny = dy / distance;
-            fly.x = bx + nx * minimum;
-            fly.y = by + ny * minimum;
-            const boost = Math.max(speed * 1.7, Math.hypot(fly.vx, fly.vy));
-            fly.vx = nx * boost;
-            fly.vy = ny * boost;
-            bumper.flash = 1;
-          }
-        }
-      }
     }
     for (let i = 0; i < free.length; i++) {
       const a = free[i];
@@ -651,7 +659,6 @@ function step(world: World, props: Props, dtMs: number): boolean {
   world.squash += (squashTarget - world.squash) * (1 - Math.exp(-dtMs / 60));
   world.cheeks += (cheeksTarget - world.cheeks) * (1 - Math.exp(-dtMs / 50));
   world.shake *= Math.exp(-dtMs / 90);
-  for (const bumper of world.bumpers) bumper.flash *= Math.exp(-dtMs / 160);
   world.particles = world.particles.filter((particle) => {
     particle.life -= dtMs / 520;
     particle.x += particle.vx * (dtMs / 1000);
@@ -659,7 +666,7 @@ function step(world: World, props: Props, dtMs: number): boolean {
     particle.vy += 380 * (dtMs / 1000);
     return particle.life > 0;
   });
-  world.renderState = { tongueTip, lockRing, lockProgress, arena, dugu, bumperR };
+  world.renderState = { tongueTip, lockRing, lockProgress, arena, dugu };
 
   return (props.reducedMotion && phase === "idle") || (
     phase === "done" &&
@@ -717,7 +724,7 @@ function eyeCenter(dugu: { cx: number; cy: number; size: number }, index: number
 function draw(context: CanvasRenderingContext2D, world: World, props: Props) {
   const state = world.renderState;
   if (!state || world.w === 0) return;
-  const { arena, dugu, bumperR, tongueTip, lockRing, lockProgress } = state;
+  const { arena, dugu, tongueTip, lockRing, lockProgress } = state;
   context.setTransform(world.dpr, 0, 0, world.dpr, 0, 0);
   context.clearRect(0, 0, world.w, world.h);
   const shakeX = Math.sin(world.now * 0.12) * world.shake * 0.5;
@@ -726,12 +733,6 @@ function draw(context: CanvasRenderingContext2D, world: World, props: Props) {
 
   drawCourt(context, world, arena, props);
 
-  if (arena.h > 220) {
-    world.bumpers.forEach((bumper, index) => {
-      drawBumper(context, arena.x + arena.w * bumper.fx,
-        arena.y + arena.h * bumper.fy, bumperR, bumper.flash, index);
-    });
-  }
 
   const flies = [...world.flies.values()].filter((fly) => fly.alive);
   const attached = flies.filter((fly) => fly.attached);
@@ -771,10 +772,38 @@ function draw(context: CanvasRenderingContext2D, world: World, props: Props) {
   }
 }
 
-/** A molded toy pinfly bed: broad mint rail, inset cream floor, impact lamps. */
+/** A molded toy court: broad mint rail, inset cream garden floor, launch lamps. */
 function drawCourt(context: CanvasRenderingContext2D, world: World, arena: Layout["arena"], props: Props) {
   const { x, y, w, h } = arena;
+  context.drawImage(courtBed(world, arena), 0, 0, world.w, world.h);
+
+  // Inlaid lamps light up with the authored launch.
+  const launch = props.phase === "playing" ? Math.max(0, 1 - world.clock / 700) : 0;
   context.save();
+  for (const side of [-1, 1]) {
+    const lx = side < 0 ? x - 7 : x + w + 7;
+    for (let index = 0; index < 3; index++) {
+      roundRect(context, lx - 2, y + h * (0.25 + index * 0.22), 4, 18, 2);
+      context.fillStyle = css(mix(MINT, WHITE, 0.45 + launch * 0.55));
+      context.fill();
+    }
+  }
+  context.restore();
+}
+
+/** Everything static about the court, painted once per canvas size. */
+function courtBed(world: World, arena: Layout["arena"]): HTMLCanvasElement {
+  const key = `${world.w}x${world.h}@${world.dpr}:${arena.x},${arena.y},${arena.w},${arena.h}`;
+  if (world.bed?.key === key) return world.bed.canvas;
+  const canvas = world.bed?.canvas ?? document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(world.w * world.dpr));
+  canvas.height = Math.max(1, Math.round(world.h * world.dpr));
+  const context = canvas.getContext("2d");
+  world.bed = { key, canvas };
+  if (!context) return canvas;
+  context.setTransform(world.dpr, 0, 0, world.dpr, 0, 0);
+
+  const { x, y, w, h } = arena;
   roundRect(context, x - 12, y - 10, w + 24, h + 28, 38);
   context.fillStyle = css(mix(MINT, INK, 0.18));
   context.shadowColor = css(INK, 0.12);
@@ -803,7 +832,7 @@ function drawCourt(context: CanvasRenderingContext2D, world: World, arena: Layou
   context.lineWidth = 2;
   context.stroke();
 
-  // Quiet printed court markings, clipped to the playable bed.
+  // Quiet printed dots and the garden, clipped to the playable bed.
   context.save();
   context.clip();
   for (let px = x + 18; px < x + w; px += 24) {
@@ -814,61 +843,175 @@ function drawCourt(context: CanvasRenderingContext2D, world: World, arena: Layou
       context.fill();
     }
   }
-  context.beginPath();
-  context.ellipse(x + w / 2, y + h * 0.46, w * 0.29, Math.min(h * 0.3, w * 0.29), 0, 0, Math.PI * 2);
-  context.lineWidth = 1.5;
-  context.strokeStyle = css(MINT, 0.27);
-  context.stroke();
-  drawStar(context, x + w / 2, y + h * 0.46, Math.min(w, h) * 0.085, mix(CREAM, MINT, 0.22));
-  context.restore();
-
-  // Inlaid lamps react to physical bumper contact and the authored launch.
-  const impact = Math.max(...world.bumpers.map((bumper) => bumper.flash));
-  const launch = props.phase === "playing" ? Math.max(0, 1 - world.clock / 700) : 0;
-  for (const side of [-1, 1]) {
-    const lx = side < 0 ? x - 7 : x + w + 7;
-    for (let index = 0; index < 3; index++) {
-      roundRect(context, lx - 2, y + h * (0.25 + index * 0.22), 4, 18, 2);
-      context.fillStyle = css(mix(MINT, WHITE, 0.45 + Math.max(impact, launch) * 0.55));
+  const unit = clamp(Math.min(w, h) * 0.075, 14, 30);
+  for (const item of GARDEN_DECOR) {
+    context.save();
+    context.translate(x + w * item.fx, y + h * item.fy);
+    const r = unit * item.scale;
+    if (item.kind !== "pond") {
+      context.beginPath();
+      context.ellipse(0, r * 0.62, r * 1.05, r * 0.3, 0, 0, Math.PI * 2);
+      context.fillStyle = css(INK, 0.06);
       context.fill();
     }
+    if (item.kind === "flower") drawFlower(context, r);
+    else if (item.kind === "mushroom") drawMushroom(context, r);
+    else if (item.kind === "pond") drawLilyPond(context, r);
+    else drawGrass(context, r);
+    context.restore();
   }
+  context.restore();
+  return canvas;
+}
+
+function drawGrass(context: CanvasRenderingContext2D, r: number) {
+  context.lineCap = "round";
+  for (const [lean, height, shade] of [[-0.45, 0.9, 0.2], [0.05, 1.25, 0.05], [0.5, 0.8, 0.28]]) {
+    context.beginPath();
+    context.moveTo(lean * r * 0.35, r * 0.6);
+    context.quadraticCurveTo(lean * r * 0.4, r * (0.6 - height * 0.6), lean * r * 0.95, r * (0.6 - height));
+    context.strokeStyle = css(mix(MINT, INK, shade));
+    context.lineWidth = Math.max(2, r * 0.2);
+    context.stroke();
+  }
+}
+
+function drawFlower(context: CanvasRenderingContext2D, r: number) {
+  // Short stem and leaf so the bloom reads as planted, not floating.
+  context.beginPath();
+  context.moveTo(0, r * 0.2);
+  context.quadraticCurveTo(r * 0.08, r * 0.45, 0, r * 0.62);
+  context.strokeStyle = css(mix(MINT, INK, 0.3));
+  context.lineWidth = Math.max(2, r * 0.14);
+  context.lineCap = "round";
+  context.stroke();
+  context.beginPath();
+  context.ellipse(r * 0.28, r * 0.48, r * 0.26, r * 0.12, -0.5, 0, Math.PI * 2);
+  context.fillStyle = css(mix(MINT, INK, 0.15));
+  context.fill();
+
+  const spread = r * 0.52;
+  for (let petal = 0; petal < 6; petal++) {
+    const angle = (petal * Math.PI) / 3;
+    const px = Math.cos(angle) * spread;
+    const py = Math.sin(angle) * spread;
+    const fill = context.createRadialGradient(px - r * 0.12, py - r * 0.14, 0, px, py, r * 0.46);
+    fill.addColorStop(0, css(mix(LEMON, WHITE, 0.7)));
+    fill.addColorStop(1, css(LEMON));
+    context.beginPath();
+    context.arc(px, py, r * 0.44, 0, Math.PI * 2);
+    context.fillStyle = fill;
+    context.fill();
+    context.strokeStyle = css(mix(LEMON, INK, 0.2), 0.45);
+    context.lineWidth = 1;
+    context.stroke();
+  }
+  context.beginPath();
+  context.arc(0, 0, r * 0.36, 0, Math.PI * 2);
+  context.fillStyle = css(mix(CORAL, LEMON, 0.25));
+  context.fill();
+  context.beginPath();
+  context.arc(-r * 0.1, -r * 0.11, r * 0.1, 0, Math.PI * 2);
+  context.fillStyle = css(WHITE, 0.7);
+  context.fill();
+}
+
+function drawMushroom(context: CanvasRenderingContext2D, r: number) {
+  // Stem
+  roundRect(context, -r * 0.36, -r * 0.05, r * 0.72, r * 0.72, r * 0.3);
+  const stem = context.createLinearGradient(-r * 0.36, 0, r * 0.36, 0);
+  stem.addColorStop(0, css(WHITE));
+  stem.addColorStop(1, css(mix(CREAM, INK, 0.08)));
+  context.fillStyle = stem;
+  context.fill();
+  context.strokeStyle = css(mix(CREAM, INK, 0.2), 0.6);
+  context.lineWidth = 1;
+  context.stroke();
+
+  context.save();
+  context.translate(0, r * 0.08);
+  context.beginPath();
+  context.moveTo(-r * 1.08, 0);
+  context.bezierCurveTo(-r * 1.08, -r * 1.12, r * 1.08, -r * 1.12, r * 1.08, 0);
+  context.quadraticCurveTo(0, r * 0.28, -r * 1.08, 0);
+  context.closePath();
+  const cap = context.createLinearGradient(0, -r * 0.9, 0, r * 0.1);
+  cap.addColorStop(0, css(mix(PINK, WHITE, 0.35)));
+  cap.addColorStop(1, css(mix(PINK, CORAL, 0.2)));
+  context.fillStyle = cap;
+  context.fill();
+  context.strokeStyle = css(mix(PINK, INK, 0.25), 0.5);
+  context.lineWidth = 1.2;
+  context.stroke();
+  for (const [sx, sy, sr] of [[-0.48, -0.36, 0.17], [0.12, -0.6, 0.2], [0.58, -0.28, 0.13]]) {
+    context.beginPath();
+    context.arc(r * sx, r * sy, r * sr, 0, Math.PI * 2);
+    context.fillStyle = css(WHITE, 0.92);
+    context.fill();
+  }
+  context.beginPath();
+  context.ellipse(-r * 0.62, -r * 0.08, r * 0.14, r * 0.07, -0.6, 0, Math.PI * 2);
+  context.fillStyle = css(WHITE, 0.45);
+  context.fill();
   context.restore();
 }
 
-function drawBumper(context: CanvasRenderingContext2D, x: number, y: number, r: number, flash: number, index: number) {
-  const color = [LEMON, PINK, hexToRgb(CANDY_HEX.sky)][index];
-  context.save();
-  context.translate(x, y);
-  const compression = 1 + flash * 0.18;
-  context.scale(compression, compression);
+function drawLilyPond(context: CanvasRenderingContext2D, r: number) {
+  // Shallow water sits flat on the floor.
   context.beginPath();
-  context.ellipse(0, r * 0.35, r * 1.28, r * 0.9, 0, 0, Math.PI * 2);
-  context.fillStyle = css(INK, 0.09);
+  context.ellipse(0, r * 0.14, r * 1.42, r * 0.86, 0, 0, Math.PI * 2);
+  const water = context.createLinearGradient(0, -r * 0.7, 0, r);
+  water.addColorStop(0, css(mix(SKY, WHITE, 0.62)));
+  water.addColorStop(1, css(mix(SKY, WHITE, 0.3)));
+  context.fillStyle = water;
   context.fill();
-  context.beginPath();
-  context.arc(0, 3, r, 0, Math.PI * 2);
-  context.fillStyle = css(mix(color, INK, 0.22));
-  context.fill();
-  context.beginPath();
-  context.arc(0, -flash * 3, r, 0, Math.PI * 2);
-  const face = context.createLinearGradient(0, -r, 0, r);
-  face.addColorStop(0, css(mix(color, WHITE, 0.65)));
-  face.addColorStop(1, css(color));
-  context.fillStyle = face;
-  context.fill();
-  context.lineWidth = 2;
-  context.strokeStyle = css(WHITE, 0.85);
+  context.strokeStyle = css(mix(SKY, INK, 0.2), 0.35);
+  context.lineWidth = 1.2;
   context.stroke();
-  drawStar(context, 0, -flash * 3, r * 0.43, mix(color, INK, 0.28));
-  if (flash > 0.04) {
+  context.beginPath();
+  context.ellipse(-r * 0.7, r * 0.5, r * 0.3, r * 0.08, 0, 0, Math.PI * 2);
+  context.fillStyle = css(WHITE, 0.55);
+  context.fill();
+
+  context.save();
+  context.translate(r * 0.05, r * 0.05);
+  context.scale(1, 0.72);
+  context.rotate(-0.35);
+  const notch = 0.42;
+  context.beginPath();
+  context.moveTo(0, 0);
+  context.arc(0, 0, r * 0.86, notch / 2, Math.PI * 2 - notch / 2);
+  context.closePath();
+  const pad = context.createRadialGradient(-r * 0.2, -r * 0.2, 0, 0, 0, r * 0.9);
+  pad.addColorStop(0, css(mix(MINT, WHITE, 0.35)));
+  pad.addColorStop(1, css(mix(MINT, INK, 0.12)));
+  context.fillStyle = pad;
+  context.fill();
+  context.strokeStyle = css(mix(MINT, INK, 0.3), 0.5);
+  context.lineWidth = 1.2;
+  context.stroke();
+  context.strokeStyle = css(WHITE, 0.45);
+  context.lineWidth = 1;
+  for (const angle of [1.2, 2.3, 3.4, 4.5]) {
     context.beginPath();
-    context.arc(0, 0, r * (1.2 + (1 - flash) * 1.2), 0, Math.PI * 2);
-    context.strokeStyle = css(color, flash * 0.65);
-    context.lineWidth = 2;
+    context.moveTo(0, 0);
+    context.lineTo(Math.cos(angle) * r * 0.62, Math.sin(angle) * r * 0.62);
     context.stroke();
   }
   context.restore();
+
+  // A small pink bud keeps the pond in the candy palette.
+  const bx = -r * 0.2;
+  const by = -r * 0.12;
+  context.beginPath();
+  context.moveTo(bx, by - r * 0.42);
+  context.quadraticCurveTo(bx + r * 0.3, by - r * 0.1, bx, by + r * 0.08);
+  context.quadraticCurveTo(bx - r * 0.3, by - r * 0.1, bx, by - r * 0.42);
+  context.fillStyle = css(mix(PINK, WHITE, 0.2));
+  context.fill();
+  context.strokeStyle = css(mix(PINK, INK, 0.25), 0.5);
+  context.lineWidth = 1;
+  context.stroke();
 }
 
 /** A soft winged fly carries an upright name tag. */
@@ -956,6 +1099,7 @@ function drawFly(context: CanvasRenderingContext2D, world: World, fly: Fly, ring
   context.stroke(artPath(FLY_ART.smile));
   context.restore();
 
+  if (!fly.label) return;
   // The colored label belongs to this fly and travels into the mouth with it.
   const size = clamp(r * 0.43, 10, 21);
   context.font = `800 ${size}px ${world.font}`;

@@ -44,15 +44,21 @@ KO/EN lobby cards, metadata, and sitemap entries.
   large warm eyes and pupils, short antennae, softly shaded grey wings, light
   contour lines and small cheek accents. Omit scratchy legs and anatomical detail.
   The lobby uses the same fly paths with flat fills to match the other game cards.
-- Start stays below Dugu with clear room around the silhouette. Image load gates
-  Start; an accessible localized error and reload action handle failed loads.
+- Start is a text-only sky action centered on the court ring, matching the ladder's
+  floating Start. Dugu sits at the stage bottom with no reserved control gap, so it
+  does not jump when play begins. Image load gates Start; an accessible localized error and reload action handle failed loads.
 - Provenance and the ImageGen reference/prompt are in `public/images/blep/README.md`.
 
 ## Runtime and motion
 
 - One 2D Canvas owns flies, court, Dugu, and the tongue; no WebGL or new runtime
   dependency. DOM owns title, input, Start, Skip, and result accessibility.
-- The mint court is capped at 760px, with soft cream inlay and three bumpers.
+- The mint court is capped at 760px with a soft cream inlay decorated by static
+  garden props (flowers, mushrooms, a lily pond, grass) around the edges. They
+  are background only: no bumpers or collisions, and no center ring or star. The static
+  bed is painted once per canvas size and reused every frame.
+- An empty idle court shows three unlabeled ambient flies. The first added names
+  take over their positions; ambient flies never exist once names or a round do.
 - Cartoon flies have gentle wing flutter and upright colored name tags.
   They fold their wings and shrink into the mouth when caught.
 - Final locks use four converging arcs; contact holds for 70ms of elapsed time.
