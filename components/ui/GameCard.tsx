@@ -73,8 +73,8 @@ export function GameCard({
         </div>
 
         <div className="flex min-w-0 items-end gap-2 px-1.5 pb-1 pt-2.5 sm:px-2 sm:pb-1.5 sm:pt-3">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-balance break-keep font-display text-[1.05rem] leading-[1.15] text-ink sm:text-[1.2rem]">
+          <div className="lobby-card-heading min-w-0 flex-1">
+            <h2 className="whitespace-nowrap font-display text-[min(1.05rem,14.5cqi)] leading-[1.15] text-ink sm:text-[min(1.2rem,14.5cqi)]">
               {title}
             </h2>
             <p className="mt-0.5 text-[0.7rem] font-semibold leading-none text-ink-soft/80 sm:text-xs">
@@ -83,7 +83,7 @@ export function GameCard({
           </div>
           <span
             aria-hidden
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-ink/[0.08] text-ink/35 transition duration-300 group-hover/card:border-transparent group-hover/card:bg-[var(--game-accent)] group-hover/card:text-ink"
+            className="hidden h-7 w-7 shrink-0 place-items-center lg:grid rounded-full border border-ink/[0.08] text-ink/35 transition duration-300 group-hover/card:border-transparent group-hover/card:bg-[var(--game-accent)] group-hover/card:text-ink"
           >
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
           </span>

@@ -303,6 +303,11 @@ a {
     box-shadow 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Titles stay on one line: the font scales with the heading's own width. */
+.lobby-card-heading {
+  container-type: inline-size;
+}
+
 .lobby-card--featured {
   box-shadow:
     0 0 0 1.5px color-mix(in srgb, var(--game-accent) 70%, transparent),

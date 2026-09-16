@@ -11,7 +11,7 @@ The first viewport is a game picker, not a marketing landing page. A user should
 - Layout: one translucent "glass" tray, vertically centered, holding equal-size
   cards — two columns on phones, four from `md`, capped at 64rem. Each card is
   a white frame around an inset 5:4 art panel, then the title, a quiet player
-  range (`lobby.players` / `lobby.solo`) and a small outlined arrow.
+  range (`lobby.players` / `lobby.solo`) and, on desktop, a small outlined arrow.
 - No colored dots, bottom accent bars, or top lamp/handle bars on cards.
 - Blep is the signature game (`featured: true` in the registry). It leads the
   grid at the same size, marked only by an accent ring and the single dark
@@ -34,8 +34,10 @@ The first viewport is a game picker, not a marketing landing page. A user should
 - Keep the header compact and brand-only at upper left. The global compact
   KO/EN selector occupies the upper right; there is no footer or sound control.
 - Card text cannot determine grid column width; every grid track and link needs `minmax(0, 1fr)` / `min-width: 0` behavior.
-- English card names wrap to at most two lines at 390px instead of truncating;
-  portrait-tablet grids are vertically balanced within the first viewport.
+- Card names stay on one line in both locales: the heading is an inline-size
+  container and the title uses `min(cap, 14.5cqi)` (the longest name, "Fortune
+  Cookie", is ~6.7em wide). The outlined arrow shows only from `lg`, where
+  there is room; below that the whole card is the obvious tap target.
 - No raw emoji as artwork, no `backdrop-filter`, and no decorative interaction that looks tappable.
 - Brand identity uses Dugu, one original chameleon mascot. The compact mark is
   a mint head and spiral tail on a coral rounded square with one lemon star;
