@@ -4,12 +4,27 @@ Read the repository `AGENTS.md` first. This file records the intentionally simpl
 
 ## Product job
 
-The first viewport is a game picker, not a marketing landing page. A user should recognize the available games and enter one without reading instructions or scrolling.
+The first viewport is a game picker, not a marketing landing page. A user should recognize the available games and enter one without reading instructions.
 
-- Mobile and portrait tablet: five choices in a compact two-column grid inside the first viewport.
-- Wide desktop: five choices in one row.
-- The whole live card is the link. Upcoming games remain visible but disabled and clearly labelled.
-- Do not reintroduce hero copy, CTA duplication, step indicators, section headings, badges, or explanatory sections above the choices.
+- Only live games appear. A card is always enterable; locked games (race) keep
+  their noindex route but have no lobby card.
+- Layout: one translucent "glass" tray, vertically centered, holding equal-size
+  cards — two columns on phones, four from `md`, capped at 64rem. Each card is
+  a white frame around an inset 5:4 art panel, then the title, a quiet player
+  range (`lobby.players` / `lobby.solo`) and a small outlined arrow.
+- No colored dots, bottom accent bars, or top lamp/handle bars on cards.
+- Blep is the signature game (`featured: true` in the registry). It leads the
+  grid at the same size, marked only by an accent ring and the single dark
+  `인기` / `HOT` pill with a coral flame. No other card gets a badge.
+- Dugu (`dugu-lobby-peeker.webp`, cropped so the tray edge sits at 85% of its
+  height) leans over the tray's top edge: off-center on phones so the greeting
+  bubble fits, centered from `sm`. Its entrance is a CSS animation so it shows
+  before hydration.
+- Background: static blurred color orbs (`filter: blur`, never
+  `backdrop-filter`, never animated) plus a masked dot grid. The tray's
+  translucency over those orbs provides the frosted look.
+- The whole card is the link.
+- Do not reintroduce hero copy, CTA duplication, step indicators, section headings, extra badges, or explanatory sections above the choices.
 
 ## Visual and performance rules
 
@@ -26,13 +41,13 @@ The first viewport is a game picker, not a marketing landing page. A user should
   a mint head and spiral tail on a coral rounded square with one lemon star;
   it must stay recognizable at 16 px without a white plate, text, or a generic
   `D`. Reuse the silhouette in the top bar, favicon, install icons, and social
-  lockup. The larger transparent mascot illustration may appear once as a
-  clearly named 44 px-or-larger button in the quiet space below the choices.
-  Its optional short introduction stays in that quiet band, never becomes a
-  prerequisite, and never intercepts a game-card link.
-- Lobby delight stays finite: cards may power on once with a short stagger and
-  a single restrained sheen, then remain still. Hover/focus can lift the card
-  and brighten its underlight. Dugu may peek in once after the choices settle;
+  lockup. The peeking mascot illustration appears once, as a clearly named button
+  on the tray edge. Its optional short introduction opens above the tray,
+  never becomes a prerequisite, and never intercepts a game-card link.
+- Lobby delight stays finite: cards enter once with a short stagger and a
+  single restrained sheen, then remain still. No top lamp/handle bar — it reads
+  as a bottom-sheet grabber and implies dragging. Hover/focus can lift the card
+  and brighten its underlight. Dugu may rise onto the tray edge once;
   tapping the mascot may toggle its single finite introduction.
   No looping sparkle, bob, pulse, or animated background gradient; reduced
   motion shows the final state immediately.
@@ -45,8 +60,7 @@ The first viewport is a game picker, not a marketing landing page. A user should
   spiral tail as a flat seated character, without eyebrows. A short tongue and
   small cartoon fly identify its action. In-game Dugu remains independently authored.
 - The ladder tile has three amida rails and one connected route; the fortune
-  cookie has two folded lobes and a paper slip. Animal faces remain readable
-  even in the muted coming-soon card.
+  cookie has two folded lobes and a paper slip.
 - Independence does not mean generic symbols: the draw tile keeps the same
   two-mass coral machine grammar, and the race tile uses visibly different
   tiger, penguin, and chicken silhouettes instead of recoloring one repeated

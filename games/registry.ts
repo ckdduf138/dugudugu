@@ -56,6 +56,7 @@ export const games: GameMeta[] = [
     accent: CANDY_HEX.mint,
     icon: "👅",
     status: "live",
+    featured: true,
     minPlayers: 2,
     maxPlayers: 50,
   },
@@ -63,8 +64,13 @@ export const games: GameMeta[] = [
 
 export const liveGames = games.filter((g) => g.status === "live");
 
-/** Lobby cards: live and coming-soon games, never URL-only previews. */
-export const lobbyGames = games.filter((g) => g.status !== "preview");
+/**
+ * Lobby cards: live games only — a card must always be enterable. The
+ * featured game leads; everything else keeps registry order.
+ */
+export const lobbyGames = liveGames
+  .slice()
+  .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
 
 export function getGame(slug: string): GameMeta | undefined {
   return games.find((g) => g.slug === slug);

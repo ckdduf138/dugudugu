@@ -65,35 +65,48 @@ export async function LobbyPage({ locale }: { locale: Locale }) {
       <JsonLd data={websiteJsonLd()} />
 
       <main className="relative min-h-[100svh] overflow-hidden bg-bg">
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-[72%] bg-[radial-gradient(circle_at_8%_15%,color-mix(in_srgb,var(--candy-pink)_13%,transparent),transparent_31%),radial-gradient(circle_at_92%_13%,color-mix(in_srgb,var(--candy-sky)_13%,transparent),transparent_31%),linear-gradient(180deg,color-mix(in_srgb,var(--candy-lemon)_11%,var(--bg)),transparent_38%)]" />
-          <div className="lobby-floor absolute inset-x-0 bottom-0 h-[38%]" />
+        <div aria-hidden className="lobby-backdrop pointer-events-none absolute inset-0">
+          <span className="lobby-orb left-[-10%] top-[6%] h-[22rem] w-[22rem] bg-candy-mint/45 lg:left-[14%] lg:top-[10%]" />
+          <span className="lobby-orb right-[-16%] top-[30%] h-[20rem] w-[20rem] bg-candy-pink/35 lg:right-[10%] lg:top-[34%]" />
+          <span className="lobby-orb bottom-[14%] left-[-14%] h-[18rem] w-[18rem] bg-candy-sky/35 lg:bottom-[12%] lg:left-[18%]" />
+          <span className="lobby-orb bottom-[-4%] right-[-6%] h-[18rem] w-[18rem] bg-candy-lemon/40 lg:bottom-[6%] lg:right-[24%]" />
+          <div className="lobby-dots absolute inset-0" />
         </div>
 
-        <section className="relative mx-auto flex min-h-[100svh] w-full max-w-[84rem] items-start px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 sm:pb-6 sm:pt-[calc(env(safe-area-inset-top)+5.75rem)] md:items-center lg:px-8 lg:pb-8 lg:pt-[calc(env(safe-area-inset-top)+5.75rem)]">
+        <section className="relative mx-auto flex min-h-[100svh] w-full max-w-[64rem] flex-col justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] pt-[calc(env(safe-area-inset-top)+9rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+10.5rem)] lg:px-8 lg:py-[calc(env(safe-area-inset-top)+8rem)]">
           <h1 className="sr-only">{t("site.name")}</h1>
-          <div className="grid w-full grid-cols-[repeat(2,minmax(0,1fr))] auto-rows-[clamp(10rem,23svh,12rem)] gap-3 sm:auto-rows-[clamp(12rem,23svh,15rem)] sm:gap-4 md:-translate-y-4 lg:translate-y-0 lg:grid-cols-[repeat(5,minmax(0,1fr))] lg:auto-rows-[clamp(20rem,52svh,26rem)] lg:gap-5">
-            {lobbyGames.map((game, index) => (
-              <GameCard
-                key={game.id}
-                index={index}
-                slug={game.slug}
-                accent={game.accent}
-                status={game.status}
-                title={t(`games.${game.id}.title`)}
-                enterLabel={t("lobby.enter")}
-                loadingLabel={t("common.loading")}
-                soonLabel={t("common.comingSoon")}
-              />
-            ))}
+          <div className="lobby-tray relative rounded-[2rem] p-2.5 sm:rounded-[2.4rem] sm:p-4 lg:p-5">
+            <MascotPeek
+              openLabel={t("lobby.mascot.open")}
+              closeLabel={t("lobby.mascot.close")}
+              greeting={t("lobby.mascot.greeting")}
+              introduction={t("lobby.mascot.introduction")}
+            />
+            <div className="relative grid grid-cols-[repeat(2,minmax(0,1fr))] gap-2.5 sm:gap-4 md:grid-cols-[repeat(4,minmax(0,1fr))] md:gap-3 lg:gap-4">
+              {lobbyGames.map((game, index) => (
+                <GameCard
+                  key={game.id}
+                  index={index}
+                  slug={game.slug}
+                  accent={game.accent}
+                  featured={game.featured}
+                  title={t(`games.${game.id}.title`)}
+                  meta={
+                    game.maxPlayers <= 1
+                      ? t("lobby.solo")
+                      : t("lobby.players", {
+                          min: game.minPlayers,
+                          max: game.maxPlayers,
+                        })
+                  }
+                  enterLabel={t("lobby.enter")}
+                  loadingLabel={t("common.loading")}
+                  hotLabel={t("common.hot")}
+                />
+              ))}
+            </div>
           </div>
         </section>
-        <MascotPeek
-          openLabel={t("lobby.mascot.open")}
-          closeLabel={t("lobby.mascot.close")}
-          greeting={t("lobby.mascot.greeting")}
-          introduction={t("lobby.mascot.introduction")}
-        />
       </main>
     </>
   );

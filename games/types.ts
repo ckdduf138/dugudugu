@@ -25,6 +25,8 @@ export interface GameMeta {
   status: "live" | "soon" | "preview";
   minPlayers: number;
   maxPlayers: number;
+  /** The signature game: first and largest lobby card with a HOT badge. */
+  featured?: boolean;
   /** Lazy-load Rapier only for games that need physics. */
   needsPhysics?: boolean;
   /** Lazy-load fracture tooling only where needed. */

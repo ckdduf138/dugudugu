@@ -21,7 +21,8 @@
     "remove": "삭제",
     "winner": "당첨",
     "result": "결과",
-    "comingSoon": "준비 중"
+    "comingSoon": "준비 중",
+    "hot": "인기"
   },
   "lobby": {
     "eyebrow": "RANDOM ARCADE · OPEN",
@@ -30,6 +31,8 @@
     "heading": "오늘은 뭘로 정할까?",
     "subheading": "도구처럼 생긴 메뉴 대신, 같이 보고 웃을 수 있는 게임 세 개만 준비했어요.",
     "enter": "게임 입장",
+    "players": "{min}–{max}명",
+    "solo": "혼자서",
     "mascot": {
       "open": "두구에게 인사하기",
       "close": "두구 소개 닫기",

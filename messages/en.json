@@ -21,7 +21,8 @@
     "remove": "Remove",
     "winner": "Winner",
     "result": "Result",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "hot": "HOT"
   },
   "lobby": {
     "eyebrow": "RANDOM ARCADE · OPEN",
@@ -30,6 +31,8 @@
     "heading": "How should we decide today?",
     "subheading": "No dashboard full of tools—just a few little games made to watch and cheer together.",
     "enter": "Enter game",
+    "players": "{min}–{max} players",
+    "solo": "Solo",
     "mascot": {
       "open": "Say hello to Dugu",
       "close": "Close Dugu's introduction",

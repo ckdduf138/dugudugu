@@ -40,7 +40,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **3D runtime = R3F/three + authored GLB.** Blender 5.x is the source-of-truth DCC; glTF/GLB is the web delivery format. Framer Motion is for DOM UI orchestration, while restrained device haptics reinforce a few physical beats. The product ships without runtime audio.
 
 ### Engine decision: R3F is the product surface
-- **Default = authored 3D in live character games.** Blep (`games/blep/`) is a third exception: a code-native 2D canvas signature game (see its AGENTS.md). The lobby and ladder are deliberate exceptions: the lobby is a fast static two-column/five-up game picker, while the ladder is a crisp code-native SVG board because route verification matters more than depth. Neither uses a Canvas. 2D DOM stays responsible for readable Korean/English text, inputs, accessibility, and fallback content.
+- **Default = authored 3D in live character games.** Blep (`games/blep/`) is a third exception: a code-native 2D canvas signature game (see its AGENTS.md). The lobby and ladder are deliberate exceptions: the lobby is a fast static two-column game picker, while the ladder is a crisp code-native SVG board because route verification matters more than depth. Neither uses a Canvas. 2D DOM stays responsible for readable Korean/English text, inputs, accessibility, and fallback content.
 - **R3F (@react-three/fiber)** is the only sanctioned runtime. It gives React-native state integration, static-export compatibility, asset caching, animation mixers, instancing, and adaptive performance.
 - **three.js raw** = ❌ imperative boilerplate in a React app, no upside over R3F.
 - **Babylon.js** = ❌ full game engine; heavy bundle, non-React-idiomatic, overkill for cute mini-games, hurts mobile/SEO. Do not add.
@@ -166,15 +166,17 @@ the same enlarged head-and-tail silhouette on a coral rounded square across the 
 one fully opaque coral full-bleed SVG search favicon, matching raster install
 fallbacks, and social image. The favicon silhouette is geometrically centered
 at every generated size and stays readable without text or a white plate at 16
-px. A transparent full-body illustration peeks once into the
-quiet band below the choices as an accessible optional introduction; its small
+px. A transparent peeking illustration rises once onto the game tray
+as an accessible optional introduction; its small
 button and non-blocking bubble never intercept a game-card link. The lobby's
-clean code-native 2D game art uses two columns on mobile/tablet and five-up on desktop,
-including the live Blep Dugu-and-cartoon-fly card. All five lobby illustrations share
+clean code-native 2D game art sits in equal-size framed cards inside one
+centered translucent tray (two columns on phones, four from `md`) over static
+blurred color orbs; the peeking Dugu leans over the tray edge, and Blep leads
+as the featured card with an accent ring and a single 인기/HOT flame badge. All four lobby illustrations share
 a flat, rounded candy-color vector style; the Blep tile uses its own simplified
 eyebrow-free seated Dugu with a tongue and fly. Blep uses an identity-preserving front-facing Dugu sprite and big-eye cartoon flies,
 readable name tags, and tongue-catch elimination;
-with one finite staggered power-on, restrained sheen, accent lamps/underlights,
+with one finite staggered entrance, restrained sheen, accent underlights,
 and a subtle static arcade-floor grid instead of new lobby copy or looping
 decoration. It keeps complete two-line English
 titles, a vertically balanced portrait-tablet grid, a coral two-mass draw icon,
@@ -233,7 +235,7 @@ focus-contained mapping popup with the animal portrait and name on the left and
 its frozen result on the right; Dugu presents that mapping from behind the
 result surface. Result popups contain focus while the game and global locale
 selector are inert. The animal race is temporarily
-locked as a non-indexed coming-soon route and disabled lobby card while the
+locked as a non-indexed coming-soon route with no lobby card while the
 following authored implementation remains in the repository for a later
 release. The seeded animal race uses
 seven ITHappy

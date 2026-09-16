@@ -47,3 +47,10 @@ Prompt summary: the same mint, yellow-star-cheek, coral-tail Dugu mascot leans
 over the top edge of the result with both paws resting on it. It has no
 in-image text, props, or background so the result surface remains the semantic
 focus.
+
+## Lobby peeker
+
+- Asset: `dugu-lobby-peeker.webp` (634×600, ~41 KB)
+- Derived 2026-09-17 from `dugu-result-peeker-no-brows.png`: cropped to the
+  character bounds (tray edge line at 85% of height) and Lanczos-resized to
+  WebP for the lobby's first paint. No new generation.
