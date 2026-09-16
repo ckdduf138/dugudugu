@@ -33,7 +33,8 @@ no downloaded mesh or texture is embedded in the GLB.
 
 Original Dugudugu ladder mascot with authored `Idle` and `Travel` clips. The
 deterministic source is `scripts/blender/build_ladder_mascot.py`; no downloaded
-mesh or texture is embedded in the GLB.
+mesh or texture is embedded in the GLB. It is no longer loaded at runtime: the
+ladder is a 2D SVG board and the lobby has no WebGL Canvas.
 
 ## `fortune/fortune-cookie.glb`
 
