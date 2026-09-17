@@ -1,3 +1,5 @@
+import { GAME_ASSETS } from "@/lib/game-assets";
+
 /** Original soft cartoon fly shapes; shared by Canvas and SVG artwork. */
 export const FLY_ART = {
   abdomen: "M-13 -7 C-24 5 -20 30 0 34 C20 30 24 5 13 -7Z",
@@ -9,11 +11,11 @@ export const FLY_ART = {
 
 /** Compact seated Dugu: the smile and grounded body share this source transform. */
 export const DUGU_ART = {
-  src: "/images/blep/dugu-front-seated.png",
+  src: GAME_ASSETS.blep.href,
   x: -0.83,
   y: -0.8,
   scale: 1.7,
   mouthX: -0.002,
-  mouthY: 0.157,
+  mouthY: 0.135,
   anchorY: 0.76,
 } as const;

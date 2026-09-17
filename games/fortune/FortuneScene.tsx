@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { GAME_ASSETS } from "@/lib/game-assets";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { seekOneShotClip } from "./animation";
 
-const MODEL_URL = "/models/fortune/fortune-cookie.glb?v=20260730-15";
+const MODEL_URL = GAME_ASSETS.fortune.href;
 const CRACKED_STEP = 10;
 
 export type FortuneBeat = "idle" | "press" | "crack" | "reveal";

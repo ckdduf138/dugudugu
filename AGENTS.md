@@ -149,6 +149,21 @@ Techniques to reach for (use a subset per game, keep it snappy):
 - Visual check (headless): `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --enable-unsafe-swiftshader --window-size=390,844 --virtual-time-budget=8000 --screenshot=out.png URL` (the swiftshader flag is required only if a page uses WebGL).
 
 ## 7. Status (update as you go)
+
+### 2026-09-17 loading preparation
+- The selected game's primary asset URL lives in `lib/game-assets.ts`; its server HTML
+  preloads only that asset, sharing the exact URL with the runtime loader.
+- `GamePreparation` keeps draw/fortune/Blep mounted but opaque and inert until their
+  real resources are painted. R3F signals after the complete Suspense tree renders;
+  Blep signals after its image has loaded and subsequent animation frames run.
+  Unsupported/error fallbacks release the gate; slow preparation offers localized reload.
+- Loading Dugu is lightweight inline SVG with a bored expression, a slow sigh and foot tap.
+  It has no image dependency; reduced motion freezes the illustration. Route feedback
+  has no deliberate delay. Existing full mascot redesign is still pending: ImageGen
+  rejected both generation attempts, so existing raster identity has been preserved.
+- Runtime Blep/result mascot images now use resized transparent WebP siblings; originals
+  stay available as source artwork. No seeded game behavior changed.
+
 Current foundation: static KO/EN roots with correct initial `<html lang>`,
 seeded pure logic, a deterministic shared fairness audit covering chi-square,
 z-score, and total-variation checks across every game, one-Canvas game shell, rAF cue timeline, adaptive

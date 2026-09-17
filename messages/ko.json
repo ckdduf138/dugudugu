@@ -17,6 +17,8 @@
     "backToLobby": "로비로",
     "start": "시작",
     "loading": "두구가 게임을 준비 중…",
+    "loadingSlow": "조금 오래 걸리고 있어요. 연결 상태를 확인해 주세요.",
+    "loadingRetry": "다시 불러오기",
     "add": "추가",
     "remove": "삭제",
     "winner": "당첨",

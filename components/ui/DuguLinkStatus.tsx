@@ -16,7 +16,7 @@ export function DuguLinkStatus({ label, title }: Props) {
   if (!pending || typeof document === "undefined") return null;
 
   return createPortal(
-    <DuguLoader label={label} title={title} overlay delayed />,
+    <DuguLoader label={label} title={title} overlay />,
     document.body,
   );
 }

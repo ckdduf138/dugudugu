@@ -17,6 +17,8 @@
     "backToLobby": "Back to lobby",
     "start": "Start",
     "loading": "Dugu is setting up the game…",
+    "loadingSlow": "This is taking a little longer. Check your connection.",
+    "loadingRetry": "Reload",
     "add": "Add",
     "remove": "Remove",
     "winner": "Winner",

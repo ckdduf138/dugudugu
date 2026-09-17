@@ -41,10 +41,10 @@ export function MascotPeek({
           className="group/mascot pointer-events-auto relative block w-full cursor-pointer rounded-[2rem] outline-none focus-visible:ring-4 focus-visible:ring-candy-mint/45"
         >
           <Image
-            src="/images/brand/dugu-lobby-peeker.webp"
+            src="/images/brand/dugu-chameleon-lobby.webp"
             alt=""
-            width={634}
-            height={600}
+            width={480}
+            height={455}
             sizes="(min-width: 1024px) 160px, (min-width: 640px) 144px, 120px"
             priority
             className="pointer-events-none h-auto w-full drop-shadow-[0_14px_18px_color-mix(in_srgb,var(--ink)_16%,transparent)] transition-transform duration-300 ease-[var(--ease-pop)] group-hover/mascot:-translate-y-1 group-hover/mascot:-rotate-2 group-active/mascot:scale-95"

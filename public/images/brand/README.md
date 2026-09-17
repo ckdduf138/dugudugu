@@ -54,3 +54,8 @@ focus.
 - Derived 2026-09-17 from `dugu-result-peeker-no-brows.png`: cropped to the
   character bounds (tray edge line at 85% of height) and Lanczos-resized to
   WebP for the lobby's first paint. No new generation.
+
+## 2026-09-17 delivery optimization
+
+Runtime WebP derivatives: `dugu-mascot-no-brows.webp` (480px, 20,044 bytes) and `dugu-result-peeker-no-brows.webp` (480px long edge, 12,868 bytes).
+Generated from the existing PNG source with Sharp WebP quality 85, alpha quality 95, effort 6, fit inside, without enlargement. Source composition and alpha are preserved. The original source/license notes above still apply.

@@ -35,3 +35,8 @@ Read this file only when changing reusable controls under `components/ui/`.
 - Lobby game titles may wrap naturally at 390px; never truncate an English
   game name or replace most of it with an ellipsis.
 - Keep reusable UI free of game state, seeded logic, R3F, and route-specific copy.
+
+- Preparation UI uses `DuguWaiting` inline SVG, never a raster image that itself
+  must load. `GamePreparation` hides and makes the mounted scene inert until its
+  readiness callback fires. Preserve the 15-second localized retry escape and
+  the no-animation reduced-motion state.

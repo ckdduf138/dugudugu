@@ -31,7 +31,7 @@ describe("ResultDialog accessibility", () => {
       </ResultDialog>,
     );
     const peeker = Array.from(view.container.querySelectorAll("img")).find(
-      (image) => image.getAttribute("src")?.includes("dugu-result-peeker-no-brows.png"),
+      (image) => image.getAttribute("src")?.includes("dugu-chameleon-peeker.webp"),
     );
 
     expect(peeker).toBeDefined();

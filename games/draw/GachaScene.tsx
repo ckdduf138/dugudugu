@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { GAME_ASSETS } from "@/lib/game-assets";
 import { ContactShadows, useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -31,7 +32,7 @@ type Props = MotionProps & {
   prizeColor?: CapsuleColorKey;
 };
 
-const MODEL_URL = "/models/draw/gacha-machine.glb?v=20260810-5";
+const MODEL_URL = GAME_ASSETS.draw.href;
 const MACHINE_SCALE = 0.8;
 const MACHINE_YAW = 0.085;
 const CRANK_CHARGE_SECONDS = 0.42;

@@ -2,6 +2,7 @@
 
 import {
   Component,
+  Suspense,
   createContext,
   useCallback,
   useContext,
@@ -14,8 +15,11 @@ import {
 import {
   Canvas,
   useThree,
+  useFrame,
   type CanvasProps,
 } from "@react-three/fiber";
+import { useGamePrepared } from "@/components/ui/GamePreparation";
+import { useRef } from "react";
 import { PerformanceMonitor } from "@react-three/drei";
 import { useReducedMotion } from "framer-motion";
 import { useSettings, type QualityTier } from "@/stores/settings";
@@ -68,6 +72,26 @@ function supportsWebGL(): boolean {
   } catch {
     return false;
   }
+}
+
+function ScenePrepared({ onReady }: { onReady: (() => void) | null }) {
+  const frames = useRef(0);
+  const scheduled = useRef(false);
+  const invalidate = useThree((state) => state.invalidate);
+  useFrame(() => {
+    if (scheduled.current) return;
+    // The second frame follows the first complete scene render/texture upload.
+    if (++frames.current < 2) { invalidate(); return; }
+    scheduled.current = true;
+    queueMicrotask(() => onReady?.());
+  });
+  useEffect(() => { invalidate(); }, [invalidate]);
+  return null;
+}
+
+function PreparedFallback({ children, onReady }: { children: ReactNode; onReady: (() => void) | null }) {
+  useEffect(() => { onReady?.(); }, [onReady]);
+  return children;
 }
 
 function ContextLifecycle({
@@ -247,6 +271,7 @@ export function SceneCanvas({
   shadows,
   ...canvasProps
 }: SceneCanvasProps) {
+  const prepared = useGamePrepared();
   const storedQuality = useSettings((state) => state.quality);
   const autoDetectQuality = useSettings((state) => state.autoDetectQuality);
   const systemReducedMotion = useReducedMotion();
@@ -296,12 +321,12 @@ export function SceneCanvas({
 
   const renderFallback = useCallback(
     (state: SceneCanvasFallbackState) =>
-      typeof fallback === "function" ? (
+      <PreparedFallback onReady={prepared}>{typeof fallback === "function" ? (
         fallback(state)
       ) : (
         fallback ?? <DefaultSceneFallback label={fallbackLabel} />
-      ),
-    [fallback, fallbackLabel],
+      )}</PreparedFallback>,
+    [fallback, fallbackLabel, prepared],
   );
 
   const runtime = useMemo<SceneRuntime>(
@@ -342,7 +367,7 @@ export function SceneCanvas({
                 }
               }
               shadows={quality === "low" ? false : shadows}
-              fallback={renderFallback({ reason: "unsupported" })}
+              fallback={typeof fallback === "function" ? fallback({ reason: "unsupported" }) : (fallback ?? <DefaultSceneFallback label={fallbackLabel} />)}
             >
               <ContextLifecycle
                 onLost={markContextLost}
@@ -351,7 +376,10 @@ export function SceneCanvas({
               {adaptiveDpr && active && !reducedMotion ? (
                 <AdaptiveDprMonitor range={range} onDpr={updateDpr} />
               ) : null}
-              {children}
+              <Suspense fallback={null}>
+                {children}
+                <ScenePrepared onReady={prepared} />
+              </Suspense>
             </Canvas>
             {contextLost ? <SceneRecoveryFallback label={fallbackLabel} /> : null}
           </SceneErrorBoundary>

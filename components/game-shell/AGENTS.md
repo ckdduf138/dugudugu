@@ -28,7 +28,7 @@ This module owns layout, immersion, result focus, announcements, skip, and WebGL
   play instead of the Skip moving.
 - ResultDialog defaults to one quiet Dugu watermark. A result callsite may wrap
   its real result surface with `DuguResultHandoff` instead: the transparent
-  `dugu-result-peeker-no-brows.png` artwork leans naturally over its top edge with paws
+  `dugu-result-peeker-no-brows.webp` artwork leans naturally over its top edge with paws
   resting on the result surface. The compact ribbon variant stays smaller and
   sits low at the ribbon's right edge so only a quiet head-and-paws peek reads;
   the dialog variant gets a clearer peek. The image sits above the card by only a

@@ -130,11 +130,12 @@ function BlepArtwork() {
       <ellipse cx="99" cy="141" rx="20" ry="24" fill="color-mix(in srgb, var(--candy-lemon) 35%, var(--surface))" />
       <path d="M73 134q-13 10-7 24M124 134q13 10 7 24" stroke="var(--candy-mint)" strokeWidth="18" />
       <path d="M70 166h14m32 0h14" stroke="var(--candy-mint)" strokeWidth="10" />
-      <path d="M74 50c-9-14 3-24 14-17 0-20 24-24 29-6 13-6 24 9 14 21" fill="var(--candy-mint)" />
+      <path d="M76 49C82 34 91 12 101 12C112 12 122 33 128 48Z" fill="var(--candy-mint)" />
       <path d="M47 74c-1-24 18-37 48-37 31 0 52 17 52 42 0 30-21 44-49 44-30 0-53-17-51-49Z" fill="var(--candy-mint)" />
       <path d="M57 65q9-19 32-20" stroke="var(--surface)" strokeOpacity="0.4" strokeWidth="5" />
       {[73, 122].map(x => (
         <g key={x}>
+          <ellipse cx={x} cy="77" rx="20" ry="23" fill="var(--candy-mint)" stroke="color-mix(in srgb, var(--candy-mint) 85%, var(--ink))" strokeWidth="2" />
           <ellipse cx={x} cy="77" rx="15" ry="18" fill="color-mix(in srgb, var(--candy-lemon) 15%, var(--surface))" />
           <ellipse cx={x + 2} cy="76" rx="8.5" ry="11.5" fill="var(--ink)" />
           <circle cx={x} cy="72" r="3.5" fill="var(--surface)" />

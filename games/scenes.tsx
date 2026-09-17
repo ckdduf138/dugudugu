@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { GamePreparation } from "@/components/ui/GamePreparation";
 import { useTranslations } from "next-intl";
 import type { ComponentType } from "react";
 import { DuguLoader } from "@/components/ui/DuguLoader";
@@ -48,7 +49,8 @@ const GAMES: Record<string, ComponentType> = {
 
 export function GameScene({ slug }: { slug: string }) {
   const Scene = GAMES[slug];
-  return Scene ? <Scene /> : null;
+  if (!Scene) return null;
+  return slug === "ladder" ? <Scene /> : <GamePreparation key={slug} slug={slug}><Scene /></GamePreparation>;
 }
 
 export function getGameComponent(slug: string): ComponentType | null {

@@ -496,3 +496,28 @@ body:has([data-game-immersive="true"][data-game-phase="playing"])
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Waiting Dugu is request-free. Its whole silhouette sighs as one connected body. */
+.dugu-waiting-body {
+  transform-origin: 120px 166px;
+  animation: dugu-sigh 4.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.dugu-waiting-foot {
+  transform-origin: 138px 162px;
+  animation: dugu-foot 1.8s ease-in-out infinite;
+}
+
+@keyframes dugu-sigh {
+  0%, 65%, 100% { transform: translateY(0) rotate(0); }
+  34%, 48% { transform: translateY(2px) rotate(-1.5deg); }
+}
+
+@keyframes dugu-foot {
+  0%, 55%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-7deg); }
+}
+.dugu-loader-content { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .dugu-waiting-body, .dugu-waiting-foot, .dugu-loader-dot { animation: none; }
+}

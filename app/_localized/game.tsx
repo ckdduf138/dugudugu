@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { CSSProperties } from "react";
 import { ArrowLeft } from "lucide-react";
 import { getGame, games } from "@/games/registry";
+import { GAME_ASSETS } from "@/lib/game-assets";
 import { GamePlayer } from "@/components/game/GamePlayer";
 import { GameTileArtwork } from "@/components/lobby/GameTileArtwork";
 import { JsonLd } from "@/components/ui/JsonLd";
@@ -160,6 +161,7 @@ export async function GamePage({
         <p>{gt("tagline")}</p>
         <p>{gt("description")}</p>
       </section>
+      {GAME_ASSETS[slug] && <link rel="preload" href={GAME_ASSETS[slug].href} as={GAME_ASSETS[slug].as} crossOrigin={GAME_ASSETS[slug].as === "fetch" ? "anonymous" : undefined} />}
       <GamePlayer slug={slug} />
 
       {game.status === "live" ? (

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
+import { useGamePrepared } from "@/components/ui/GamePreparation";
 import { RotateCcw } from "lucide-react";
 import { GameShell, ResultDialog } from "@/components/game-shell";
 import { ChipsInput, type ChipsInputChange } from "@/components/ui/ChipsInput";
@@ -47,6 +48,13 @@ export function BlepGame() {
   const hydrateFromShare = useBlepStore((state) => state.hydrateFromShare);
 
   const [artStatus, setArtStatus] = useState<"loading" | "ready" | "error">("loading");
+  const prepared = useGamePrepared();
+  useEffect(() => {
+    if (artStatus === "loading") return;
+    let second = 0;
+    const first = requestAnimationFrame(() => { second = requestAnimationFrame(() => prepared?.()); });
+    return () => { cancelAnimationFrame(first); cancelAnimationFrame(second); };
+  }, [artStatus, prepared]);
   const [caught, setCaught] = useState(0);
   const [dugu, setDugu] = useState<BlepDuguLayout | null>(null);
   const replayButtonRef = useRef<HTMLButtonElement>(null);

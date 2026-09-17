@@ -23,7 +23,7 @@ KO/EN lobby cards, metadata, and sitemap entries.
 ## Visual authority — clarified by the user, 2026-09-16
 
 - The original brand mascot is the **identity reference**, not the in-game pose.
-  Blep uses a newly authored front-facing Dugu (`public/images/blep/dugu-front-seated.png`)
+  Blep uses a newly authored front-facing Dugu (`public/images/blep/dugu-front-seated.webp`)
   with both eyes visible and the tongue extending from the central mouth.
 - Preserve the soft 2.5D mint body, rounded scalloped crest, warm cream eyes,
   cream belly, lemon cheek star and coral spiral tail. No pointed crest,
