@@ -19,13 +19,21 @@ import {
 
 const SOCIAL_IMAGES: Record<
   string,
-  { path: string; width: number; height: number }
+  { path: string; en?: string; width: number; height: number }
 > = {
   draw: { path: "/images/games/draw.webp", width: 640, height: 480 },
   ladder: { path: "/images/games/ladder.webp", width: 640, height: 480 },
   race: { path: "/images/games/race.webp", width: 640, height: 480 },
   fortune: {
     path: "/images/brand/social-card.png",
+    width: 1200,
+    height: 630,
+  },
+  // Cards that carry their own title need one per locale.
+  // node scripts/gen-game-social-card.mjs blep
+  blep: {
+    path: "/images/games/blep.webp",
+    en: "/images/games/blep-en.webp",
     width: 1200,
     height: 630,
   },
@@ -67,7 +75,9 @@ export async function gameMetadata(
   const socialImage = SOCIAL_IMAGES[game.slug];
   const image = socialImage
     ? {
-        url: absoluteUrl(socialImage.path),
+        url: absoluteUrl(
+          (locale === "en" ? socialImage.en : undefined) ?? socialImage.path,
+        ),
         width: socialImage.width,
         height: socialImage.height,
         alt: `${title} — ${tagline}`,
