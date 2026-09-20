@@ -176,8 +176,14 @@ Techniques to reach for (use a subset per game, keep it snappy):
   real resources are painted. R3F signals after the complete Suspense tree renders;
   Blep signals after its image has loaded and subsequent animation frames run.
   Unsupported/error fallbacks release the gate; slow preparation offers localized reload.
-- Loading Dugu is lightweight inline SVG with a bored expression, a slow sigh and foot tap.
-  It has no image dependency; reduced motion freezes the illustration. Route feedback
+- Loading Dugu is a request-free inline SVG line drawing: one continuous mono-line
+  chameleon path (tail spiral, belly, back, casque dome, snout) laid down once as a
+  faint track, with a single mint segment travelling that outline while it grows and
+  shrinks — the indeterminate progress grammar, so waiting is read from a position on
+  the line. `pathLength="100"` normalises the outline for the dash keyframes. The
+  loading screen carries no visible caption, no dots, no colour cycling and no idle
+  bobbing; the destination title and loading label stay screen-reader-only. It has no
+  image dependency; reduced motion rests on the complete mint outline. Route feedback
   has no deliberate delay. Existing full mascot redesign is still pending: ImageGen
   rejected both generation attempts, so existing raster identity has been preserved.
 - Runtime Blep/result mascot images now use resized transparent WebP siblings; originals
