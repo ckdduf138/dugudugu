@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated/vendored trees anywhere in the checkout. The bare "out/**"
+    // above only matches the top-level export, so nested copies left by
+    // Claude Code worktree sessions still flooded the report.
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/out/**",
+    "**/.claude/**",
   ]),
 ]);
 
