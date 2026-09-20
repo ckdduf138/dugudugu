@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
+import { GoogleAnalytics } from "@/components/ui/GoogleAnalytics";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import { rootHtmlClassName } from "@/app/root-config";
 import type { Locale } from "@/i18n/routing";
@@ -18,6 +19,7 @@ export function LocaleRootLayout({ locale, children }: Props) {
   return (
     <html lang={locale} className={rootHtmlClassName}>
       <head>
+        <GoogleAnalytics />
         <link
           rel="preconnect"
           href="https://cdn.jsdelivr.net"
