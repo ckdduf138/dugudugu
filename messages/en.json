@@ -1,8 +1,8 @@
 {
   "site": {
     "name": "Dugupop",
-    "tagline": "Free Ladder Game, Random Picker & Fortune Cookie",
-    "description": "Dugupop is a free random picker arcade for capsule draws, ladder games, and fortune cookies, with fair seeded results and playful polished reveals."
+    "tagline": "Free Ladder Game, Name Picker & Fortune Cookie",
+    "description": "Dugupop is a free random picker arcade for name draws, ladder games, random turn order, and fortune cookies, with fair seeded results and playful polished reveals."
   },
   "nav": {
     "home": "Home",
@@ -39,7 +39,7 @@
       "open": "Say hello to Dugu",
       "close": "Close Dugu's introduction",
       "greeting": "Hi, I'm Dugu!",
-      "introduction": "Pick a draw, ladder game, or fortune cookie. I'll make the suspense before the answer part of the fun!"
+      "introduction": "Pick Blep!, a draw, a ladder game, or a fortune cookie. I'll make the suspense before the answer part of the fun!"
     },
     "primaryCta": "Draw now",
     "secondaryCta": "Choose a game",
@@ -391,15 +391,15 @@
     "blep": {
       "title": "Blep!",
       "short": "Dugu snaps up little cartoon flies with name tags",
-      "tagline": "A free pinball-style name picker where the last one standing wins",
-      "description": "A free online pinball-style name picker. Add names and little cartoon flies with name tags flit around the arena while Dugu the chameleon flicks out its tongue and snaps them up one by one. The last name left is the result, and the catch order doubles as a turn order or seating order. Use it for penalties, presentation order, or classroom seats with no sign-up or install.",
+      "tagline": "A free name picker and turn-order generator where the last one standing wins",
+      "description": "A free online name picker and random turn-order generator. Add names and little cartoon flies with name tags flit around the arena while Dugu the chameleon flicks out its tongue and snaps them up one by one. The last name left is the result, and the catch order doubles as a turn order or seating order. Use it for penalties, presentation order, or classroom seats with no sign-up or install.",
       "seo": {
-        "title": "Blep! – Pinball Name Picker & Turn Order",
-        "heading": "Dugupop Blep! pinball name picker",
+        "title": "Free Random Name Picker & Turn Order",
+        "heading": "Dugupop Blep! free random name picker",
         "alternateNames": [
           "Dugupop Blep",
-          "pinball name picker",
-          "random turn order"
+          "random name picker",
+          "random turn order generator"
         ],
         "features": [
           "Up to 50 names",

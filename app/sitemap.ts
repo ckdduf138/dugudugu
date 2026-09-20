@@ -7,7 +7,10 @@ export const dynamic = "force-static";
 
 // The 두구팝 rebrand and dugupop.com move changed every page's title and URL.
 const DEFAULT_LAST_MEANINGFUL_UPDATE = new Date("2026-09-15T00:00:00+09:00");
-const GAME_LAST_MEANINGFUL_UPDATE: Partial<Record<string, Date>> = {};
+const GAME_LAST_MEANINGFUL_UPDATE: Partial<Record<string, Date>> = {
+  // 날름 shipped after the rebrand and now targets its own search intent.
+  blep: new Date("2026-09-20T00:00:00+09:00"),
+};
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = [
