@@ -31,7 +31,7 @@ describe("ResultDialog accessibility", () => {
       </ResultDialog>,
     );
     const peeker = Array.from(view.container.querySelectorAll("img")).find(
-      (image) => image.getAttribute("src")?.includes("dugu-chameleon-peeker.webp"),
+      (image) => image.getAttribute("src")?.includes("dugu-baby-peeker.webp"),
     );
 
     expect(peeker).toBeDefined();

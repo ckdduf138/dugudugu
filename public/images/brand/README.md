@@ -1,5 +1,28 @@
 # Dugu mascot provenance
 
+## Current baby-character retouch — 2026-09-20
+
+The user supplied the original tilted peeker and seated baby Dugu, reset the
+previous uncommitted revisions, and requested a selective final retouch.
+The original big cream eyes, dark pupils, single catchlights, smile and mint /
+cream / coral palette stay. Refinements are a low rounded casque, a smaller
+tapered tail with a mint root, a quieter cheek star and softer satin shading.
+
+Both poses were edited with the built-in OpenAI ImageGen tool using only the
+project's original artwork and the user's screenshots. No third-party stock
+artwork was added. Source PNGs retain the generated alpha.
+
+- Lobby: `dugu-baby-lobby.webp`, 480×455, 27,234 bytes; body cutoff at 85% height.
+- Result peeker: `dugu-baby-peeker.webp`, 480×320, 13,486 bytes; existing 3:2 layout.
+- Result watermark: `../blep/dugu-baby-seated.webp`, shared with Blep.
+- [Sources and exact prompts](../../../scripts/assets/dugu-final-retouch/prompts.md).
+- Rebuild: `node scripts/build-dugu-baby-assets.mjs` (framing and WebP encoding
+  only; no generated-alpha replacement or artwork redrawing).
+
+Earlier variants below remain as provenance; these two retouched poses are
+the current raster authority. Icons, flat lobby tiles and loading UI remain
+independent.
+
 ## Current eyebrow-free variants
 
 - Runtime: `dugu-mascot-no-brows.png` and `dugu-result-peeker-no-brows.png`.

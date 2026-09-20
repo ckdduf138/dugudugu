@@ -9,13 +9,13 @@ export const FLY_ART = {
   smile: "M-5 -5 Q0 0 5 -5",
 } as const;
 
-/** Compact seated Dugu: the smile and grounded body share this source transform. */
+/** 1254px source: smile (624, 726), foot baseline 1192; tongue shares this transform. */
 export const DUGU_ART = {
   src: GAME_ASSETS.blep.href,
-  x: -0.83,
-  y: -0.8,
+  x: -0.846,
+  y: -0.856,
   scale: 1.7,
-  mouthX: -0.002,
-  mouthY: 0.135,
+  mouthX: 0,
+  mouthY: 0.1282,
   anchorY: 0.76,
 } as const;

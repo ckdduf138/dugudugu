@@ -16,10 +16,14 @@ The first viewport is a game picker, not a marketing landing page. A user should
 - Blep is the signature game (`featured: true` in the registry). It leads the
   grid at the same size, marked only by an accent ring and the single dark
   `인기` / `HOT` pill with a coral flame. No other card gets a badge.
-- Dugu (`dugu-lobby-peeker.webp`, cropped so the tray edge sits at 85% of its
+- Dugu (`dugu-baby-lobby.webp`, cropped so the tray edge sits at 85% of its
   height) leans over the tray's top edge: off-center on phones so the greeting
   bubble fits, centered from `sm`. Its entrance is a CSS animation so it shows
   before hydration.
+- The 2026-09-20 raster retouch keeps the original tilted baby face, with a low
+  rounded casque and a smaller tail curling from its mint root. Its exact
+  source/prompt and deterministic exports live in `scripts/assets/dugu-final-retouch/`
+  and `scripts/build-dugu-baby-assets.mjs`; vector card art remains independent.
 - Background: static blurred color orbs (`filter: blur`, never
   `backdrop-filter`, never animated) plus a masked dot grid. The tray's
   translucency over those orbs provides the frosted look.

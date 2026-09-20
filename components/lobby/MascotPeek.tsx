@@ -41,7 +41,7 @@ export function MascotPeek({
           className="group/mascot pointer-events-auto relative block w-full cursor-pointer rounded-[2rem] outline-none focus-visible:ring-4 focus-visible:ring-candy-mint/45"
         >
           <Image
-            src="/images/brand/dugu-chameleon-lobby.webp"
+            src="/images/brand/dugu-baby-lobby.webp"
             alt=""
             width={480}
             height={455}

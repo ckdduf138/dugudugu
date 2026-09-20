@@ -1,6 +1,23 @@
 # Blep front-facing Dugu
 
-Current runtime artwork: `dugu-front-seated.png` (1254 × 1254, transparent PNG).
+## Current baby-character retouch — 2026-09-20
+
+Runtime: `dugu-baby-seated.webp`, 640×640, 36,074 bytes. The original seated
+`dugu-front-seated.png` and the user's in-game screenshot supplied the identity
+reference for the built-in OpenAI ImageGen retouch. Preserve the original large
+cream eyes, single white catchlights and little closed smile. The low rounded
+casque, smaller tail with a connected mint root, small cheek star and soft satin
+shading refine its baby character. No third-party artwork was added.
+
+The generated 1254×1254 PNG with its original alpha is kept at
+`scripts/assets/dugu-final-retouch/dugu-seated.png`. The smile is (624, 726),
+with the foot baseline at y=1192. Blep animates its own tongue and flies, so
+neither is baked into the sprite. Rebuild with `node scripts/build-dugu-baby-assets.mjs`.
+[Exact built-in ImageGen prompts](../../../scripts/assets/dugu-final-retouch/prompts.md).
+
+The sections below document the earlier source poses.
+
+Previous seated source: `dugu-front-seated.png` (1254 × 1254, transparent PNG).
 The latest user correction prefers a low seated silhouette and a gentle face
 without separate dark eyebrows. Small folded haunches replace the standing legs;
 soft mint eyelids frame the eyes, and the coral tail rests beside the body.

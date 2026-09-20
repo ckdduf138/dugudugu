@@ -20,20 +20,24 @@ KO/EN lobby cards, metadata, and sitemap entries.
   reveals the same frozen result immediately.
 - Stores remain memory-only and clear on route exit. Replay keeps the names.
 
-## Visual authority — clarified by the user, 2026-09-16
+## Visual authority — final baby retouch, 2026-09-20
 
 - The original brand mascot is the **identity reference**, not the in-game pose.
-  Blep uses a newly authored front-facing Dugu (`public/images/blep/dugu-front-seated.webp`)
+  Blep uses the retouched front-facing Dugu (`public/images/blep/dugu-baby-seated.webp`)
   with both eyes visible and the tongue extending from the central mouth.
-- Preserve the soft 2.5D mint body, rounded scalloped crest, warm cream eyes,
-  cream belly, lemon cheek star and coral spiral tail. No pointed crest,
+- Preserve the soft 2.5D mint body, low rounded casque, warm cream eyes,
+  cream belly, small lemon cheek star and tapered coral curl with a mint root
+  connected to the body. Keep the large dark pupils and single catchlights.
+  No tall pointed crest,
   procedural frog approximation, or side-facing original sprite in this game.
 - The user supplied a big-eye cartoon fly reference. Use original code-native
   soft cartoon flies with huge white eyes, small dark bodies, short antennae and
   plump grey wings. No compound-eye texture, red eyes, wing veins, or realism.
   The interim smiling winged jelly direction is replaced by cartoon flies.
 - `blepArtwork.ts` owns shared fly paths for Canvas, result rows, and the lobby,
-  plus the new mascot URL and measured central-mouth coordinates.
+  plus the mascot URL and measured central-mouth coordinates. The 1254px source
+  smile is (624, 726), with the foot baseline at y=1192. Keep tongue and body
+  motion anchored to that same transform.
 - Keep the mint coat through every phase. The user prefers a compact, low seated
   silhouette: short folded haunches, tiny tucked toes, relaxed paws and a low
   coral tail. No elongated standing legs, separate dark eyebrows or heavy eye

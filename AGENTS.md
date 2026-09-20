@@ -150,6 +150,25 @@ Techniques to reach for (use a subset per game, keep it snappy):
 
 ## 7. Status (update as you go)
 
+### 2026-09-20 final baby-Dugu retouch (current raster authority)
+- The user reset the previous uncommitted retouch and supplied the original
+  peeking and seated baby poses as the references. Preserve their large warm
+  cream eyes, dark round pupils with one white catchlight, little smile, mint
+  body, cream belly and small lemon cheek star.
+- The two poses now use a low rounded casque, a smaller tapered curl with a
+  mint-to-coral root continuous with the body, and soft satin shading. Keep the
+  baby proportions and original gaze; avoid tall pointed crests, realistic
+  reptile detail or unrelated color patches.
+- Runtime assets are `dugu-baby-seated.webp`, `dugu-baby-peeker.webp` and the
+  tightly framed `dugu-baby-lobby.webp`. The same seated pose supplies the quiet
+  result watermark. Lobby vector tiles, brand icons and loading UI retain the
+  restored baseline.
+- Original generated alpha, exact prompts and source PNGs live in
+  `scripts/assets/dugu-final-retouch/`. Rebuild the three WebPs with
+  `node scripts/build-dugu-baby-assets.mjs`. The lobby cut line stays at 85%;
+  the result derivative preserves the existing 3:2 framing. Blep's 1254px
+  source smile is (624, 726), with its foot baseline at y=1192.
+
 ### 2026-09-17 loading preparation
 - The selected game's primary asset URL lives in `lib/game-assets.ts`; its server HTML
   preloads only that asset, sharing the exact URL with the runtime loader.
