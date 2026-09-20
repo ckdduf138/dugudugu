@@ -7,6 +7,9 @@
 
   --bg: #fff9fd;
   --bg-2: #eef8ff;
+  /* Warm cream stage. The fortune route paints DOM and WebGL with this one
+     value, so the opaque canvas never seams against a different page color. */
+  --bg-warm: #fff8ed;
   --surface: #ffffff;
   --ink: #34273a;
   --ink-soft: #76667c;
@@ -33,6 +36,7 @@
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-2: var(--bg-2);
+  --color-bg-warm: var(--bg-warm);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);

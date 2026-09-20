@@ -148,7 +148,7 @@ function FortuneFallback({
     <div
       role="img"
       aria-label={label}
-      className="absolute inset-0 grid place-items-center overflow-hidden bg-[radial-gradient(circle_at_50%_28%,var(--surface),color-mix(in_srgb,var(--candy-lemon)_17%,var(--bg))_58%,color-mix(in_srgb,var(--candy-coral)_10%,var(--bg)))]"
+      className="absolute inset-0 grid place-items-center overflow-hidden bg-bg-warm"
     >
       <div aria-hidden className="relative h-52 w-80">
         <span className="absolute inset-x-8 bottom-2 h-10 rounded-[50%] border-4 border-candy-pink/20 bg-surface shadow-[0_18px_28px_rgba(52,39,58,0.12)]" />
@@ -335,7 +335,7 @@ export function FortuneGame() {
         fallback={
           <FortuneFallback step={crackStep} label={t("stage.fallback")} />
         }
-        className="bg-[radial-gradient(circle_at_50%_31%,var(--surface),color-mix(in_srgb,var(--candy-lemon)_18%,var(--bg))_61%,color-mix(in_srgb,var(--candy-coral)_9%,var(--bg)))]"
+        className="bg-bg-warm"
       >
         <FortuneScene
           beat={finalBeat}
@@ -510,7 +510,7 @@ export function FortuneGame() {
       announcement={announcement}
       announcementKey={`${phase}:${result?.seed ?? "none"}`}
       immersiveDuringPlay={false}
-      className="[--primary:var(--candy-lemon)] bg-[linear-gradient(145deg,var(--bg),color-mix(in_srgb,var(--candy-lemon)_13%,var(--bg))_52%,color-mix(in_srgb,var(--candy-coral)_8%,var(--bg)))]"
+      className="[--primary:var(--candy-lemon)] bg-bg-warm"
     />
   );
 }

@@ -90,6 +90,13 @@ Read this file only for changes under `games/fortune/` or its Blender asset.
   icons. Reduced motion is static. Keep the delivery paper under 100 KB. The
   earlier Blender-authored hand and paper remain under `rejected/` for audit
   and must not be referenced by the runtime.
+- The route is one flat surface. The canvas is opaque (`alpha: false`), so its
+  clear color is a second painted background: the scene, the canvas wrapper,
+  the route section, and the WebGL-less fallback all use the `--bg-warm` token,
+  and `FortuneScene` reads that same token instead of a literal hex. Do not
+  reintroduce a page gradient behind the stage; the canvas only covers the
+  centered `max-w-[74rem]` column, so any different page color shows as a
+  two-tone seam on wide or short viewports.
 - Fortune ships without runtime audio. Keep the restrained tap/final-snap
   haptics.
 

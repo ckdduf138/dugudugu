@@ -61,6 +61,10 @@ KO/EN lobby cards, metadata, and sitemap entries.
   garden props (flowers, mushrooms, a lily pond, grass) around the edges. They
   are background only: no bumpers or collisions, and no center ring or star. The static
   bed is painted once per canvas size and reused every frame.
+- The route is one flat `--bg` surface. The stage and the setup panel are two
+  separately painted areas, so a stage radial gradient and a route linear
+  gradient met in a visible two-tone seam along the setup edge. Keep both flat
+  and identical; the court's own color belongs inside the canvas art.
 - An empty idle court shows three unlabeled ambient flies. The first added names
   take over their positions; ambient flies never exist once names or a round do.
 - Cartoon flies have gentle wing flutter and upright colored name tags.

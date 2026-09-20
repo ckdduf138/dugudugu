@@ -108,7 +108,7 @@ export function BlepGame() {
     phase === "idle" ? "setup" : phase === "playing" ? "playing" : "result";
 
   const stage = (
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,var(--surface)_0%,color-mix(in_srgb,var(--candy-mint)_12%,var(--bg))_58%,color-mix(in_srgb,var(--candy-lemon)_10%,var(--bg))_100%)]">
+    <div className="absolute inset-0 bg-bg">
       <BlepArena
         entries={entries}
         round={round}
@@ -275,7 +275,6 @@ export function BlepGame() {
           compact: true,
           className: "shadow-sm",
         }}
-        className="bg-[linear-gradient(145deg,var(--bg),color-mix(in_srgb,var(--candy-mint)_10%,var(--bg))_52%,color-mix(in_srgb,var(--candy-lemon)_9%,var(--bg)))]"
       />
       {resultDialog}
     </>

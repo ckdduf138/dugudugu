@@ -9,6 +9,22 @@ import { seekOneShotClip } from "./animation";
 
 const MODEL_URL = GAME_ASSETS.fortune.href;
 const CRACKED_STEP = 10;
+const FALLBACK_BACKGROUND = "#fff8ed";
+
+/**
+ * The canvas is opaque (`alpha: false`), so its clear color is a second
+ * painted background next to the route's DOM color. Read the same `--bg-warm`
+ * token both surfaces use instead of duplicating a literal, so they can never
+ * drift into a visible two-tone seam.
+ */
+function stageBackground() {
+  if (typeof window === "undefined") return FALLBACK_BACKGROUND;
+  const token = window
+    .getComputedStyle(document.documentElement)
+    .getPropertyValue("--bg-warm")
+    .trim();
+  return token || FALLBACK_BACKGROUND;
+}
 
 export type FortuneBeat = "idle" | "press" | "crack" | "reveal";
 
@@ -250,9 +266,11 @@ export function FortuneScene({
   forceFinal = false,
   reducedMotion = false,
 }: Props) {
+  const background = useMemo(() => stageBackground(), []);
+
   return (
     <>
-      <color attach="background" args={["#fff8ed"]} />
+      <color attach="background" args={[background]} />
       <ambientLight intensity={0.88} />
       <CameraChoreography
         beat={beat}
